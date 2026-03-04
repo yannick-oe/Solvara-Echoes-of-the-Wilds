@@ -1,38 +1,34 @@
-# Solvara: Echoes of the Wilds
+# Solvara – Beginner Friendly Structure
 
-2D Jump'n'Run mit Canvas (720x480), fester Update-Rate von 60 FPS und modularer OOP-Struktur.
+Das Spielgefühl bleibt erhalten (Parallax, Tileset, Spieler-Sprite, Jump'n'Run),
+aber die Code-Struktur ist jetzt deutlich einfacher aufgebaut.
+
+## Aktueller Stand
+
+- 1 funktionierendes Level
+- Spieler mit laufen, springen, ducken
+- Kamera folgt dem Spieler
+- Parallax-Hintergrund mit vorhandenen Assets
+- Ziel am Level-Ende
 
 ## Steuerung
 
-- `A` / `D` oder Pfeiltasten links/rechts: laufen
-- `Space`: springen
-- `S` oder Pfeil nach unten: ducken
-- `F`: Fullscreen umschalten (Container-Div, nicht Canvas direkt)
+- `A` / `D` oder Pfeiltasten links/rechts → laufen
+- `Space` → springen
+- `S` oder Pfeil runter → ducken
+- `F` → Fullscreen
 
-## Architektur
+## Einfache Struktur
 
-- `src/core/Game.js`: Game-Loop, Preload, Levelwechsel, Entity-Update/Draw
-- `src/core/Time.js`: Fixed-Timestep (`1/60`) für stabile Physik
-- `src/entities/Entity.js`: Basisklasse für Vererbung
-- `src/entities/Player.js`: Spielerlogik, Kollision, Animation (stoppable intervals)
-- `world/Level.js`: Laden und Bauen von Levels aus JSON
+- `src/main.js` → Start, Resize, Fullscreen
+- `src/game.js` → Game-Loop, Laden, Update, Draw
+- `src/constants.js` → alle zentralen Werte
+- `src/imageCache.js` → Bilder laden
+- `src/input.js` → Tastatur
+- `src/level.js` → Tilemap + Ziel
+- `src/player.js` → Spielerphysik + Animation
+- `src/camera.js` → Kamera-Follow
+- `src/parallax.js` → Hintergrund-Layer
+- `src/spriteSheet.js` → SpriteFrames
 
-## Leveldaten
-
-Level liegen in:
-
-- `assets/data/levels/level_01.json`
-- `assets/data/levels/level_02.json`
-
-Format:
-
-- `width`, `height`, `groundRow`
-- `spawnCol`, `spawnRow`
-- `groundSections`: Arrays aus `[startCol, endCol]`
-- `platforms`: Arrays aus `[row, startCol, endCol]`
-
-## Hinweise
-
-- Assets werden zentral über `ImageCache` geladen.
-- Animationen verwenden stoppbare `setInterval`-IDs, damit sie sauber beendet werden können.
-- Levelwechsel erfolgt am rechten Levelrand automatisch.
+Damit ist das Projekt für Einsteiger gut nachvollziehbar, ohne das eigentliche Spiel zu verlieren.
