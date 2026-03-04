@@ -1,0 +1,16 @@
+{
+	"width": 80,
+	"height": 10,
+	"groundRow": 8,
+	"spawnCol": 3,
+	"spawnRow": 7,
+	"groundSections": [
+		[0, 17],
+		[21, 41],
+		[46, 79]
+	],
+	"platforms": [
+		[6, 26, 31],
+		[5, 55, 60]
+	]
+}

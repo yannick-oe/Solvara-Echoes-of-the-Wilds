@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solvara: Echoes of the Wilds</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      background: #0b0f14;
+      overflow: hidden;
+    }
+
+    #gameContainer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="720" height="480"></canvas>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
