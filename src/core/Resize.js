@@ -1,3 +1,9 @@
+/**
+ * Scales the game container pixel-perfect to the browser window.
+ * @param {HTMLElement} container The surrounding container element.
+ * @param {number} baseW Base width of the game resolution.
+ * @param {number} baseH Base height of the game resolution.
+ */
 export function fitCanvasToWindow(container, baseW, baseH) {
     const scaleX = Math.floor(window.innerWidth / baseW);
     const scaleY = Math.floor(window.innerHeight / baseH);

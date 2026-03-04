@@ -16,6 +16,12 @@ export class Player extends Entity {
   static FRAMES_FALL = [23];
   static FRAMES_DUCK = [13];
 
+  /**
+    * Creates the playable character.
+    * @param {import("../core/ImageCache.js").ImageCache} imageCache Asset cache with preloaded images.
+    * @param {{spawnCol:number,spawnRow:number}} level Level data with spawn position.
+    * @param {(fn: Function, time: number) => number} setStoppableInterval Factory function for stoppable intervals.
+   */
   constructor(imageCache, level, setStoppableInterval) {
     const hitW = 28;
     const hitH = 48;
@@ -48,6 +54,9 @@ export class Player extends Entity {
     this.#startAnimationInterval();
   }
 
+  /**
+    * Stops all intervals started by the player.
+   */
   stopIntervals() {
     for (let i = 0; i < this.intervalIds.length; i++) {
       clearInterval(this.intervalIds[i]);
@@ -55,12 +64,20 @@ export class Player extends Entity {
     this.intervalIds = [];
   }
 
+  /**
+    * Creates a stoppable interval for the player.
+    * @param {Function} fn The callback function to execute.
+    * @param {number} time The interval in milliseconds.
+   */
   #setStoppableInterval(fn, time) {
     const id = this.setStoppableInterval(fn, time);
     this.intervalIds.push(id);
     return id;
   }
 
+  /**
+    * Starts the interval for sprite frame switching.
+   */
   #startAnimationInterval() {
     let self = this;
     this.#setStoppableInterval(function () {
@@ -73,6 +90,12 @@ export class Player extends Entity {
     }, 100);
   }
 
+  /**
+    * Updates player movement, physics, and state flags.
+    * @param {number} dt Delta time in seconds.
+    * @param {import("../core/Input.js").Input} input Input system.
+    * @param {import("../../world/Tilemap.js").Tilemap} tilemap Active tilemap.
+   */
   update(dt, input, tilemap) {
     let moveX = 0;
     if (input.isDown("ArrowLeft") || input.isDown("KeyA")) moveX -= 1;
@@ -120,6 +143,11 @@ export class Player extends Entity {
     this.#updateAnimation(dt, moveX);
   }
 
+  /**
+    * Selects the active animation based on movement state.
+    * @param {number} _dt Delta time in seconds.
+    * @param {number} moveX Horizontal input direction.
+   */
   #updateAnimation(_dt, moveX) {
     let nextAnimationKey = "idle";
     if (!this.onGround) {
@@ -137,6 +165,11 @@ export class Player extends Entity {
     }
   }
 
+  /**
+    * Draws the player relative to the camera.
+    * @param {CanvasRenderingContext2D} ctx Rendering context.
+    * @param {{x:number,y:number}} camera Camera offset.
+   */
   draw(ctx, camera) {
     const frameIndex = this.currentAnimationFrames[this.currentImage];
     const f = this.sheet.frame(frameIndex);

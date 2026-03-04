@@ -9,6 +9,10 @@ import { ParallaxLayer } from "../../world/Parallax.js";
 import { Time } from "./Time.js";
 
 export class Game {
+  /**
+  * Creates the central game instance.
+  * @param {HTMLCanvasElement} canvas The game canvas.
+   */
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
@@ -31,6 +35,9 @@ export class Game {
     this.levelTransitioning = false;
   }
 
+  /**
+    * Loads assets and starts the game loop.
+   */
   async start() {
     try {
       this.stop();
@@ -58,11 +65,18 @@ export class Game {
     }
   }
 
+  /**
+    * Loads all statically registered assets.
+   */
   async #preload() {
     const paths = Object.values(Assets);
     await this.imageCache.loadAll(paths);
   }
 
+  /**
+    * Loads a level by its index.
+    * @param {number} levelIndex The index inside the level path array.
+   */
   async #loadLevel(levelIndex) {
     const tilesetImg = this.imageCache.get(Assets.TILESET);
     this.level = await Level.load(this.levelPaths[levelIndex], tilesetImg);
@@ -78,12 +92,20 @@ export class Game {
     this.entities = [this.player];
   }
 
+  /**
+    * Creates a stoppable interval and stores its ID.
+    * @param {Function} fn The callback function to execute.
+    * @param {number} time The interval time in milliseconds.
+   */
   setStoppableInterval(fn, time) {
     const id = setInterval(fn, time);
     this.intervalIds.push(id);
     return id;
   }
 
+  /**
+    * Stops all active intervals of this game instance.
+   */
   stopIntervals() {
     for (let i = 0; i < this.intervalIds.length; i++) {
       clearInterval(this.intervalIds[i]);
@@ -91,6 +113,9 @@ export class Game {
     this.intervalIds = [];
   }
 
+  /**
+    * Stops the game state and all running intervals.
+   */
   stop() {
     this.running = false;
     this.levelTransitioning = false;
@@ -100,6 +125,10 @@ export class Game {
     this.stopIntervals();
   }
 
+  /**
+    * Executes the next render frame.
+    * @param {number} ts Browser frame timestamp.
+   */
   #loop(ts) {
     if (!this.running) return;
 
@@ -114,6 +143,10 @@ export class Game {
     });
   }
 
+  /**
+    * Updates game state and entities.
+    * @param {number} dt Fixed delta time in seconds.
+   */
   #update(dt) {
     if (!(this.player instanceof Player) || !this.level) return;
 
@@ -143,11 +176,18 @@ export class Game {
     this.input.endFrame();
   }
 
+  /**
+    * Checks whether a level transition should trigger at the right edge.
+    * @param {number} levelW Level width in pixels.
+   */
   #shouldAdvanceLevel(levelW) {
     const threshold = levelW - this.player.hitW - 12;
     return this.player.x >= threshold;
   }
 
+  /**
+    * Switches to the next level and resets the camera.
+   */
   async #advanceLevel() {
     if (this.currentLevelIndex + 1 >= this.levelPaths.length) {
       this.currentLevelIndex = 0;
@@ -158,6 +198,9 @@ export class Game {
     this.camera.x = 0;
   }
 
+  /**
+    * Draws the current frame.
+   */
   #draw() {
     const w = this.canvas.width;
     const h = this.canvas.height;
@@ -175,6 +218,10 @@ export class Game {
     }
   }
 
+  /**
+    * Draws an error message directly on the canvas.
+    * @param {string} message The error text to display.
+   */
   #showError(message) {
     this.ctx.fillStyle = "#0b0f14";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);

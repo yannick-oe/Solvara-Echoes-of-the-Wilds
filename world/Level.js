@@ -2,12 +2,22 @@ import { TileID, TILE_SIZE, TILE_SCALE } from "../src/core/Constants.js";
 import { Tilemap } from "./Tilemap.js";
 
 export class Level {
+  /**
+  * Creates a level including a tilemap.
+  * @param {HTMLImageElement} tilesetImg Tileset image.
+  * @param {{tiles:number[][],spawnCol:number,spawnRow:number}} data Prepared level data.
+   */
   constructor(tilesetImg, data) {
     this.tilemap = new Tilemap(data.tiles, tilesetImg, TILE_SIZE, TILE_SCALE);
     this.spawnCol = data.spawnCol;
     this.spawnRow = data.spawnRow;
   }
 
+  /**
+    * Loads and builds a level from a JSON file.
+    * @param {string} levelPath Path to the level JSON.
+    * @param {HTMLImageElement} tilesetImg Tileset image.
+   */
   static async load(levelPath, tilesetImg) {
     try {
       const response = await fetch(levelPath);
@@ -24,6 +34,9 @@ export class Level {
     }
   }
 
+  /**
+    * Returns a fallback configuration for a base level.
+   */
   static #defaultConfig() {
     return {
       width: 80,
@@ -43,6 +56,10 @@ export class Level {
     };
   }
 
+  /**
+    * Builds a complete tile array from raw configuration.
+    * @param {{width?:number,height?:number,groundRow?:number,spawnCol?:number,spawnRow?:number,groundSections?:number[][],platforms?:number[][]}} config Raw JSON data.
+   */
   static #buildFromConfig(config) {
     const width = Number.isInteger(config.width) ? config.width : 80;
     const height = Number.isInteger(config.height) ? config.height : 10;
@@ -83,6 +100,13 @@ export class Level {
     return { tiles: tiles, spawnCol: spawnCol, spawnRow: spawnRow };
   }
 
+  /**
+    * Fills a ground section including the dirt layer.
+    * @param {number[][]} tiles Target tile matrix.
+    * @param {number} row Target row for the surface.
+    * @param {number} startCol Start column of the section.
+    * @param {number} endCol End column of the section.
+   */
   static #fillGround(tiles, row, startCol, endCol) {
     if (row < 0 || row >= tiles.length || startCol > endCol) return;
     tiles[row][startCol] = startCol === 0 ? TileID.GRASS_MID : TileID.GRASS_LEFT;
@@ -100,6 +124,13 @@ export class Level {
     }
   }
 
+  /**
+    * Fills a platform section on one row.
+    * @param {number[][]} tiles Target tile matrix.
+    * @param {number} row Target row for the platform.
+    * @param {number} startCol Start column of the section.
+    * @param {number} endCol End column of the section.
+   */
   static #fillPlatform(tiles, row, startCol, endCol) {
     if (row < 0 || row >= tiles.length || startCol > endCol) return;
     tiles[row][startCol] = TileID.GRASS_LEFT;

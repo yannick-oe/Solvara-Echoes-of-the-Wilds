@@ -2,7 +2,11 @@ import { Game } from "./core/Game.js";
 import { fitCanvasToWindow } from "./core/Resize.js";
 import { toggleFullscreen } from "./core/Fullscreen.js";
 
-window.addEventListener("load", () => {
+/**
+ * Starts the game and registers global event listeners.
+ * @param {Event} _event The window load event.
+ */
+function bootstrapGame(_event) {
   const container = document.getElementById("gameContainer");
   const canvas = document.getElementById("gameCanvas");
   fitCanvasToWindow(container, 720, 480);
@@ -22,4 +26,6 @@ window.addEventListener("load", () => {
 
   const game = new Game(canvas);
   game.start();
-});
+}
+
+window.addEventListener("load", bootstrapGame);

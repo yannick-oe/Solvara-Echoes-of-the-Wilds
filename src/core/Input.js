@@ -1,4 +1,7 @@
 export class Input {
+  /**
+   * Initializes keyboard tracking for game actions.
+   */
   constructor() {
     this.keys = {};
     this.pressed = {};
@@ -21,14 +24,25 @@ export class Input {
     });
   }
 
+  /**
+   * Checks whether a key is currently pressed.
+   * @param {string} code The KeyboardEvent code.
+   */
   isDown(code) {
     return this.keys[code] === true;
   }
 
+  /**
+   * Checks whether a key was newly pressed in this frame.
+   * @param {string} code The KeyboardEvent code.
+   */
   justPressed(code) {
     return this.pressed[code] === true;
   }
 
+  /**
+   * Clears the pressed-state at the end of the frame.
+   */
   endFrame() {
     this.pressed = {};
   }

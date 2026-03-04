@@ -1,4 +1,9 @@
 export class Collision {
+  /**
+  * Resolves horizontal collisions of an entity against solid tiles.
+  * @param {{x:number,y:number,vx:number,hitW:number,hitH:number}} entity Collision object.
+  * @param {{displaySize:number,isSolid:(col:number,row:number)=>boolean}} tilemap Tilemap.
+   */
   static resolveX(entity, tilemap) {
     const ds = tilemap.displaySize;
     const left = Math.floor(entity.x / ds);
@@ -18,6 +23,11 @@ export class Collision {
     }
   }
 
+  /**
+    * Resolves vertical collisions of an entity against solid tiles.
+    * @param {{x:number,y:number,vy:number,hitW:number,hitH:number,onGround:boolean}} entity Collision object.
+    * @param {{displaySize:number,isSolid:(col:number,row:number)=>boolean}} tilemap Tilemap.
+   */
   static resolveY(entity, tilemap) {
     const ds = tilemap.displaySize;
     const left = Math.floor(entity.x / ds);
