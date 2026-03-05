@@ -6,8 +6,8 @@ export const HUD_SPRITE = {
 
 export const HUD_LAYOUT = {
     heartsY: 12,
-    diamondsY: 52,
-    starsY: 92,
+    starsY: 52,
+    diamondsY: 92,
     leftX: 12,
     iconGap: 8,
     scoreGap: 12,
@@ -16,34 +16,33 @@ export const HUD_LAYOUT = {
 
 export const HUD_FRAMES = {
     hearts: [
-        { col: 4, row: 0 },
-        { col: 5, row: 0 },
-        { col: 6, row: 0 },
-        { col: 7, row: 0 },
-        { col: 8, row: 0 },
-        { col: 9, row: 0 },
-        { col: 10, row: 0 },
-        { col: 11, row: 0 },
+        { sx: 87, sy: 3, sw: 15, sh: 15 },
+        { sx: 108, sy: 3, sw: 17, sh: 15 },
+        { sx: 132, sy: 3, sw: 17, sh: 15 },
+        { sx: 156, sy: 3, sw: 15, sh: 15 },
+        { sx: 182, sy: 2, sw: 14, sh: 16 },
+        { sx: 204, sy: 2, sw: 14, sh: 16 },
+        { sx: 227, sy: 2, sw: 14, sh: 16 },
     ],
 
     diamondSpin: [
-        { col: 0, row: 0 },
-        { col: 1, row: 0 },
-        { col: 2, row: 0 },
-        { col: 3, row: 0 },
-        { col: 4, row: 0 },
+        { sx: 1, sy: 1, sw: 13, sh: 11 },
+        { sx: 18, sy: 1, sw: 13, sh: 11 },
+        { sx: 35, sy: 1, sw: 13, sh: 11 },
+        { sx: 52, sy: 1, sw: 13, sh: 11 },
+        { sx: 69, sy: 1, sw: 13, sh: 11 },
     ],
 
     starCoinSpin: [
-        { col: 12, row: 0 },
-        { col: 13, row: 0 },
-        { col: 14, row: 0 },
-        { col: 15, row: 0 },
+        { sx: 249, sy: 3, sw: 26, sh: 26 },
+        { sx: 281, sy: 1, sw: 18, sh: 18 },
+        { sx: 316, sy: 2, sw: 28, sh: 29 },
+        { sx: 355, sy: 7, sw: 18, sh: 18 },
     ],
 };
 
 export const HUD_FALLBACK_FRAMES = {
-    heart: { col: 4, row: 0 },
-    diamond: { col: 0, row: 0 },
-    starCoin: { col: 12, row: 0 },
+    heart: { sx: 87, sy: 3, sw: 15, sh: 15 },
+    diamond: { sx: 1, sy: 1, sw: 13, sh: 11 },
+    starCoin: { sx: 249, sy: 3, sw: 26, sh: 26 },
 };

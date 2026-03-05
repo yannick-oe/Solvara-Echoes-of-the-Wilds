@@ -180,7 +180,9 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
 
     drawHudIcon(frame, x, y, alpha = 1) {
         if (!this.hudSprite) return;
-        const source = this.hudSprite.frameAt(frame.col, frame.row);
+        const source = frame.sx !== undefined
+            ? frame
+            : this.hudSprite.frameAt(frame.col, frame.row);
         const size = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
         this.ctx.save();
         this.ctx.globalAlpha = alpha;
@@ -232,8 +234,8 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
 
     drawHud() {
         this.drawHeartsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.heartsY);
-        this.drawDiamondHud(HUD_LAYOUT.leftX, HUD_LAYOUT.diamondsY);
         this.drawStarsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.starsY);
+        this.drawDiamondHud(HUD_LAYOUT.leftX, HUD_LAYOUT.diamondsY);
     }
 
     updateSwitch() {
