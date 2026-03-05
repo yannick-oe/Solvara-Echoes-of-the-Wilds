@@ -115,6 +115,12 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         this.ctx.font = "16px monospace"; // Normale UI-Schrift setzen.
         this.ctx.fillText("Move: A/D or Arrow Keys | Jump: Space | Duck: S/ArrowDown", 12, 24); // Steuerungs-Hinweis zeichnen.
         this.ctx.fillText("Fullscreen: F", 12, 46); // Vollbild-Hinweis zeichnen.
+        this.ctx.fillText(`Deaths: ${this.player.deathCount}`, 12, 68);
+
+        if (this.player.isRespawning) {
+            this.ctx.fillStyle = "#b71c1c";
+            this.ctx.fillText("Respawning...", 300, 46);
+        }
 
         if (this.levelCompleted) { // Wenn das Level geschafft wurde...
             this.ctx.fillStyle = "#1b5e20"; // ...grüne Farbe setzen.

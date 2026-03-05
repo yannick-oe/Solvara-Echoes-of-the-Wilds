@@ -60,6 +60,11 @@ export class Player {
     this.currentFramePointer = 0;
     this.animationTimer = 0;
     this.animationFrameDuration = 0.1;
+
+    this.deathCount = 0;
+    this.isRespawning = false;
+    this.respawnDuration = 0.45;
+    this.respawnTimer = 0;
   }
 
   resetToSpawn() {
@@ -74,57 +79,110 @@ export class Player {
     this.animationTimer = 0;
   }
 
-  update(dt, input, level) {
-    let moveX = 0;
-    if (input.isDown("ArrowLeft") || input.isDown("KeyA")) moveX -= 1;
-    if (input.isDown("ArrowRight") || input.isDown("KeyD")) moveX += 1;
+  startRespawn() {
+    this.deathCount += 1;
+    this.isRespawning = true;
+    this.respawnTimer = this.respawnDuration;
+    this.vx = 0;
+    this.vy = 0;
+    this.currentAnimationName = "hurt";
+    this.currentFramePointer = 0;
+    this.animationTimer = 0;
+  }
 
-    const jumpPressed =
+  updateRespawnTimer(dt) {
+    this.respawnTimer -= dt;
+    if (this.respawnTimer > 0) return;
+    this.isRespawning = false;
+    this.resetToSpawn();
+  }
+
+  readHorizontalInput(input) {
+    let direction = 0;
+    if (input.isDown("ArrowLeft") || input.isDown("KeyA")) direction -= 1;
+    if (input.isDown("ArrowRight") || input.isDown("KeyD")) direction += 1;
+    return direction;
+  }
+
+  readJumpInput(input) {
+    return (
       input.wasPressed("Space") ||
       input.wasPressed("ArrowUp") ||
-      input.wasPressed("KeyW");
+      input.wasPressed("KeyW")
+    );
+  }
 
-    const duckDown = input.isDown("ArrowDown") || input.isDown("KeyS");
-    const isDucking = this.onGround && duckDown;
+  readDuckInput(input) {
+    return input.isDown("ArrowDown") || input.isDown("KeyS");
+  }
 
-    if (moveX > 0) this.facing = 1;
-    if (moveX < 0) this.facing = -1;
+  updateFacing(horizontalDirection) {
+    if (horizontalDirection > 0) this.facing = 1;
+    if (horizontalDirection < 0) this.facing = -1;
+  }
 
-    // Horizontal Movement
-    if (!isDucking) {
-      this.vx = moveX * this.moveSpeed;
-    } else {
-      this.vx = 0;
-    }
+  applyHorizontalMovement(horizontalDirection, isDucking) {
+    this.vx = isDucking ? 0 : horizontalDirection * this.moveSpeed;
+  }
 
-    // Jump
-    if (jumpPressed && this.onGround && !isDucking) {
-      this.vy = -this.jumpForce;
-      this.onGround = false;
-    }
+  tryJump(jumpPressed, isDucking) {
+    if (!jumpPressed || !this.onGround || isDucking) return;
+    this.vy = -this.jumpForce;
+    this.onGround = false;
+  }
 
-    // Gravity
+  applyGravity(dt) {
     this.vy += this.gravity * dt;
+  }
 
-    // Move X + resolve
+  moveHorizontally(level, dt) {
     this.x += this.vx * dt;
     this.resolveCollisionsX(level);
+  }
 
-    // Move Y + resolve
+  moveVertically(level, dt) {
     this.y += this.vy * dt;
     this.onGround = false;
     this.resolveCollisionsY(level);
-
-    // Anti-jitter ground probe
     this.probeGround(level);
+  }
 
-    // Respawn if too low
-    if (this.y > level.pixelHeight + level.tileDisplaySize) {
-      this.resetToSpawn();
+  fellOutOfWorld(level) {
+    const killY = level.pixelHeight + level.tileDisplaySize * 2;
+    return this.y > killY;
+  }
+
+  touchesHazard(level) {
+    return level.rectTouchesHazard(this.x, this.y, this.width, this.height);
+  }
+
+  shouldRespawn(level) {
+    return this.fellOutOfWorld(level) || this.touchesHazard(level);
+  }
+
+  update(dt, input, level) {
+    if (this.isRespawning) {
+      this.updateRespawnTimer(dt);
       return;
     }
 
-    this.updateAnimation(dt, moveX, isDucking);
+    const horizontalDirection = this.readHorizontalInput(input);
+    const jumpPressed = this.readJumpInput(input);
+    const isDucking = this.onGround && this.readDuckInput(input);
+
+    this.updateFacing(horizontalDirection);
+    this.applyHorizontalMovement(horizontalDirection, isDucking);
+    this.tryJump(jumpPressed, isDucking);
+    this.applyGravity(dt);
+    this.moveHorizontally(level, dt);
+    this.moveVertically(level, dt);
+
+    if (this.shouldRespawn(level)) {
+      this.startRespawn();
+      return;
+    }
+
+    this.updateAnimation(dt, horizontalDirection, isDucking);
   }
 
   resolveCollisionsX(level) {
@@ -212,59 +270,50 @@ export class Player {
     );
   }
 
-  updateAnimation(dt, moveX, isDucking) {
-    // --- DUCK special: loop frames 1<->2, release -> frame 0 ---
-    if (isDucking && this.onGround) {
-      const duckFrames = this.animations.duck;
+  updateAnimation(dt, horizontalDirection, isDucking) {
+    if (this.playDuckAnimation(dt, isDucking)) return;
+    this.exitDuckAnimation();
 
-      // ensure we are in duck animation
-      if (this.currentAnimationName !== "duck") {
-        this.currentAnimationName = "duck";
-        this.currentFramePointer = 0; // start frame
-        this.animationTimer = 0;
-        return; // frame 0 is shown for at least 1 tick
-      }
+    const nextAnimation = this.selectMovementAnimation(horizontalDirection);
+    this.changeAnimation(nextAnimation);
+    this.advanceAnimation(dt);
+  }
 
-      // loop only between index 1 and 2
-      this.animationTimer += dt;
-      while (this.animationTimer >= this.animationFrameDuration) {
-        this.animationTimer -= this.animationFrameDuration;
-
-        if (this.currentFramePointer < 1) {
-          this.currentFramePointer = 1;
-        } else {
-          this.currentFramePointer = this.currentFramePointer === 1 ? 2 : 1;
-        }
-      }
-
-      // safety: if array shorter, clamp
-      if (duckFrames.length < 3) this.currentFramePointer = Math.min(duckFrames.length - 1, 0);
-
-      return;
+  playDuckAnimation(dt, isDucking) {
+    if (!isDucking || !this.onGround) return false;
+    if (this.currentAnimationName !== "duck") {
+      this.changeAnimation("duck");
+      return true;
     }
 
-    // If we were ducking and now released: show frame 0 once, then continue normal states
-    if (this.currentAnimationName === "duck") {
-      this.currentFramePointer = 0; // "stand up" frame
-      this.animationTimer = 0;
-      // fall through to normal state selection next (so in next frames idle/walk takes over)
-    }
+    this.animationTimer += dt;
+    if (this.animationTimer < this.animationFrameDuration) return true;
+    this.animationTimer -= this.animationFrameDuration;
+    this.currentFramePointer = this.currentFramePointer === 1 ? 2 : 1;
+    if (this.currentFramePointer === 0) this.currentFramePointer = 1;
+    return true;
+  }
 
-    // --- Normal state selector ---
-    let next = "idle";
+  exitDuckAnimation() {
+    if (this.currentAnimationName !== "duck") return;
+    this.currentFramePointer = 0;
+    this.animationTimer = 0;
+  }
 
-    if (!this.onGround) {
-      next = this.vy < 0 ? "jump" : "fall";
-    } else if (moveX !== 0) {
-      next = "walk";
-    }
+  selectMovementAnimation(horizontalDirection) {
+    if (!this.onGround) return this.vy < 0 ? "jump" : "fall";
+    if (horizontalDirection !== 0) return "walk";
+    return "idle";
+  }
 
-    if (next !== this.currentAnimationName) {
-      this.currentAnimationName = next;
-      this.currentFramePointer = 0;
-      this.animationTimer = 0;
-    }
+  changeAnimation(name) {
+    if (this.currentAnimationName === name) return;
+    this.currentAnimationName = name;
+    this.currentFramePointer = 0;
+    this.animationTimer = 0;
+  }
 
+  advanceAnimation(dt) {
     const frames = this.animations[this.currentAnimationName];
     if (frames.length <= 1) {
       this.currentFramePointer = 0;

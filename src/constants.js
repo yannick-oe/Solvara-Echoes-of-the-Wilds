@@ -17,7 +17,27 @@ export const TILE_ID = { // Hier vergeben wir Nummern für die Tile-Arten.
   grassLeft: 1, // Linkes Gras-Ende.
   grassMiddle: 2, // Gras in der Mitte.
   grassRight: 3, // Rechtes Gras-Ende.
+  grassMiddleAlt: 4, // Alternative Gras-Mitte für etwas mehr Abwechslung.
+  grassSingle: 5, // Einzelnes Gras-Top-Tile.
   dirtLeft: 26, // Linkes Dreck-Ende.
   dirtMiddle: 27, // Dreck in der Mitte.
   dirtRight: 28, // Rechtes Dreck-Ende.
+  dirtMiddleDark: 29, // Dunklere Dreck-Variante.
+  stoneBlock: 51, // Steintile für kleine Bauwerke.
+  spike: 171, // Gefahren-Tile (Spikes).
 }; // Ende vom Tile-ID-Objekt.
+
+export const SOLID_TILE_IDS = [
+  TILE_ID.grassLeft,
+  TILE_ID.grassMiddle,
+  TILE_ID.grassRight,
+  TILE_ID.grassMiddleAlt,
+  TILE_ID.grassSingle,
+  TILE_ID.dirtLeft,
+  TILE_ID.dirtMiddle,
+  TILE_ID.dirtRight,
+  TILE_ID.dirtMiddleDark,
+  TILE_ID.stoneBlock,
+];
+
+export const HAZARD_TILE_IDS = [TILE_ID.spike];
