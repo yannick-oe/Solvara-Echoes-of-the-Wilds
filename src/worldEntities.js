@@ -1,5 +1,30 @@
 import { COLLECTIBLE_TYPE, ENEMY_TYPE, GAMEPLAY } from "./constants.js";
 
+const PICKUP_FRAMES = {
+    [COLLECTIBLE_TYPE.diamond]: [
+        { col: 0, row: 0 },
+        { col: 1, row: 0 },
+        { col: 2, row: 0 },
+        { col: 3, row: 0 },
+        { col: 4, row: 0 },
+    ],
+    [COLLECTIBLE_TYPE.cherry]: [
+        { col: 5, row: 0 },
+        { col: 6, row: 0 },
+        { col: 7, row: 0 },
+        { col: 8, row: 0 },
+        { col: 9, row: 0 },
+        { col: 10, row: 0 },
+        { col: 11, row: 0 },
+    ],
+    [COLLECTIBLE_TYPE.starCoin]: [
+        { col: 12, row: 0 },
+        { col: 13, row: 0 },
+        { col: 14, row: 0 },
+        { col: 15, row: 0 },
+    ],
+};
+
 function rectsOverlap(a, b) {
     return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
@@ -125,10 +150,25 @@ export class Collectible {
         this.collected = false;
 
         this.sprite = sprite;
+        this.frames = PICKUP_FRAMES[this.type] || [];
+        this.frameTimer = Math.random() * 0.3;
+        this.frameDuration = 0.11;
+        this.frameIndex = 0;
     }
 
     reset() {
         this.collected = false;
+        this.frameTimer = 0;
+        this.frameIndex = 0;
+    }
+
+    update(dt) {
+        if (this.collected) return;
+        if (!this.frames.length) return;
+        this.frameTimer += dt;
+        if (this.frameTimer < this.frameDuration) return;
+        this.frameTimer -= this.frameDuration;
+        this.frameIndex = (this.frameIndex + 1) % this.frames.length;
     }
 
     getRect() {
@@ -146,10 +186,27 @@ export class Collectible {
         if (this.collected) return;
         const x = Math.round(this.x - camera.x);
         const y = Math.round(this.y - camera.y);
-        if (this.type === COLLECTIBLE_TYPE.diamond) ctx.fillStyle = "#4dd0e1";
-        if (this.type === COLLECTIBLE_TYPE.starCoin) ctx.fillStyle = "#ffca28";
-        if (this.type === COLLECTIBLE_TYPE.cherry) ctx.fillStyle = "#e53935";
-        ctx.fillRect(x, y, this.width, this.height);
+        if (!this.sprite || !this.frames.length) {
+            if (this.type === COLLECTIBLE_TYPE.diamond) ctx.fillStyle = "#4dd0e1";
+            if (this.type === COLLECTIBLE_TYPE.starCoin) ctx.fillStyle = "#ffca28";
+            if (this.type === COLLECTIBLE_TYPE.cherry) ctx.fillStyle = "#e53935";
+            ctx.fillRect(x, y, this.width, this.height);
+            return;
+        }
+
+        const frame = this.frames[this.frameIndex];
+        const source = this.sprite.frameAt(frame.col, frame.row);
+        ctx.drawImage(
+            this.sprite.image,
+            source.sx,
+            source.sy,
+            source.sw,
+            source.sh,
+            x,
+            y,
+            this.width,
+            this.height
+        );
     }
 }
 

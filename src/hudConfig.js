@@ -5,10 +5,12 @@ export const HUD_SPRITE = {
 };
 
 export const HUD_LAYOUT = {
-    topY: 12,
+    heartsY: 12,
+    diamondsY: 52,
+    starsY: 92,
     leftX: 12,
     iconGap: 8,
-    groupGap: 28,
+    scoreGap: 12,
     maxStars: 3,
 };
 

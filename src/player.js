@@ -68,7 +68,8 @@ export class Player {
     this.respawnTimer = 0;
 
     this.startHearts = GAMEPLAY.startHearts;
-    this.maxHearts = GAMEPLAY.maxHearts;
+    this.hardMaxHearts = GAMEPLAY.maxHearts;
+    this.maxHearts = this.startHearts;
     this.hearts = this.startHearts;
     this.hitInvulnerabilityTime = GAMEPLAY.hitInvulnerabilityTime;
     this.hitInvulnerabilityTimer = 0;
@@ -86,6 +87,7 @@ export class Player {
     this.currentFramePointer = 0;
     this.animationTimer = 0;
 
+    this.maxHearts = this.startHearts;
     this.hearts = this.startHearts;
     this.hitInvulnerabilityTimer = 0;
   }

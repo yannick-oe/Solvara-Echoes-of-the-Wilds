@@ -33,6 +33,7 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         this.collectibles = [];
         this.score = 0;
         this.stars = 0;
+        this.pickupSprite = null;
         this.hudSprite = null;
         this.hudAnimTime = 0;
 
@@ -57,13 +58,14 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
 
         this.level = new Level(tileset);
         this.player = new Player(playerSprite, this.level.spawnX, this.level.spawnY);
-        this.enemies = this.createEnemies();
-        this.collectibles = this.createCollectibles(pickupAtlas);
-        this.hudSprite = new SpriteSheet(
+        this.pickupSprite = new SpriteSheet(
             pickupAtlas,
             HUD_SPRITE.frameWidth,
             HUD_SPRITE.frameHeight
         );
+        this.hudSprite = this.pickupSprite;
+        this.enemies = this.createEnemies();
+        this.collectibles = this.createCollectibles();
 
         const backScale = CANVAS_HEIGHT / bgBack.height;
         const middleScale = (CANVAS_HEIGHT * 0.55) / bgMiddle.height;
@@ -83,7 +85,7 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
 
     createCollectibles() {
         const layout = getDefaultCollectiblesLayout(this.level.tileDisplaySize);
-        return layout.map((config) => new Collectible(config));
+        return layout.map((config) => new Collectible(config, this.pickupSprite));
     }
 
     resetWorldState() {
@@ -125,7 +127,7 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
             this.updateHudAnimation(dt);
             this.updateSwitch();
             this.updateEnemies(dt);
-            this.updateCollectibles();
+            this.updateCollectibles(dt);
             this.tryApplyWorldReset();
             this.camera.follow(this.player, this.level.pixelWidth); // ...und lassen die Kamera folgen.
 
@@ -167,6 +169,15 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         return frames[index];
     }
 
+    getPulseHudFrame(frames, fallback) {
+        if (!frames || frames.length === 0) return fallback;
+        const loopLength = frames.length * 2 - 2;
+        if (loopLength <= 0) return frames[0];
+        const index = Math.floor(this.hudAnimTime * 6) % loopLength;
+        const pingPongIndex = index < frames.length ? index : loopLength - index;
+        return frames[pingPongIndex];
+    }
+
     drawHudIcon(frame, x, y, alpha = 1) {
         if (!this.hudSprite) return;
         const source = this.hudSprite.frameAt(frame.col, frame.row);
@@ -188,7 +199,7 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
     }
 
     drawHeartsHud(startX, startY) {
-        const frame = this.getAnimatedHudFrame(HUD_FRAMES.hearts, HUD_FALLBACK_FRAMES.heart);
+        const frame = this.getPulseHudFrame(HUD_FRAMES.hearts, HUD_FALLBACK_FRAMES.heart);
         const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
         const iconStep = iconSize + HUD_LAYOUT.iconGap;
         for (let i = 0; i < this.player.maxHearts; i++) {
@@ -200,26 +211,29 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
     drawDiamondHud(startX, startY) {
         const frame = this.getAnimatedHudFrame(HUD_FRAMES.diamondSpin, HUD_FALLBACK_FRAMES.diamond);
         this.drawHudIcon(frame, startX, startY);
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.font = "24px monospace";
+        this.ctx.fillText(String(this.score), startX + iconSize + HUD_LAYOUT.scoreGap, startY + iconSize - 7);
     }
 
     drawStarsHud(startX, startY) {
-        const frame = this.getAnimatedHudFrame(HUD_FRAMES.starCoinSpin, HUD_FALLBACK_FRAMES.starCoin);
+        const idleFrame = HUD_FRAMES.starCoinSpin[0] || HUD_FALLBACK_FRAMES.starCoin;
+        const spinFrame = this.getAnimatedHudFrame(HUD_FRAMES.starCoinSpin, HUD_FALLBACK_FRAMES.starCoin);
         const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
         const iconStep = iconSize + HUD_LAYOUT.iconGap;
         for (let i = 0; i < HUD_LAYOUT.maxStars; i++) {
-            const alpha = i < this.stars ? 1 : 0.25;
+            const collected = i < this.stars;
+            const frame = collected ? spinFrame : idleFrame;
+            const alpha = collected ? 1 : 0.25;
             this.drawHudIcon(frame, startX + i * iconStep, startY, alpha);
         }
     }
 
     drawHud() {
-        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
-        const heartsWidth = this.player.maxHearts * iconSize + (this.player.maxHearts - 1) * HUD_LAYOUT.iconGap;
-        const diamondX = HUD_LAYOUT.leftX + heartsWidth + HUD_LAYOUT.groupGap;
-        const starsX = diamondX + iconSize + HUD_LAYOUT.groupGap;
-        this.drawHeartsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.topY);
-        this.drawDiamondHud(diamondX, HUD_LAYOUT.topY);
-        this.drawStarsHud(starsX, HUD_LAYOUT.topY);
+        this.drawHeartsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.heartsY);
+        this.drawDiamondHud(HUD_LAYOUT.leftX, HUD_LAYOUT.diamondsY);
+        this.drawStarsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.starsY);
     }
 
     updateSwitch() {
@@ -248,9 +262,10 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         }
     }
 
-    updateCollectibles() {
+    updateCollectibles(dt) {
         const playerRect = this.player.getRect();
         for (const item of this.collectibles) {
+            item.update(dt);
             item.tryCollect(playerRect, (collected) => this.onCollect(collected));
         }
     }
@@ -262,6 +277,11 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
             this.stars += 1;
         }
         if (collected.type === COLLECTIBLE_TYPE.cherry) {
+            if (this.player.maxHearts < this.player.hardMaxHearts) {
+                this.player.maxHearts += 1;
+                this.player.hearts = this.player.maxHearts;
+                return;
+            }
             this.player.hearts = Math.min(this.player.maxHearts, this.player.hearts + 1);
         }
     }
