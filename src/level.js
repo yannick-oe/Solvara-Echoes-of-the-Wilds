@@ -1,175 +1,134 @@
-import { TILE_DISPLAY_SIZE, TILE_ID, TILE_SIZE } from "./constants.js";
+import { TILE_DISPLAY_SIZE, TILE_ID, TILE_SIZE } from "./constants.js"; // Wir holen gemeinsame Tile-Werte aus den Konstanten.
 
-/*
-  level.js
-  --------
-  Builds one tile-based level in code (no JSON yet).
-  Responsibilities:
-  - create tile matrix
-  - expose collision check (isSolidTile)
-  - draw visible tile area
-*/
+export class Level { // Diese Klasse baut und zeichnet unser Level.
+  constructor(tileSetImage) { // Hier starten wir das Level mit dem Tileset-Bild.
+    this.tileSetImage = tileSetImage; // Wir speichern das Tileset-Bild.
+    this.tileSize = TILE_SIZE; // Original-Größe eines Tiles im Tileset.
+    this.tileDisplaySize = TILE_DISPLAY_SIZE; // Gezeichnete Größe eines Tiles auf dem Bildschirm.
 
-export class Level {
-  /**
-   * @param {HTMLImageElement} tileSetImage Source tileset image.
-   */
-  constructor(tileSetImage) {
-    this.tileSetImage = tileSetImage;
-    this.tileSize = TILE_SIZE;
-    this.tileDisplaySize = TILE_DISPLAY_SIZE;
+    this.tiles = this.buildSingleLevel(); // Wir bauen die Tile-Matrix für das Level.
+    this.rows = this.tiles.length; // Anzahl der Reihen im Level.
+    this.cols = this.tiles[0].length; // Anzahl der Spalten im Level.
 
-    this.tiles = this.buildSingleLevel();
-    this.rows = this.tiles.length;
-    this.cols = this.tiles[0].length;
+    this.pixelWidth = this.cols * this.tileDisplaySize; // Gesamte Level-Breite in Pixeln.
+    this.pixelHeight = this.rows * this.tileDisplaySize; // Gesamte Level-Höhe in Pixeln.
 
-    this.pixelWidth = this.cols * this.tileDisplaySize;
-    this.pixelHeight = this.rows * this.tileDisplaySize;
+    this.spawnX = this.tileDisplaySize * 3; // Spieler startet 3 Tiles von links.
+    this.spawnY = this.tileDisplaySize * 7 - 48; // Spieler startet auf passender Y-Höhe über dem Boden.
 
-    this.spawnX = this.tileDisplaySize * 3;
-    this.spawnY = this.tileDisplaySize * 7 - 48;
+    this.goal = { // Hier legen wir das Ziel-Rechteck fest.
+      x: this.pixelWidth - 50, // Ziel ist nahe am rechten Level-Ende.
+      y: this.tileDisplaySize * 7, // Ziel liegt auf Bodenhöhe.
+      width: 18, // Ziel-Breite.
+      height: this.tileDisplaySize, // Ziel-Höhe.
+    }; // Ende Ziel-Objekt.
 
-    this.goal = {
-      x: this.pixelWidth - 50,
-      y: this.tileDisplaySize * 7,
-      width: 18,
-      height: this.tileDisplaySize,
-    };
+    this.tileSetColumns = Math.floor(this.tileSetImage.width / this.tileSize); // So viele Tile-Spalten hat das Tileset-Bild.
+  } // Ende vom Konstruktor.
 
-    this.tileSetColumns = Math.floor(this.tileSetImage.width / this.tileSize);
-  }
+  buildSingleLevel() { // Diese Funktion baut die komplette Level-Matrix.
+    const width = 80; // Das Level hat 80 Spalten.
+    const height = 10; // Das Level hat 10 Reihen.
+    const groundRow = 8; // Der Boden liegt in Reihe 8.
 
-  /**
-   * Creates the one beginner level layout.
-   */
-  buildSingleLevel() {
-    const width = 80;
-    const height = 10;
-    const groundRow = 8;
+    const tiles = []; // Hier speichern wir alle Tiles.
 
-    const tiles = [];
+    for (let row = 0; row < height; row++) { // Wir gehen jede Reihe durch.
+      tiles[row] = []; // Für jede Reihe machen wir ein leeres Array.
+      for (let col = 0; col < width; col++) { // Wir gehen jede Spalte in dieser Reihe durch.
+        tiles[row][col] = TILE_ID.empty; // Standard ist: Luft.
+      } // Ende innere Spalten-Schleife.
+    } // Ende äußere Reihen-Schleife.
 
-    for (let row = 0; row < height; row++) {
-      tiles[row] = [];
-      for (let col = 0; col < width; col++) {
-        tiles[row][col] = TILE_ID.empty;
-      }
-    }
+    const groundSections = [ // Diese Abschnitte werden zu Boden gemacht.
+      [0, 17], // Bodenstück 1.
+      [21, 41], // Bodenstück 2.
+      [46, 79], // Bodenstück 3.
+    ]; // Ende Boden-Abschnitte.
 
-    const groundSections = [
-      [0, 17],
-      [21, 41],
-      [46, 79],
-    ];
+    for (let i = 0; i < groundSections.length; i++) { // Wir gehen jeden Boden-Abschnitt durch.
+      this.fillGround(tiles, groundRow, groundSections[i][0], groundSections[i][1]); // Wir füllen den Boden in diesem Abschnitt.
+    } // Ende Boden-Schleife.
 
-    for (let i = 0; i < groundSections.length; i++) {
-      this.fillGround(tiles, groundRow, groundSections[i][0], groundSections[i][1]);
-    }
+    this.fillPlatform(tiles, 6, 26, 31); // Wir bauen eine Plattform in Reihe 6.
+    this.fillPlatform(tiles, 5, 55, 60); // Wir bauen eine zweite Plattform in Reihe 5.
 
-    this.fillPlatform(tiles, 6, 26, 31);
-    this.fillPlatform(tiles, 5, 55, 60);
+    return tiles; // Wir geben die fertige Matrix zurück.
+  } // Ende von buildSingleLevel.
 
-    return tiles;
-  }
+  fillGround(tiles, row, startCol, endCol) { // Diese Funktion baut ein Bodenstück mit Gras oben und Dreck darunter.
+    tiles[row][startCol] = startCol === 0 ? TILE_ID.grassMiddle : TILE_ID.grassLeft; // Linkes Ende setzen.
+    tiles[row][endCol] = endCol === tiles[row].length - 1 ? TILE_ID.grassMiddle : TILE_ID.grassRight; // Rechtes Ende setzen.
 
-  /**
-   * Places a ground segment with top grass and lower dirt row.
-   * @param {number[][]} tiles Tile matrix.
-   * @param {number} row Ground surface row.
-   * @param {number} startCol Segment start column.
-   * @param {number} endCol Segment end column.
-   */
-  fillGround(tiles, row, startCol, endCol) {
-    tiles[row][startCol] = startCol === 0 ? TILE_ID.grassMiddle : TILE_ID.grassLeft;
-    tiles[row][endCol] = endCol === tiles[row].length - 1 ? TILE_ID.grassMiddle : TILE_ID.grassRight;
+    for (let col = startCol + 1; col < endCol; col++) { // Mitte zwischen den Enden durchgehen.
+      tiles[row][col] = TILE_ID.grassMiddle; // Mitte mit Gras füllen.
+    } // Ende Gras-Mitte.
 
-    for (let col = startCol + 1; col < endCol; col++) {
-      tiles[row][col] = TILE_ID.grassMiddle;
-    }
+    if (row + 1 < tiles.length) { // Nur wenn unter dem Boden noch eine Reihe existiert...
+      tiles[row + 1][startCol] = startCol === 0 ? TILE_ID.dirtMiddle : TILE_ID.dirtLeft; // Linkes Dreck-Ende setzen.
+      tiles[row + 1][endCol] = endCol === tiles[row].length - 1 ? TILE_ID.dirtMiddle : TILE_ID.dirtRight; // Rechtes Dreck-Ende setzen.
 
-    if (row + 1 < tiles.length) {
-      tiles[row + 1][startCol] = startCol === 0 ? TILE_ID.dirtMiddle : TILE_ID.dirtLeft;
-      tiles[row + 1][endCol] = endCol === tiles[row].length - 1 ? TILE_ID.dirtMiddle : TILE_ID.dirtRight;
+      for (let col = startCol + 1; col < endCol; col++) { // Mitte darunter durchgehen.
+        tiles[row + 1][col] = TILE_ID.dirtMiddle; // Mitte mit Dreck füllen.
+      } // Ende Dreck-Mitte.
+    } // Ende untere Reihe-Check.
+  } // Ende von fillGround.
 
-      for (let col = startCol + 1; col < endCol; col++) {
-        tiles[row + 1][col] = TILE_ID.dirtMiddle;
-      }
-    }
-  }
+  fillPlatform(tiles, row, startCol, endCol) { // Diese Funktion baut eine schwebende Plattform.
+    tiles[row][startCol] = TILE_ID.grassLeft; // Linkes Ende der Plattform.
+    tiles[row][endCol] = TILE_ID.grassRight; // Rechtes Ende der Plattform.
 
-  /**
-   * Places a floating platform segment.
-   * @param {number[][]} tiles Tile matrix.
-   * @param {number} row Platform row.
-   * @param {number} startCol Segment start column.
-   * @param {number} endCol Segment end column.
-   */
-  fillPlatform(tiles, row, startCol, endCol) {
-    tiles[row][startCol] = TILE_ID.grassLeft;
-    tiles[row][endCol] = TILE_ID.grassRight;
+    for (let col = startCol + 1; col < endCol; col++) { // Spalten zwischen den Enden durchgehen.
+      tiles[row][col] = TILE_ID.grassMiddle; // Mitte mit Gras füllen.
+    } // Ende Plattform-Mitte.
+  } // Ende von fillPlatform.
 
-    for (let col = startCol + 1; col < endCol; col++) {
-      tiles[row][col] = TILE_ID.grassMiddle;
-    }
-  }
+  isSolidTile(col, row) { // Diese Funktion prüft, ob ein Tile fest ist.
+    if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) { // Wenn außerhalb vom Level...
+      return true; // ...behandeln wir es als Wand.
+    } // Ende Rand-Check.
 
-  /**
-   * Collision helper: out-of-bounds is treated as solid.
-   * @param {number} col Tile column.
-   * @param {number} row Tile row.
-   */
-  isSolidTile(col, row) {
-    if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) {
-      return true;
-    }
+    return this.tiles[row][col] !== TILE_ID.empty; // Alles außer Luft ist fest.
+  } // Ende von isSolidTile.
 
-    return this.tiles[row][col] !== TILE_ID.empty;
-  }
+  draw(ctx, camera) { // Diese Funktion zeichnet sichtbare Level-Tiles.
+    const startCol = Math.max(0, Math.floor(camera.x / this.tileDisplaySize)); // Erste sichtbare Spalte links.
+    const endCol = Math.min(this.cols - 1, Math.ceil((camera.x + camera.width) / this.tileDisplaySize)); // Letzte sichtbare Spalte rechts.
 
-  /**
-   * Draws only the currently visible tile columns for better performance.
-   * @param {CanvasRenderingContext2D} ctx Render context.
-   * @param {{x:number,y:number,width:number,height:number}} camera Camera values.
-   */
-  draw(ctx, camera) {
-    const startCol = Math.max(0, Math.floor(camera.x / this.tileDisplaySize));
-    const endCol = Math.min(this.cols - 1, Math.ceil((camera.x + camera.width) / this.tileDisplaySize));
+    for (let row = 0; row < this.rows; row++) { // Wir gehen jede Reihe durch.
+      for (let col = startCol; col <= endCol; col++) { // Wir gehen nur sichtbare Spalten durch.
+        const tileId = this.tiles[row][col]; // Tile-Nummer holen.
+        if (tileId === TILE_ID.empty) continue; // Luft zeichnen wir nicht.
 
-    for (let row = 0; row < this.rows; row++) {
-      for (let col = startCol; col <= endCol; col++) {
-        const tileId = this.tiles[row][col];
-        if (tileId === TILE_ID.empty) continue;
+        const sourceIndex = tileId - 1; // Tile-ID startet bei 1, Bildindex bei 0.
+        const sourceCol = sourceIndex % this.tileSetColumns; // Spalte im Tileset ausrechnen.
+        const sourceRow = Math.floor(sourceIndex / this.tileSetColumns); // Reihe im Tileset ausrechnen.
 
-        // Tile ID starts at 1, tileset index starts at 0.
-        const sourceIndex = tileId - 1;
-        const sourceCol = sourceIndex % this.tileSetColumns;
-        const sourceRow = Math.floor(sourceIndex / this.tileSetColumns);
+        const sx = sourceCol * this.tileSize; // Start-X im Tileset-Bild.
+        const sy = sourceRow * this.tileSize; // Start-Y im Tileset-Bild.
+        const dx = Math.round(col * this.tileDisplaySize - camera.x); // Ziel-X auf dem Bildschirm.
+        const dy = Math.round(row * this.tileDisplaySize - camera.y); // Ziel-Y auf dem Bildschirm.
 
-        const sx = sourceCol * this.tileSize;
-        const sy = sourceRow * this.tileSize;
-        const dx = Math.round(col * this.tileDisplaySize - camera.x);
-        const dy = Math.round(row * this.tileDisplaySize - camera.y);
+        ctx.drawImage( // Wir zeichnen das Tile-Bild.
+          this.tileSetImage, // Quelle: das große Tileset.
+          sx, // Quell-X im Tileset.
+          sy, // Quell-Y im Tileset.
+          this.tileSize, // Quell-Breite eines Tiles.
+          this.tileSize, // Quell-Höhe eines Tiles.
+          dx, // Ziel-X auf Canvas.
+          dy, // Ziel-Y auf Canvas.
+          this.tileDisplaySize, // Ziel-Breite (skaliert).
+          this.tileDisplaySize // Ziel-Höhe (skaliert).
+        ); // Ende drawImage.
+      } // Ende Spalten-Schleife.
+    } // Ende Reihen-Schleife.
 
-        ctx.drawImage(
-          this.tileSetImage,
-          sx,
-          sy,
-          this.tileSize,
-          this.tileSize,
-          dx,
-          dy,
-          this.tileDisplaySize,
-          this.tileDisplaySize
-        );
-      }
-    }
-
-    ctx.fillStyle = "#ffd54f";
-    ctx.fillRect(
-      Math.round(this.goal.x - camera.x),
-      Math.round(this.goal.y - camera.y),
-      this.goal.width,
-      this.goal.height
-    );
-  }
-}
+    ctx.fillStyle = "#ffd54f"; // Farbe für das Ziel setzen.
+    ctx.fillRect( // Ziel-Rechteck zeichnen.
+      Math.round(this.goal.x - camera.x), // Ziel-X auf Bildschirm.
+      Math.round(this.goal.y - camera.y), // Ziel-Y auf Bildschirm.
+      this.goal.width, // Ziel-Breite.
+      this.goal.height // Ziel-Höhe.
+    ); // Ende Ziel-Zeichnen.
+  } // Ende von draw.
+} // Ende der Level-Klasse.

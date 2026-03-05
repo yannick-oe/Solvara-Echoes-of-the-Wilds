@@ -1,50 +1,29 @@
-/*
-  spriteSheet.js
-  --------------
-  Utility that translates frame index or row/column into a source rectangle
-  for ctx.drawImage(...).
-*/
+export class SpriteSheet { // Diese Klasse hilft uns, kleine Bilder aus einem großen Spritesheet zu holen.
+  constructor(image, frameWidth, frameHeight) { // Hier starten wir mit Bild und Frame-Größe.
+    this.image = image; // Das große Spritesheet-Bild.
+    this.frameWidth = frameWidth; // Breite von einem Frame im Spritesheet.
+    this.frameHeight = frameHeight; // Höhe von einem Frame im Spritesheet.
+    this.columns = Math.floor(image.width / frameWidth); // Wie viele Spalten es im Spritesheet gibt.
+  } // Ende vom Konstruktor.
 
-export class SpriteSheet {
-  /**
-   * @param {HTMLImageElement} image Spritesheet image.
-   * @param {number} frameWidth Width of one frame in source pixels.
-   * @param {number} frameHeight Height of one frame in source pixels.
-   */
-  constructor(image, frameWidth, frameHeight) {
-    this.image = image;
-    this.frameWidth = frameWidth;
-    this.frameHeight = frameHeight;
-    this.columns = Math.floor(image.width / frameWidth);
-  }
+  frame(index) { // Diese Funktion holt einen Frame über eine laufende Nummer.
+    const col = index % this.columns; // Spalte vom Frame ausrechnen.
+    const row = Math.floor(index / this.columns); // Reihe vom Frame ausrechnen.
 
-  /**
-   * Returns frame rectangle by linear index.
-   * @param {number} index Linear frame index.
-   */
-  frame(index) {
-    const col = index % this.columns;
-    const row = Math.floor(index / this.columns);
+    return { // Wir geben den Quell-Rechteck-Bereich für drawImage zurück.
+      sx: col * this.frameWidth, // Start-X im Spritesheet.
+      sy: row * this.frameHeight, // Start-Y im Spritesheet.
+      sw: this.frameWidth, // Quell-Breite.
+      sh: this.frameHeight, // Quell-Höhe.
+    }; // Ende Rückgabe-Objekt.
+  } // Ende von frame.
 
-    return {
-      sx: col * this.frameWidth,
-      sy: row * this.frameHeight,
-      sw: this.frameWidth,
-      sh: this.frameHeight,
-    };
-  }
-
-  /**
-   * Returns frame rectangle by explicit column and row.
-   * @param {number} column Column index in spritesheet grid.
-   * @param {number} row Row index in spritesheet grid.
-   */
-  frameAt(column, row) {
-    return {
-      sx: column * this.frameWidth,
-      sy: row * this.frameHeight,
-      sw: this.frameWidth,
-      sh: this.frameHeight,
-    };
-  }
-}
+  frameAt(column, row) { // Diese Funktion holt einen Frame direkt über Spalte und Reihe.
+    return { // Wir geben den Quell-Rechteck-Bereich für drawImage zurück.
+      sx: column * this.frameWidth, // Start-X im Spritesheet.
+      sy: row * this.frameHeight, // Start-Y im Spritesheet.
+      sw: this.frameWidth, // Quell-Breite.
+      sh: this.frameHeight, // Quell-Höhe.
+    }; // Ende Rückgabe-Objekt.
+  } // Ende von frameAt.
+} // Ende der SpriteSheet-Klasse.

@@ -1,43 +1,23 @@
-/*
-  parallax.js
-  -----------
-  Draws one endlessly repeating background layer.
-  Lower scrollFactor = farther layer (moves slower).
-*/
+export class ParallaxLayer { // Diese Klasse zeichnet einen Hintergrund, der sich langsamer bewegt.
+  constructor(image, scrollFactor, scale, bottomOffset) { // Hier starten wir den Layer mit Bild und Einstellungen.
+    this.image = image; // Das Hintergrund-Bild für diesen Layer.
+    this.scrollFactor = scrollFactor; // Wie stark der Layer auf Kamera-Bewegung reagiert.
+    this.scale = scale; // Wie groß das Bild gezeichnet wird.
+    this.bottomOffset = bottomOffset; // Abstand vom unteren Canvas-Rand.
+  } // Ende vom Konstruktor.
 
-export class ParallaxLayer {
-  /**
-   * @param {HTMLImageElement} image Background image.
-   * @param {number} scrollFactor How fast this layer follows camera.
-   * @param {number} scale Render scale.
-   * @param {number} bottomOffset Vertical offset from canvas bottom.
-   */
-  constructor(image, scrollFactor, scale, bottomOffset) {
-    this.image = image;
-    this.scrollFactor = scrollFactor;
-    this.scale = scale;
-    this.bottomOffset = bottomOffset;
-  }
+  draw(ctx, canvasWidth, canvasHeight, cameraX) { // Diese Funktion zeichnet den Layer über die ganze Breite.
+    const imageWidth = Math.ceil(this.image.width * this.scale); // Gezeichnete Breite vom Bild.
+    const imageHeight = Math.ceil(this.image.height * this.scale); // Gezeichnete Höhe vom Bild.
+    const y = Math.round(canvasHeight - imageHeight - this.bottomOffset); // Y-Position vom Bild auf dem Canvas.
 
-  /**
-   * Draws the layer tiled across visible screen width.
-   * @param {CanvasRenderingContext2D} ctx Render context.
-   * @param {number} canvasWidth Current canvas width.
-   * @param {number} canvasHeight Current canvas height.
-   * @param {number} cameraX Camera x position.
-   */
-  draw(ctx, canvasWidth, canvasHeight, cameraX) {
-    const imageWidth = Math.ceil(this.image.width * this.scale);
-    const imageHeight = Math.ceil(this.image.height * this.scale);
-    const y = Math.round(canvasHeight - imageHeight - this.bottomOffset);
+    const scrollX = cameraX * this.scrollFactor; // Layer verschiebt sich nur anteilig zur Kamera.
+    const offset = ((scrollX % imageWidth) + imageWidth) % imageWidth; // Positiver Wiederhol-Offset fürs Kacheln.
 
-    const scrollX = cameraX * this.scrollFactor;
-    const offset = ((scrollX % imageWidth) + imageWidth) % imageWidth;
-
-    let x = -Math.round(offset);
-    while (x < canvasWidth) {
-      ctx.drawImage(this.image, Math.round(x), y, imageWidth, imageHeight);
-      x += imageWidth;
-    }
-  }
-}
+    let x = -Math.round(offset); // Wir starten links so, dass die Wiederholung sauber aussieht.
+    while (x < canvasWidth) { // Solange rechts noch Platz ist...
+      ctx.drawImage(this.image, Math.round(x), y, imageWidth, imageHeight); // ...zeichnen wir das Bild.
+      x += imageWidth; // Danach springen wir um eine Bildbreite weiter.
+    } // Ende Wiederhol-Schleife.
+  } // Ende von draw.
+} // Ende der ParallaxLayer-Klasse.

@@ -1,41 +1,25 @@
-/*
-  camera.js
-  ---------
-  Simple horizontal follow camera.
-  Keeps the player near screen center while clamping inside level bounds.
-*/
+export class Camera { // Diese Klasse ist unsere Kamera im Spiel.
+  constructor(width, height) { // Hier starten wir die Kamera mit Breite und Höhe.
+    this.x = 0; // Startposition X der Kamera.
+    this.y = 0; // Startposition Y der Kamera.
+    this.width = width; // Sichtbare Breite der Kamera.
+    this.height = height; // Sichtbare Höhe der Kamera.
+  } // Ende vom Konstruktor.
 
-export class Camera {
-  /**
-   * @param {number} width View width in pixels.
-   * @param {number} height View height in pixels.
-   */
-  constructor(width, height) {
-    this.x = 0;
-    this.y = 0;
-    this.width = width;
-    this.height = height;
-  }
+  follow(target, levelPixelWidth) { // Diese Funktion lässt die Kamera dem Ziel auf X folgen.
+    this.x = target.x + target.width / 2 - this.width / 2; // Kamera auf die Mitte vom Ziel setzen.
 
-  /**
-   * Follows target on X axis and clamps camera to level width.
-   * @param {{x:number,width:number}} target Object to follow.
-   * @param {number} levelPixelWidth Full level width in pixels.
-   */
-  follow(target, levelPixelWidth) {
-    this.x = target.x + target.width / 2 - this.width / 2;
+    if (this.x < 0) { // Wenn Kamera links über den Levelrand hinaus will...
+      this.x = 0; // ...bleibt sie am linken Rand.
+    } // Ende linker Rand.
 
-    if (this.x < 0) {
-      this.x = 0;
-    }
+    const maxX = Math.max(0, levelPixelWidth - this.width); // Das ist der maximal erlaubte X-Wert rechts.
+    if (this.x > maxX) { // Wenn Kamera rechts zu weit raus will...
+      this.x = maxX; // ...bleibt sie am rechten Rand.
+    } // Ende rechter Rand.
 
-    const maxX = Math.max(0, levelPixelWidth - this.width);
-    if (this.x > maxX) {
-      this.x = maxX;
-    }
+    this.x = Math.round(this.x); // Wir runden X für stabile Pixel-Darstellung.
 
-    this.x = Math.round(this.x);
-
-    this.y = 0;
-  }
-}
+    this.y = 0; // In diesem Spiel bleibt Kamera-Y fest auf 0.
+  } // Ende von follow.
+} // Ende der Camera-Klasse.
