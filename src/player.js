@@ -1,4 +1,5 @@
 import { SpriteSheet } from "./spriteSheet.js";
+import { GAMEPLAY } from "./constants.js";
 
 export class Player {
   constructor(spriteImage, spawnX, spawnY) {
@@ -65,6 +66,13 @@ export class Player {
     this.isRespawning = false;
     this.respawnDuration = 0.45;
     this.respawnTimer = 0;
+
+    this.startHearts = GAMEPLAY.startHearts;
+    this.maxHearts = GAMEPLAY.maxHearts;
+    this.hearts = this.startHearts;
+    this.hitInvulnerabilityTime = GAMEPLAY.hitInvulnerabilityTime;
+    this.hitInvulnerabilityTimer = 0;
+    this.worldResetRequested = false;
   }
 
   resetToSpawn() {
@@ -77,6 +85,9 @@ export class Player {
     this.currentAnimationName = "idle";
     this.currentFramePointer = 0;
     this.animationTimer = 0;
+
+    this.hearts = this.startHearts;
+    this.hitInvulnerabilityTimer = 0;
   }
 
   startRespawn() {
@@ -88,6 +99,7 @@ export class Player {
     this.currentAnimationName = "hurt";
     this.currentFramePointer = 0;
     this.animationTimer = 0;
+    this.worldResetRequested = true;
   }
 
   updateRespawnTimer(dt) {
@@ -95,6 +107,40 @@ export class Player {
     if (this.respawnTimer > 0) return;
     this.isRespawning = false;
     this.resetToSpawn();
+  }
+
+  getRect() {
+    return { x: this.x, y: this.y, width: this.width, height: this.height };
+  }
+
+  updateInvulnerability(dt) {
+    this.hitInvulnerabilityTimer -= dt;
+    if (this.hitInvulnerabilityTimer < 0) this.hitInvulnerabilityTimer = 0;
+  }
+
+  canTakeHit() {
+    return this.hitInvulnerabilityTimer <= 0 && !this.isRespawning;
+  }
+
+  takeHit(hitFromX) {
+    if (!this.canTakeHit()) return;
+    this.hearts -= 1;
+    this.hitInvulnerabilityTimer = this.hitInvulnerabilityTime;
+    this.vx = hitFromX < this.x ? GAMEPLAY.knockbackX : -GAMEPLAY.knockbackX;
+    this.vy = -GAMEPLAY.knockbackY;
+    if (this.hearts > 0) return;
+    this.startRespawn();
+  }
+
+  stompBounce() {
+    this.vy = -this.jumpForce * GAMEPLAY.stompBounceFactor;
+    this.onGround = false;
+  }
+
+  consumeWorldResetRequest() {
+    if (!this.worldResetRequested) return false;
+    this.worldResetRequested = false;
+    return true;
   }
 
   readHorizontalInput(input) {
@@ -157,7 +203,7 @@ export class Player {
   }
 
   shouldRespawn(level) {
-    return this.fellOutOfWorld(level) || this.touchesHazard(level);
+    return this.fellOutOfWorld(level);
   }
 
   update(dt, input, level) {
@@ -165,6 +211,8 @@ export class Player {
       this.updateRespawnTimer(dt);
       return;
     }
+
+    this.updateInvulnerability(dt);
 
     const horizontalDirection = this.readHorizontalInput(input);
     const jumpPressed = this.readJumpInput(input);
@@ -176,6 +224,7 @@ export class Player {
     this.applyGravity(dt);
     this.moveHorizontally(level, dt);
     this.moveVertically(level, dt);
+    if (this.touchesHazard(level)) this.takeHit(this.x - this.facing * 20);
 
     if (this.shouldRespawn(level)) {
       this.startRespawn();
@@ -328,6 +377,11 @@ export class Player {
   }
 
   draw(ctx, camera) {
+    if (this.hitInvulnerabilityTimer > 0) {
+      const flashVisible = Math.floor(this.hitInvulnerabilityTimer * 12) % 2 === 0;
+      if (!flashVisible) return;
+    }
+
     const currentFrames = this.animations[this.currentAnimationName];
     const framePos = currentFrames[this.currentFramePointer];
     const frame = this.sprite.frameAt(framePos.col, framePos.row);

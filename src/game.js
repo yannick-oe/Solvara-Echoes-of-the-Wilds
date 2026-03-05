@@ -4,7 +4,17 @@ import { Camera } from "./camera.js"; // Wir holen die Kamera-Logik.
 import { ParallaxLayer } from "./parallax.js"; // Wir holen den Hintergrund-Layer mit Parallax-Effekt.
 import { Level } from "./level.js"; // Wir holen die Level-Klasse.
 import { Player } from "./player.js"; // Wir holen die Spieler-Klasse.
-import { CANVAS_HEIGHT, CANVAS_WIDTH, ASSET_PATHS } from "./constants.js"; // Wir holen gemeinsame Werte und Bild-Pfade.
+import { CANVAS_HEIGHT, CANVAS_WIDTH, ASSET_PATHS, COLLECTIBLE_TYPE } from "./constants.js"; // Wir holen gemeinsame Werte und Bild-Pfade.
+import { SpriteSheet } from "./spriteSheet.js";
+import { HUD_FALLBACK_FRAMES, HUD_FRAMES, HUD_LAYOUT, HUD_SPRITE } from "./hudConfig.js";
+import {
+    Collectible,
+    Enemy,
+    getDefaultCollectiblesLayout,
+    getDefaultEnemyLayout,
+    isBodyHit,
+    isStompHit,
+} from "./worldEntities.js";
 
 export class Game { // Diese Klasse steuert das ganze Spiel.
     constructor(canvas) { // Hier bauen wir das Spiel mit einem Canvas.
@@ -19,6 +29,12 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         this.level = null; // Das Level ist am Anfang noch nicht gebaut.
         this.player = null; // Der Spieler ist am Anfang noch nicht gebaut.
         this.parallaxLayers = []; // Die Hintergrund-Layer sind am Anfang leer.
+        this.enemies = [];
+        this.collectibles = [];
+        this.score = 0;
+        this.stars = 0;
+        this.hudSprite = null;
+        this.hudAnimTime = 0;
 
         this.lastTime = 0; // Hier merken wir uns die Zeit vom letzten Frame.
         this.levelCompleted = false; // Am Anfang ist das Level noch nicht geschafft.
@@ -35,11 +51,19 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
 
         const tileset = this.imageCache.get(ASSET_PATHS.tileSet);
         const playerSprite = this.imageCache.get(ASSET_PATHS.playerSprite);
+        const pickupAtlas = this.imageCache.get(ASSET_PATHS.pickupAtlas);
         const bgBack = this.imageCache.get(ASSET_PATHS.backgroundBack);
         const bgMiddle = this.imageCache.get(ASSET_PATHS.backgroundMiddle);
 
         this.level = new Level(tileset);
         this.player = new Player(playerSprite, this.level.spawnX, this.level.spawnY);
+        this.enemies = this.createEnemies();
+        this.collectibles = this.createCollectibles(pickupAtlas);
+        this.hudSprite = new SpriteSheet(
+            pickupAtlas,
+            HUD_SPRITE.frameWidth,
+            HUD_SPRITE.frameHeight
+        );
 
         const backScale = CANVAS_HEIGHT / bgBack.height;
         const middleScale = (CANVAS_HEIGHT * 0.55) / bgMiddle.height;
@@ -52,12 +76,31 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         this._rafId = requestAnimationFrame(this.loop.bind(this));
     }
 
+    createEnemies() {
+        const layout = getDefaultEnemyLayout(this.level.tileDisplaySize);
+        return layout.map((config) => new Enemy(config));
+    }
+
+    createCollectibles() {
+        const layout = getDefaultCollectiblesLayout(this.level.tileDisplaySize);
+        return layout.map((config) => new Collectible(config));
+    }
+
+    resetWorldState() {
+        this.level.resetRuntimeState();
+        for (const enemy of this.enemies) enemy.reset();
+        for (const item of this.collectibles) item.reset();
+        this.score = 0;
+        this.stars = 0;
+    }
+
     async loadAssets() { // Diese Funktion lädt alle benötigten Bilder.
         await this.imageCache.loadAll([ // Wir geben alle Pfade an den Cache-Lader.
             ASSET_PATHS.backgroundBack, // Pfad zum hinteren Hintergrund.
             ASSET_PATHS.backgroundMiddle, // Pfad zum mittleren Hintergrund.
             ASSET_PATHS.tileSet, // Pfad zum Tileset.
             ASSET_PATHS.playerSprite, // Pfad zum Spieler-Spritesheet.
+            ASSET_PATHS.pickupAtlas,
         ]); // Ende Bildliste.
     } // Ende von loadAssets.
 
@@ -79,9 +122,14 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
 
         if (!this.levelCompleted) { // Nur wenn das Level noch nicht gewonnen wurde...
             this.player.update(dt, this.input, this.level); // ...aktualisieren wir den Spieler.
+            this.updateHudAnimation(dt);
+            this.updateSwitch();
+            this.updateEnemies(dt);
+            this.updateCollectibles();
+            this.tryApplyWorldReset();
             this.camera.follow(this.player, this.level.pixelWidth); // ...und lassen die Kamera folgen.
 
-            if (this.player.touchesGoal(this.level.goal)) { // Wenn der Spieler das Ziel berührt...
+            if (this.level.touchesGoalHouse(this.player.getRect())) { // Wenn der Spieler das Ziel berührt...
                 this.levelCompleted = true; // ...markieren wir das Level als geschafft.
             } // Ende Zielprüfung.
         } // Ende Update bei aktivem Level.
@@ -94,9 +142,6 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); // Ganze Fläche mit Himmel füllen.
 
         if (!this.level || !this.player) { // Wenn noch nicht alles geladen ist...
-            this.ctx.fillStyle = "#ffffff"; // ...Text-Farbe weiß setzen.
-            this.ctx.font = "18px monospace"; // ...Schrift setzen.
-            this.ctx.fillText("Loading assets...", 230, 240); // ...Lade-Text zeichnen.
             return; // ...und fertig für dieses Frame.
         } // Ende Ladebildschirm.
 
@@ -105,27 +150,136 @@ export class Game { // Diese Klasse steuert das ganze Spiel.
         } // Ende Layer-Schleife.
 
         this.level.draw(this.ctx, this.camera); // Level-Tiles zeichnen.
+        this.drawCollectibles();
+        this.drawEnemies();
         this.player.draw(this.ctx, this.camera); // Spieler zeichnen.
 
-        this.drawText(); // Hilfstext und Siegtext zeichnen.
+        this.drawHud();
     } // Ende von draw.
 
-    drawText() { // Diese Funktion zeichnet UI-Text.
-        this.ctx.fillStyle = "#0d1b2a"; // Dunkle Textfarbe setzen.
-        this.ctx.font = "16px monospace"; // Normale UI-Schrift setzen.
-        this.ctx.fillText("Move: A/D or Arrow Keys | Jump: Space | Duck: S/ArrowDown", 12, 24); // Steuerungs-Hinweis zeichnen.
-        this.ctx.fillText("Fullscreen: F", 12, 46); // Vollbild-Hinweis zeichnen.
-        this.ctx.fillText(`Deaths: ${this.player.deathCount}`, 12, 68);
+    updateHudAnimation(dt) {
+        this.hudAnimTime += dt;
+    }
 
-        if (this.player.isRespawning) {
-            this.ctx.fillStyle = "#b71c1c";
-            this.ctx.fillText("Respawning...", 300, 46);
+    getAnimatedHudFrame(frames, fallback) {
+        if (!frames || frames.length === 0) return fallback;
+        const index = Math.floor(this.hudAnimTime * 10) % frames.length;
+        return frames[index];
+    }
+
+    drawHudIcon(frame, x, y, alpha = 1) {
+        if (!this.hudSprite) return;
+        const source = this.hudSprite.frameAt(frame.col, frame.row);
+        const size = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
+        this.ctx.drawImage(
+            this.hudSprite.image,
+            source.sx,
+            source.sy,
+            source.sw,
+            source.sh,
+            Math.round(x),
+            Math.round(y),
+            size,
+            size
+        );
+        this.ctx.restore();
+    }
+
+    drawHeartsHud(startX, startY) {
+        const frame = this.getAnimatedHudFrame(HUD_FRAMES.hearts, HUD_FALLBACK_FRAMES.heart);
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
+        const iconStep = iconSize + HUD_LAYOUT.iconGap;
+        for (let i = 0; i < this.player.maxHearts; i++) {
+            const alpha = i < this.player.hearts ? 1 : 0.25;
+            this.drawHudIcon(frame, startX + i * iconStep, startY, alpha);
+        }
+    }
+
+    drawDiamondHud(startX, startY) {
+        const frame = this.getAnimatedHudFrame(HUD_FRAMES.diamondSpin, HUD_FALLBACK_FRAMES.diamond);
+        this.drawHudIcon(frame, startX, startY);
+    }
+
+    drawStarsHud(startX, startY) {
+        const frame = this.getAnimatedHudFrame(HUD_FRAMES.starCoinSpin, HUD_FALLBACK_FRAMES.starCoin);
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
+        const iconStep = iconSize + HUD_LAYOUT.iconGap;
+        for (let i = 0; i < HUD_LAYOUT.maxStars; i++) {
+            const alpha = i < this.stars ? 1 : 0.25;
+            this.drawHudIcon(frame, startX + i * iconStep, startY, alpha);
+        }
+    }
+
+    drawHud() {
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale;
+        const heartsWidth = this.player.maxHearts * iconSize + (this.player.maxHearts - 1) * HUD_LAYOUT.iconGap;
+        const diamondX = HUD_LAYOUT.leftX + heartsWidth + HUD_LAYOUT.groupGap;
+        const starsX = diamondX + iconSize + HUD_LAYOUT.groupGap;
+        this.drawHeartsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.topY);
+        this.drawDiamondHud(diamondX, HUD_LAYOUT.topY);
+        this.drawStarsHud(starsX, HUD_LAYOUT.topY);
+    }
+
+    updateSwitch() {
+        const wantsInteract = this.input.wasPressed("KeyE") || this.input.wasPressed("ArrowUp");
+        this.level.tryActivateSwitch(this.player.getRect(), wantsInteract);
+    }
+
+    updateEnemies(dt) {
+        for (const enemy of this.enemies) {
+            enemy.update(dt, this.level);
+            this.resolveEnemyContact(enemy);
+        }
+    }
+
+    resolveEnemyContact(enemy) {
+        if (!enemy.alive) return;
+        if (isStompHit(this.player, enemy)) {
+            enemy.alive = false;
+            this.player.stompBounce();
+            this.score += 25;
+            return;
         }
 
-        if (this.levelCompleted) { // Wenn das Level geschafft wurde...
-            this.ctx.fillStyle = "#1b5e20"; // ...grüne Farbe setzen.
-            this.ctx.font = "24px monospace"; // ...größere Schrift setzen.
-            this.ctx.fillText("Level complete!", 250, 120); // ...Siegtext zeichnen.
-        } // Ende Siegtext.
-    } // Ende von drawText.
+        if (isBodyHit(this.player, enemy)) {
+            this.player.takeHit(enemy.x);
+        }
+    }
+
+    updateCollectibles() {
+        const playerRect = this.player.getRect();
+        for (const item of this.collectibles) {
+            item.tryCollect(playerRect, (collected) => this.onCollect(collected));
+        }
+    }
+
+    onCollect(collected) {
+        if (collected.type === COLLECTIBLE_TYPE.diamond) this.score += collected.value;
+        if (collected.type === COLLECTIBLE_TYPE.starCoin) {
+            this.score += collected.value;
+            this.stars += 1;
+        }
+        if (collected.type === COLLECTIBLE_TYPE.cherry) {
+            this.player.hearts = Math.min(this.player.maxHearts, this.player.hearts + 1);
+        }
+    }
+
+    tryApplyWorldReset() {
+        if (!this.player.consumeWorldResetRequest()) return;
+        this.resetWorldState();
+    }
+
+    drawEnemies() {
+        for (const enemy of this.enemies) {
+            enemy.draw(this.ctx, this.camera);
+        }
+    }
+
+    drawCollectibles() {
+        for (const item of this.collectibles) {
+            item.draw(this.ctx, this.camera);
+        }
+    }
 } // Ende der Game-Klasse.

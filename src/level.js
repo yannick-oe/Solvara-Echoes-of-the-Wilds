@@ -23,28 +23,85 @@ export class Level { // Diese Klasse baut und zeichnet unser Level.
     this.spawnX = this.tileDisplaySize * 2;
     this.spawnY = this.tileDisplaySize * 6;
 
-    this.goal = {
-      x: this.pixelWidth - this.tileDisplaySize * 2,
-      y: this.tileDisplaySize * 3,
-      width: 20,
-      height: this.tileDisplaySize,
-    };
+    this.goal = this.createGoalHouse();
+    this.switchZone = this.createSwitchZone();
+    this.doorTiles = this.createDoorTiles();
+    this.resetRuntimeState();
 
     this.tileSetColumns = Math.floor(this.tileSetImage.width / this.tileSize);
   } // Ende vom Konstruktor.
 
   buildSingleLevel() { // Diese Funktion baut die komplette Level-Matrix.
-    const width = 80;
-    const height = 12;
+    const width = 132;
+    const height = 14;
     const groundRow = 8;
 
     const tiles = this.createEmptyTiles(width, height);
-    this.addGroundSegments(tiles, groundRow);
-    this.addTrainingPlatforms(tiles);
-    this.addVerticalChallenge(tiles);
-    this.addGoalTower(tiles);
+    this.addStartArea(tiles, groundRow);
+    this.addMountainPath(tiles, groundRow);
+    this.addCaveEntrance(tiles, groundRow);
+    this.addCave(tiles);
+    this.addMountainTop(tiles);
+    this.addGoalArea(tiles);
     return tiles;
   } // Ende von buildSingleLevel.
+
+  resetRuntimeState() {
+    this.switchActivated = false;
+    this.doorOpen = false;
+    this.closeDoorTiles();
+  }
+
+  createGoalHouse() {
+    return {
+      x: this.tileDisplaySize * 125,
+      y: this.tileDisplaySize * 5,
+      width: this.tileDisplaySize * 2,
+      height: this.tileDisplaySize * 3,
+    };
+  }
+
+  createSwitchZone() {
+    return {
+      x: this.tileDisplaySize * 72,
+      y: this.tileDisplaySize * 9,
+      width: this.tileDisplaySize,
+      height: this.tileDisplaySize,
+    };
+  }
+
+  createDoorTiles() {
+    return [
+      { col: 80, row: 7 },
+      { col: 80, row: 8 },
+      { col: 80, row: 9 },
+    ];
+  }
+
+  closeDoorTiles() {
+    for (const tile of this.doorTiles) {
+      this.fillBlock(this.tiles, tile.row, tile.col, TILE_ID.doorClosed);
+    }
+  }
+
+  openDoorTiles() {
+    for (const tile of this.doorTiles) {
+      this.fillBlock(this.tiles, tile.row, tile.col, TILE_ID.doorOpen);
+    }
+  }
+
+  tryActivateSwitch(playerRect, wantsInteract) {
+    if (!wantsInteract || this.switchActivated) return false;
+    if (!this.rectsOverlap(playerRect, this.switchZone)) return false;
+    this.switchActivated = true;
+    this.doorOpen = true;
+    this.openDoorTiles();
+    return true;
+  }
+
+  rectsOverlap(a, b) {
+    return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  }
 
   createEmptyTiles(width, height) {
     const tiles = [];
@@ -57,32 +114,50 @@ export class Level { // Diese Klasse baut und zeichnet unser Level.
     return tiles;
   }
 
-  addGroundSegments(tiles, row) {
-    const groundSegments = [[0, 13], [16, 29], [33, 47], [51, 79]];
-    for (const [startCol, endCol] of groundSegments) {
-      this.fillGround(tiles, row, startCol, endCol);
-    }
+  addStartArea(tiles, groundRow) {
+    this.fillGround(tiles, groundRow, 0, 20);
+    this.fillGround(tiles, groundRow, 23, 34);
+    this.fillPlatform(tiles, 7, 5, 7);
+    this.fillPlatform(tiles, 7, 9, 11);
+    this.fillPlatform(tiles, 6, 13, 15);
+    this.fillPlatform(tiles, 6, 17, 19);
   }
 
-  addTrainingPlatforms(tiles) {
-    this.fillPlatform(tiles, 7, 18, 22, TILE_ID.grassMiddle);
-    this.fillPlatform(tiles, 6, 25, 29, TILE_ID.grassMiddle);
-    this.fillPlatform(tiles, 5, 33, 36, TILE_ID.grassMiddle);
-    this.fillPlatform(tiles, 7, 40, 43, TILE_ID.grassMiddle);
+  addMountainPath(tiles, groundRow) {
+    this.fillGround(tiles, groundRow, 36, 50);
+    this.fillPlatform(tiles, 7, 41, 44);
+    this.fillPlatform(tiles, 6, 46, 49);
+    this.fillPlatform(tiles, 5, 52, 55);
+    this.fillPlatform(tiles, 4, 57, 60);
+    this.fillPlatform(tiles, 3, 64, 67);
   }
 
-  addVerticalChallenge(tiles) {
-    this.fillPlatform(tiles, 6, 53, 57, TILE_ID.grassMiddle);
-    this.fillPlatform(tiles, 5, 60, 63, TILE_ID.grassMiddle);
-    this.fillPlatform(tiles, 4, 66, 69, TILE_ID.grassMiddle);
-    this.fillPlatform(tiles, 3, 72, 75, TILE_ID.grassMiddle);
+  addCaveEntrance(tiles, groundRow) {
+    this.fillGround(tiles, groundRow + 1, 61, 73);
+    this.fillPlatform(tiles, 9, 66, 69);
+    this.fillPlatform(tiles, 10, 70, 73);
   }
 
-  addGoalTower(tiles) {
-    this.fillPlatform(tiles, 3, 76, 79, TILE_ID.grassMiddle);
-    this.fillBlock(tiles, 4, 78, TILE_ID.dirtMiddle);
-    this.fillBlock(tiles, 5, 78, TILE_ID.dirtMiddle);
-    this.fillBlock(tiles, 6, 78, TILE_ID.dirtMiddle);
+  addCave(tiles) {
+    this.fillGround(tiles, 10, 74, 95);
+    this.fillRow(tiles, 11, 74, 95, TILE_ID.dirtMiddleDark);
+    this.fillRow(tiles, 9, 84, 86, TILE_ID.spike);
+    this.fillRow(tiles, 9, 91, 92, TILE_ID.spike);
+    this.fillPlatform(tiles, 8, 75, 78, TILE_ID.grassMiddle);
+    this.fillPlatform(tiles, 8, 88, 90, TILE_ID.grassMiddle);
+  }
+
+  addMountainTop(tiles) {
+    this.fillGround(tiles, 8, 96, 131);
+    this.fillPlatform(tiles, 6, 102, 106);
+    this.fillPlatform(tiles, 5, 109, 112);
+    this.fillPlatform(tiles, 4, 116, 120);
+  }
+
+  addGoalArea(tiles) {
+    this.fillPlatform(tiles, 7, 123, 126);
+    this.fillBlock(tiles, 8, 125, TILE_ID.dirtMiddle);
+    this.fillBlock(tiles, 9, 125, TILE_ID.dirtMiddle);
   }
 
   fillGround(tiles, row, startCol, endCol) { // Diese Funktion baut ein Bodenstück mit Gras oben und Dreck darunter.
@@ -155,6 +230,39 @@ export class Level { // Diese Klasse baut und zeichnet unser Level.
     return false;
   }
 
+  touchesGoalHouse(rect) {
+    return this.rectsOverlap(rect, this.goal);
+  }
+
+  drawSwitch(ctx, camera) {
+    const x = Math.round(this.switchZone.x - camera.x);
+    const y = Math.round(this.switchZone.y - camera.y);
+    ctx.fillStyle = this.switchActivated ? "#43a047" : "#ff7043";
+    ctx.fillRect(x + 14, y + 8, 10, 34);
+    ctx.fillRect(x + 6, y + 34, 26, 8);
+  }
+
+  drawDoor(ctx, camera) {
+    const x = Math.round(this.tileDisplaySize * 80 - camera.x);
+    const y = Math.round(this.tileDisplaySize * 7 - camera.y);
+    ctx.fillStyle = this.doorOpen ? "#8d6e63" : "#5d4037";
+    ctx.fillRect(x, y, this.tileDisplaySize, this.tileDisplaySize * 3);
+    if (this.doorOpen) return;
+    ctx.fillStyle = "#cfd8dc";
+    ctx.fillRect(x + 8, y + 8, 6, 6);
+  }
+
+  drawGoalHouse(ctx, camera) {
+    const x = Math.round(this.goal.x - camera.x);
+    const y = Math.round(this.goal.y - camera.y);
+    ctx.fillStyle = "#ffcc80";
+    ctx.fillRect(x, y, this.goal.width, this.goal.height);
+    ctx.fillStyle = "#8d6e63";
+    ctx.fillRect(x - 6, y - 18, this.goal.width + 12, 20);
+    ctx.fillStyle = "#5d4037";
+    ctx.fillRect(x + 28, y + 78, 20, 66);
+  }
+
   draw(ctx, camera) { // Diese Funktion zeichnet sichtbare Level-Tiles.
     const startCol = Math.max(0, Math.floor(camera.x / this.tileDisplaySize)); // Erste sichtbare Spalte links.
     const endCol = Math.min(this.cols - 1, Math.ceil((camera.x + camera.width) / this.tileDisplaySize)); // Letzte sichtbare Spalte rechts.
@@ -187,12 +295,8 @@ export class Level { // Diese Klasse baut und zeichnet unser Level.
       } // Ende Spalten-Schleife.
     } // Ende Reihen-Schleife.
 
-    ctx.fillStyle = "#ffd54f"; // Farbe für das Ziel setzen.
-    ctx.fillRect( // Ziel-Rechteck zeichnen.
-      Math.round(this.goal.x - camera.x), // Ziel-X auf Bildschirm.
-      Math.round(this.goal.y - camera.y), // Ziel-Y auf Bildschirm.
-      this.goal.width, // Ziel-Breite.
-      this.goal.height // Ziel-Höhe.
-    ); // Ende Ziel-Zeichnen.
+    this.drawSwitch(ctx, camera);
+    this.drawDoor(ctx, camera);
+    this.drawGoalHouse(ctx, camera);
   } // Ende von draw.
 } // Ende der Level-Klasse.
