@@ -8,7 +8,7 @@ function init() {
   canvas.width  = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
 
-  const game = new GameManager(canvas);
+  const game = new GameManager(canvas, container);
   game.start();
 }
 

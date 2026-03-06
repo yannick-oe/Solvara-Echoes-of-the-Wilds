@@ -1,33 +1,43 @@
-import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT } from './constants.js';
-import { imageCache }    from './imageCache.js';
-import { inputManager }  from './input.js';
+import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT, CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
+import { imageCache }      from './imageCache.js';
+import { inputManager }    from './input.js';
 import { intervalManager } from './intervalManager.js';
-import { ASSET_ENTRIES } from '../config/assetPaths.js';
+import { ASSET_ENTRIES }   from '../config/assetPaths.js';
+import { StartScreen }    from '../ui/screens/startScreen.js';
+import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
+import { VictoryScreen }  from '../ui/screens/victoryScreen.js';
 
 function createGameState() {
   return {
-    hearts:     PLAYER_START_HEARTS,
-    heartsMax:  5,
-    gems:       0,
-    starCoins:  new Array(STAR_COIN_COUNT).fill(false),
+    hearts:      PLAYER_START_HEARTS,
+    heartsMax:   5,
+    gems:        0,
+    starCoins:   new Array(STAR_COIN_COUNT).fill(false),
     cherryFound: false,
   };
 }
 
 export class GameManager {
-  constructor(canvas) {
+  constructor(canvas, container) {
     this.canvas    = canvas;
+    this.container = container;   // für TouchControls
     this.ctx       = canvas.getContext('2d');
     this.state     = GAME_STATES.LOADING;
     this.gameState = createGameState();
 
     this._rafId    = null;
     this._lastTime = 0;
+    this._loopStarted = false;
+
+    this._startScreen    = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
+    this._gameOverScreen = new GameOverScreen(() => this.restart());
+    this._victoryScreen  = new VictoryScreen(() => this.restart());
 
     this._loop = this._loop.bind(this);
   }
 
   async start() {
+    this._drawLoadingScreen();
     await imageCache.preload(ASSET_ENTRIES);
     inputManager.init();
     this.state = GAME_STATES.START;
@@ -37,30 +47,45 @@ export class GameManager {
   restart() {
     intervalManager.stopAll();
     this.gameState = createGameState();
-    this.state     = GAME_STATES.PLAYING;
+    this._setState(GAME_STATES.PLAYING);
   }
 
-  _stopLoop() {
-    if (this._rafId !== null) {
-      cancelAnimationFrame(this._rafId);
-      this._rafId = null;
-    }
+  _setState(next) {
+    this.state = next;
   }
 
   _loop(timestamp) {
+    // Ersten Frame überspringen: _lastTime initialisieren ohne riesigen dt-Sprung
+    if (!this._loopStarted) {
+      this._loopStarted = true;
+      this._lastTime    = timestamp;
+      this._rafId = requestAnimationFrame(this._loop);
+      return;
+    }
+
     const dt = Math.min((timestamp - this._lastTime) / 1000, 0.05);
     this._lastTime = timestamp;
 
     this._update(dt);
     this._draw();
+    inputManager.resetFrameState();
 
     this._rafId = requestAnimationFrame(this._loop);
   }
 
   _update(dt) {
     switch (this.state) {
+      case GAME_STATES.START:
+        this._startScreen.handleInput(inputManager);
+        break;
       case GAME_STATES.PLAYING:
-        // TODO: Welt, Player, Entities updaten
+        // TODO: Level, Player, Entities updaten
+        break;
+      case GAME_STATES.GAMEOVER:
+        this._gameOverScreen.handleInput(inputManager);
+        break;
+      case GAME_STATES.VICTORY:
+        this._victoryScreen.handleInput(inputManager);
         break;
     }
   }
@@ -69,21 +94,37 @@ export class GameManager {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     switch (this.state) {
-      case GAME_STATES.LOADING:
-        // TODO: Ladebildschirm
-        break;
       case GAME_STATES.START:
-        // TODO: StartScreen.draw()
+        this._startScreen.draw(this.ctx);
         break;
       case GAME_STATES.PLAYING:
         // TODO: Parallax, TileMap, Entities, HUD
+        this._drawPlaceholderBg();
         break;
       case GAME_STATES.GAMEOVER:
-        // TODO: GameOverScreen.draw()
+        this._gameOverScreen.draw(this.ctx);
         break;
       case GAME_STATES.VICTORY:
-        // TODO: VictoryScreen.draw()
+        this._victoryScreen.draw(this.ctx, this.gameState);
         break;
     }
   }
+
+  _drawLoadingScreen() {
+    const { ctx } = this;
+    ctx.fillStyle = '#0a0a1a';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle    = '#ffffff';
+    ctx.font         = 'bold 22px monospace';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Loading…', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+  }
+
+  /** Temporärer Platzhalter bis Parallax/TileMap fertig sind. */
+  _drawPlaceholderBg() {
+    this.ctx.fillStyle = '#1a2a1a';
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
 }
+

@@ -11,14 +11,12 @@ class IntervalManager {
    * @param {number}   ms
    */
   register(id, fn, ms) {
-    if (this._intervals.has(id)) {
-      this.stop(id);
-    }
+    this.clear(id);
     const handle = setInterval(fn, ms);
     this._intervals.set(id, handle);
   }
 
-  stop(id) {
+  clear(id) {
     if (this._intervals.has(id)) {
       clearInterval(this._intervals.get(id));
       this._intervals.delete(id);
