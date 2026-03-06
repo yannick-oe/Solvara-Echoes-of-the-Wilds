@@ -2,9 +2,8 @@
 export const CANVAS_WIDTH = 720;
 export const CANVAS_HEIGHT = 480;
 export const TILE_SIZE = 16;
-export const TILE_SCALE = 3;
-// Reale Tile-Groesse im Spiel (16px Atlas-Tile * 3x Darstellung).
-export const TILE_DISPLAY_SIZE = TILE_SIZE * TILE_SCALE;
+// Feste Darstellungsbreite eines Welt-Tiles in Bildschirm-Pixeln.
+export const TILE_DISPLAY_SIZE = 48;
 
 // Zentrale Asset-Pfade; werden beim Spielstart in den ImageCache geladen.
 export const ASSET_PATHS = {
@@ -13,7 +12,10 @@ export const ASSET_PATHS = {
   tileSet: "assets/images/tilesets/tileset.png",
   propsAtlas: "assets/images/tilesets/atlas-props.png",
   playerSprite: "assets/images/sprites/player.png",
-  enemyAtlas: "assets/images/sprites/enemies/atlas.png",
+  enemyFrogIdle: "assets/images/sprites/enemies/frog/frog-idle.png",
+  enemyFrogJump: "assets/images/sprites/enemies/frog/frog-jump.png",
+  enemyEagleFly: "assets/images/sprites/enemies/eagle/eagle-attack.png",
+  enemyPossumWalk: "assets/images/sprites/enemies/possum/oposum.png",
   pickupAtlas: "assets/images/sprites/pickups/atlas.png",
   uiDoorClosed: "assets/images/ui/door.png",
   uiDoorOpen: "assets/images/ui/door-opened.png",

@@ -1,29 +1,29 @@
 import { COLLECTIBLE_TYPE, ENEMY_TYPE, GAMEPLAY } from "./constants.js";
-import { ENEMY_RECT_FRAMES } from "./worldAtlasConfig.js";
+import { SpriteSheet } from "./spriteSheet.js";
 
 // Pickup-Frames kommen aus demselben Atlas wie das HUD.
 const PICKUP_FRAMES = {
   [COLLECTIBLE_TYPE.diamond]: [
-    { sx: 1, sy: 1, sw: 13, sh: 11 },
-    { sx: 18, sy: 1, sw: 13, sh: 11 },
-    { sx: 35, sy: 1, sw: 13, sh: 11 },
-    { sx: 52, sy: 1, sw: 13, sh: 11 },
-    { sx: 69, sy: 1, sw: 13, sh: 11 },
+    { sx: 68, sy: 0, sw: 15, sh: 13 },
+    { sx: 51, sy: 0, sw: 15, sh: 13 },
+    { sx: 17, sy: 0, sw: 15, sh: 13 },
+    { sx: 34, sy: 0, sw: 15, sh: 13 },
+    { sx: 0, sy: 0, sw: 15, sh: 13 },
   ],
   [COLLECTIBLE_TYPE.cherry]: [
-    { sx: 87, sy: 3, sw: 15, sh: 15 },
-    { sx: 108, sy: 3, sw: 17, sh: 15 },
-    { sx: 132, sy: 3, sw: 17, sh: 15 },
-    { sx: 156, sy: 3, sw: 15, sh: 15 },
-    { sx: 182, sy: 2, sw: 14, sh: 16 },
-    { sx: 204, sy: 2, sw: 14, sh: 16 },
-    { sx: 227, sy: 2, sw: 14, sh: 16 },
+    { sx: 108, sy: 0, sw: 21, sh: 21 },
+    { sx: 131, sy: 0, sw: 21, sh: 21 },
+    { sx: 154, sy: 0, sw: 21, sh: 21 },
+    { sx: 200, sy: 0, sw: 21, sh: 21 },
+    { sx: 177, sy: 0, sw: 21, sh: 21 },
+    { sx: 223, sy: 0, sw: 21, sh: 21 },
+    { sx: 85, sy: 0, sw: 21, sh: 21 },
   ],
   [COLLECTIBLE_TYPE.starCoin]: [
-    { sx: 249, sy: 3, sw: 26, sh: 26 },
-    { sx: 281, sy: 1, sw: 18, sh: 18 },
-    { sx: 316, sy: 2, sw: 28, sh: 29 },
-    { sx: 355, sy: 7, sw: 18, sh: 18 },
+    { sx: 348, sy: 0, sw: 32, sh: 32 },
+    { sx: 246, sy: 0, sw: 32, sh: 32 },
+    { sx: 314, sy: 0, sw: 32, sh: 32 },
+    { sx: 280, sy: 0, sw: 32, sh: 32 },
   ],
 };
 
@@ -37,7 +37,7 @@ function rectsOverlap(a, b) {
 }
 
 export class Enemy {
-  constructor(config, spriteImage) {
+  constructor(config, spriteImageSet) {
     this.type = config.type;
     this.spawnX = config.x;
     this.spawnY = config.y;
@@ -57,7 +57,8 @@ export class Enemy {
     this.jumpCooldown = 0;
     this.verticalMin = config.verticalMin ?? this.spawnY;
     this.verticalMax = config.verticalMax ?? this.spawnY;
-    this.spriteImage = spriteImage;
+    this.spriteImageSet = spriteImageSet;
+    this.animations = this.buildAnimationFrames();
     this.animTimer = 0;
     this.animDuration = 0.12;
     this.animFrame = 0;
@@ -96,13 +97,43 @@ export class Enemy {
   }
 
   getActiveFrames() {
-    const sets = ENEMY_RECT_FRAMES[this.type];
-    if (!sets) return [];
-    if (this.type === ENEMY_TYPE.possum) return sets.walk;
-    if (this.type === ENEMY_TYPE.eagle) return sets.fly;
+    if (this.type === ENEMY_TYPE.possum) return this.animations.walk;
+    if (this.type === ENEMY_TYPE.eagle) return this.animations.fly;
     if (this.type === ENEMY_TYPE.frog)
-      return Math.abs(this.vy) > 30 ? sets.jump : sets.idle;
+      return Math.abs(this.vy) > 30 ? this.animations.jump : this.animations.idle;
     return [];
+  }
+
+  buildAnimationFrames() {
+    if (!this.spriteImageSet) return { idle: [], jump: [], fly: [], walk: [] };
+    if (this.type === ENEMY_TYPE.possum) {
+      return {
+        idle: [],
+        jump: [],
+        fly: [],
+        walk: buildStripFrames(this.spriteImageSet.possumWalk, 36, 28),
+      };
+    }
+
+    if (this.type === ENEMY_TYPE.eagle) {
+      return {
+        idle: [],
+        jump: [],
+        walk: [],
+        fly: buildStripFrames(this.spriteImageSet.eagleFly, 40, 41),
+      };
+    }
+
+    if (this.type === ENEMY_TYPE.frog) {
+      return {
+        idle: buildStripFrames(this.spriteImageSet.frogIdle, 35, 32),
+        jump: buildStripFrames(this.spriteImageSet.frogJump, 35, 32),
+        fly: [],
+        walk: [],
+      };
+    }
+
+    return { idle: [], jump: [], fly: [], walk: [] };
   }
 
   updatePossum(dt, level) {
@@ -171,7 +202,7 @@ export class Enemy {
     const x = Math.round(this.x - camera.x);
     const y = Math.round(this.y - camera.y);
     const frames = this.getActiveFrames();
-    if (!this.spriteImage || !frames.length) {
+    if (!frames.length) {
       if (this.type === ENEMY_TYPE.possum) ctx.fillStyle = "#8d6e63";
       if (this.type === ENEMY_TYPE.frog) ctx.fillStyle = "#43a047";
       if (this.type === ENEMY_TYPE.eagle) ctx.fillStyle = "#5c6bc0";
@@ -185,7 +216,7 @@ export class Enemy {
       ctx.translate(x + this.width, y);
       ctx.scale(-1, 1);
       ctx.drawImage(
-        this.spriteImage,
+        frame.image,
         frame.sx,
         frame.sy,
         frame.sw,
@@ -197,7 +228,7 @@ export class Enemy {
       );
     } else {
       ctx.drawImage(
-        this.spriteImage,
+        frame.image,
         frame.sx,
         frame.sy,
         frame.sw,
@@ -210,6 +241,18 @@ export class Enemy {
     }
     ctx.restore();
   }
+}
+
+function buildStripFrames(image, frameWidth, frameHeight) {
+  if (!image) return [];
+  const sheet = new SpriteSheet(image, frameWidth, frameHeight);
+  const frameCount = Math.floor(image.width / frameWidth);
+  const frames = [];
+  for (let index = 0; index < frameCount; index++) {
+    const rect = sheet.frameAt(index, 0);
+    frames.push({ image, sx: rect.sx, sy: rect.sy, sw: rect.sw, sh: rect.sh });
+  }
+  return frames;
 }
 
 export class Collectible {
@@ -314,85 +357,84 @@ export function isBodyHit(player, enemy) {
   return rectsOverlap(playerRect, enemy.getRect());
 }
 
-export function getDefaultEnemyLayout(tileSize) {
-  // Alle Werte sind in Weltpixeln und werden aus tileSize abgeleitet.
+export function getDefaultEnemyLayout() {
+  // Alle Werte sind feste Weltpixelkoordinaten mit JSON-genauen Hitbox-Massen.
   return [
     {
       type: ENEMY_TYPE.possum,
-      x: tileSize * 10,
-      y: tileSize * 7.6,
-      width: 30,
-      height: 20,
-      patrolMin: tileSize * 8,
-      patrolMax: tileSize * 14,
+      x: 480,
+      y: 364.8,
+      width: 36,
+      height: 28,
+      patrolMin: 384,
+      patrolMax: 672,
       speed: 80,
     },
     {
       type: ENEMY_TYPE.frog,
-      x: tileSize * 39,
-      y: tileSize * 5.2,
-      width: 30,
-      height: 24,
-      patrolMin: tileSize * 36,
-      patrolMax: tileSize * 43,
+      x: 1872,
+      y: 249.6,
+      width: 35,
+      height: 32,
+      patrolMin: 1728,
+      patrolMax: 2064,
       speed: 110,
     },
     {
       type: ENEMY_TYPE.eagle,
-      x: tileSize * 103,
-      y: tileSize * 2.2,
-      width: 30,
-      height: 20,
+      x: 4944,
+      y: 105.6,
+      width: 40,
+      height: 41,
       speed: 90,
-      verticalMin: tileSize * 1.2,
-      verticalMax: tileSize * 5.5,
+      verticalMin: 57.6,
+      verticalMax: 264,
     },
   ];
 }
 
-export function getDefaultCollectiblesLayout(tileSize) {
-  const size = 18;
+export function getDefaultCollectiblesLayout() {
   // Mix aus Linien/Boegen erzeugt sichtbare Sammelrouten im Level.
   return [
-    ...buildDiamondLine(tileSize * 4, tileSize * 6, 7, tileSize * 1.2, size),
-    ...buildDiamondArc(tileSize * 17, tileSize * 5.8, 6, tileSize * 0.8, size),
-    ...buildDiamondLine(tileSize * 32, tileSize * 4.3, 5, tileSize * 1.1, size),
+    ...buildDiamondLine(192, 288, 7, 57.6, 15, 13),
+    ...buildDiamondArc(816, 278.4, 6, 38.4, 15, 13),
+    ...buildDiamondLine(1536, 206.4, 5, 52.8, 15, 13),
     {
       type: COLLECTIBLE_TYPE.starCoin,
       value: GAMEPLAY.starCoinScore,
-      x: tileSize * 44,
-      y: tileSize * 2.7,
-      width: 24,
-      height: 24,
+      x: 2112,
+      y: 129.6,
+      width: 32,
+      height: 32,
     },
     {
       type: COLLECTIBLE_TYPE.starCoin,
       value: GAMEPLAY.starCoinScore,
-      x: tileSize * 81,
-      y: tileSize * 6.2,
-      width: 24,
-      height: 24,
+      x: 3888,
+      y: 297.6,
+      width: 32,
+      height: 32,
     },
     {
       type: COLLECTIBLE_TYPE.starCoin,
       value: GAMEPLAY.starCoinScore,
-      x: tileSize * 111,
-      y: tileSize * 1.2,
-      width: 24,
-      height: 24,
+      x: 5328,
+      y: 57.6,
+      width: 32,
+      height: 32,
     },
     {
       type: COLLECTIBLE_TYPE.cherry,
       value: 1,
-      x: tileSize * 85,
-      y: tileSize * 8.2,
-      width: 20,
-      height: 20,
+      x: 4080,
+      y: 393.6,
+      width: 21,
+      height: 21,
     },
   ];
 }
 
-function buildDiamondLine(startX, y, count, gap, size) {
+function buildDiamondLine(startX, y, count, gap, width, height) {
   const items = [];
   for (let i = 0; i < count; i++) {
     items.push({
@@ -400,14 +442,14 @@ function buildDiamondLine(startX, y, count, gap, size) {
       value: GAMEPLAY.diamondScore,
       x: startX + i * gap,
       y,
-      width: size,
-      height: size,
+      width,
+      height,
     });
   }
   return items;
 }
 
-function buildDiamondArc(startX, startY, count, gap, size) {
+function buildDiamondArc(startX, startY, count, gap, width, height) {
   const items = [];
   for (let i = 0; i < count; i++) {
     const wave = Math.sin((i / (count - 1)) * Math.PI) * 26;
@@ -416,8 +458,8 @@ function buildDiamondArc(startX, startY, count, gap, size) {
       value: GAMEPLAY.diamondScore,
       x: startX + i * gap,
       y: startY - wave,
-      width: size,
-      height: size,
+      width,
+      height,
     });
   }
   return items;

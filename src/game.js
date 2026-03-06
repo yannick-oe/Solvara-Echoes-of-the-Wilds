@@ -43,7 +43,7 @@ export class Game {
     this.collectibles = []; // Alle sammelbaren Objekte des Levels.
     this.score = 0; // Gesamtscore (Diamanten + Sternmuenzen + Gegner-Bounce).
     this.stars = 0; // Anzahl eingesammelter Sternmuenzen fuer das HUD.
-    this.enemyAtlasImage = null;
+    this.enemySpriteSet = null;
     this.pickupSprite = null;
     this.hudSprite = null;
     this.hudAnimTime = 0; // Gemeinsame Zeitbasis fuer HUD-Animationen.
@@ -64,12 +64,17 @@ export class Game {
     const tileset = this.imageCache.get(ASSET_PATHS.tileSet);
     const propsAtlas = this.imageCache.get(ASSET_PATHS.propsAtlas);
     const playerSprite = this.imageCache.get(ASSET_PATHS.playerSprite);
-    const enemyAtlas = this.imageCache.get(ASSET_PATHS.enemyAtlas);
     const pickupAtlas = this.imageCache.get(ASSET_PATHS.pickupAtlas);
     const uiDoorClosed = this.imageCache.get(ASSET_PATHS.uiDoorClosed);
     const uiDoorOpen = this.imageCache.get(ASSET_PATHS.uiDoorOpen);
     const bgBack = this.imageCache.get(ASSET_PATHS.backgroundBack);
     const bgMiddle = this.imageCache.get(ASSET_PATHS.backgroundMiddle);
+    const enemySprites = {
+      frogIdle: this.imageCache.get(ASSET_PATHS.enemyFrogIdle),
+      frogJump: this.imageCache.get(ASSET_PATHS.enemyFrogJump),
+      eagleFly: this.imageCache.get(ASSET_PATHS.enemyEagleFly),
+      possumWalk: this.imageCache.get(ASSET_PATHS.enemyPossumWalk),
+    };
 
     this.level = new Level(tileset, propsAtlas, uiDoorClosed, uiDoorOpen);
     this.player = new Player(
@@ -77,7 +82,7 @@ export class Game {
       this.level.spawnX,
       this.level.spawnY,
     ); // Spawn kommt direkt aus der Level-Definition.
-    this.enemyAtlasImage = enemyAtlas;
+    this.enemySpriteSet = enemySprites;
     this.pickupSprite = new SpriteSheet(
       pickupAtlas,
       HUD_SPRITE.frameWidth,
@@ -99,12 +104,12 @@ export class Game {
   }
 
   createEnemies() {
-    const layout = getDefaultEnemyLayout(this.level.tileDisplaySize); // Tile-Groesse steuert Startkoordinaten der Gegner.
-    return layout.map((config) => new Enemy(config, this.enemyAtlasImage));
+    const layout = getDefaultEnemyLayout(); // Layout ist bereits als feste Weltpixel-Liste definiert.
+    return layout.map((config) => new Enemy(config, this.enemySpriteSet));
   }
 
   createCollectibles() {
-    const layout = getDefaultCollectiblesLayout(this.level.tileDisplaySize);
+    const layout = getDefaultCollectiblesLayout();
     return layout.map((config) => new Collectible(config, this.pickupSprite));
   }
 
@@ -123,7 +128,10 @@ export class Game {
       ASSET_PATHS.tileSet,
       ASSET_PATHS.propsAtlas,
       ASSET_PATHS.playerSprite,
-      ASSET_PATHS.enemyAtlas,
+      ASSET_PATHS.enemyFrogIdle,
+      ASSET_PATHS.enemyFrogJump,
+      ASSET_PATHS.enemyEagleFly,
+      ASSET_PATHS.enemyPossumWalk,
       ASSET_PATHS.pickupAtlas,
       ASSET_PATHS.uiDoorClosed,
       ASSET_PATHS.uiDoorOpen,

@@ -1,5 +1,3 @@
-import { ENEMY_TYPE } from "./constants.js";
-
 // Quellrechtecke fuer Props aus dem Atlas (sx/sy/sw/sh in Atlas-Pixeln).
 export const PROP_FRAMES = {
   "big-crate": { sx: 50, sy: 59, sw: 32, sh: 32 },
@@ -42,59 +40,26 @@ export const WORLD_PROP_KEYS = {
   interactable: ["crank-down", "crank-up"],
 };
 
-// Standard-Props fuer das aktuell eingebaute Einzel-Level.
+// Standard-Props mit festen Weltpixelkoordinaten und Rendergroessen.
 export const DEFAULT_WORLD_PROPS = [
-  { key: "platform-long", col: 26, row: 6, layer: "solid" },
-  { key: "small-platform", col: 52, row: 4, layer: "solid" },
-  { key: "small-platform", col: 53, row: 4, layer: "solid" },
-  { key: "crate", col: 58, row: 7, layer: "solid" },
-  { key: "big-crate", col: 60, row: 7, layer: "solid" },
-  { key: "face-block", col: 103, row: 7, layer: "solid" },
-  { key: "bush", col: 6, row: 7, layer: "decoration" },
-  { key: "tree", col: 12, row: 6, layer: "decoration" },
-  { key: "house", col: 124, row: 5, layer: "decoration" },
-  { key: "shrooms", col: 77, row: 9, layer: "decoration" },
-  { key: "sign", col: 83, row: 8, layer: "decoration" },
-  { key: "skulls", col: 90, row: 8, layer: "decoration" },
-  { key: "rock", col: 92, row: 8, layer: "decoration" },
-  { key: "spikes", col: 84, row: 9, layer: "hazard" },
-  { key: "spikes", col: 85, row: 9, layer: "hazard" },
-  { key: "spike-skull", col: 91, row: 9, layer: "hazard" },
-  { key: "spikes-top", col: 88, row: 7, layer: "hazard" },
-  { key: "spikes-top", col: 89, row: 7, layer: "hazard" },
-  { key: "crank-down", col: 72, row: 9, layer: "interactable" },
+  { key: "platform-long", x: 1248, y: 288, width: 96, height: 48, layer: "solid" },
+  { key: "small-platform", x: 2496, y: 192, width: 48, height: 48, layer: "solid" },
+  { key: "small-platform", x: 2544, y: 192, width: 48, height: 48, layer: "solid" },
+  { key: "crate", x: 2784, y: 336, width: 48, height: 48, layer: "solid" },
+  { key: "big-crate", x: 2880, y: 336, width: 96, height: 96, layer: "solid" },
+  { key: "face-block", x: 4944, y: 336, width: 96, height: 96, layer: "solid" },
+  { key: "bush", x: 288, y: 336, width: 138, height: 84, layer: "decoration" },
+  { key: "tree", x: 576, y: 288, width: 315, height: 279, layer: "decoration" },
+  { key: "house", x: 5952, y: 240, width: 261, height: 324, layer: "decoration" },
+  { key: "shrooms", x: 3696, y: 432, width: 48, height: 45, layer: "decoration" },
+  { key: "sign", x: 3984, y: 384, width: 54, height: 60, layer: "decoration" },
+  { key: "skulls", x: 4320, y: 384, width: 48, height: 30, layer: "decoration" },
+  { key: "rock", x: 4416, y: 384, width: 84, height: 45, layer: "decoration" },
+  { key: "spikes", x: 4032, y: 432, width: 45, height: 30, layer: "hazard" },
+  { key: "spikes", x: 4080, y: 432, width: 45, height: 30, layer: "hazard" },
+  { key: "spike-skull", x: 4368, y: 432, width: 51, height: 36, layer: "hazard" },
+  { key: "spikes-top", x: 4224, y: 336, width: 45, height: 27, layer: "hazard" },
+  { key: "spikes-top", x: 4272, y: 336, width: 45, height: 27, layer: "hazard" },
+  { key: "crank-down", x: 3456, y: 432, width: 66, height: 48, layer: "interactable" },
 ];
 
-// Gegner-Animationsframes fuer Rechteck-Rendering (ohne separates SpriteSheet-Objekt).
-export const ENEMY_RECT_FRAMES = {
-  [ENEMY_TYPE.possum]: {
-    walk: [
-      { sx: 368, sy: 68, sw: 36, sh: 28 },
-      { sx: 292, sy: 68, sw: 36, sh: 28 },
-      { sx: 330, sy: 68, sw: 36, sh: 28 },
-      { sx: 406, sy: 68, sw: 36, sh: 28 },
-      { sx: 0, sy: 102, sw: 36, sh: 28 },
-      { sx: 444, sy: 68, sw: 36, sh: 28 },
-    ],
-  },
-  [ENEMY_TYPE.frog]: {
-    idle: [
-      { sx: 181, sy: 68, sw: 35, sh: 32 },
-      { sx: 255, sy: 68, sw: 35, sh: 32 },
-      { sx: 144, sy: 68, sw: 35, sh: 32 },
-      { sx: 107, sy: 68, sw: 35, sh: 32 },
-    ],
-    jump: [
-      { sx: 218, sy: 68, sw: 35, sh: 32 },
-      { sx: 70, sy: 68, sw: 35, sh: 32 },
-    ],
-  },
-  [ENEMY_TYPE.eagle]: {
-    fly: [
-      { sx: 332, sy: 102, sw: 40, sh: 41 },
-      { sx: 416, sy: 102, sw: 40, sh: 41 },
-      { sx: 374, sy: 102, sw: 40, sh: 41 },
-      { sx: 290, sy: 102, sw: 40, sh: 41 },
-    ],
-  },
-};

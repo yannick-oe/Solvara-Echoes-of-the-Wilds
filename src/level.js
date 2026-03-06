@@ -40,8 +40,8 @@ export class Level {
     this.cols = this.tiles[0].length;
     this.pixelWidth = this.cols * this.tileDisplaySize;
     this.pixelHeight = this.rows * this.tileDisplaySize;
-    this.spawnX = this.tileDisplaySize * 2;
-    this.spawnY = this.tileDisplaySize * 6;
+    this.spawnX = 96;
+    this.spawnY = 288;
     this.goal = this.createGoalHouse(); // Zielbereich fuer Levelabschluss.
     this.switchZone = this.createSwitchZone(); // Interaktionszone fuer den Schalter.
     this.doorTiles = this.createDoorTiles(); // Tuerkacheln, die zwischen offen/geschlossen wechseln.
@@ -72,19 +72,19 @@ export class Level {
 
   createGoalHouse() {
     return {
-      x: this.tileDisplaySize * 125,
-      y: this.tileDisplaySize * 5,
-      width: this.tileDisplaySize * 2,
-      height: this.tileDisplaySize * 3,
+      x: 6000,
+      y: 240,
+      width: 96,
+      height: 144,
     };
   }
 
   createSwitchZone() {
     return {
-      x: this.tileDisplaySize * 72,
-      y: this.tileDisplaySize * 9,
-      width: this.tileDisplaySize,
-      height: this.tileDisplaySize,
+      x: 3456,
+      y: 432,
+      width: 66,
+      height: 48,
     };
   }
 
@@ -92,7 +92,6 @@ export class Level {
     return [
       { col: 80, row: 7 },
       { col: 80, row: 8 },
-      { col: 80, row: 9 },
     ];
   }
 
@@ -105,24 +104,14 @@ export class Level {
 
   createWorldProp(item) {
     const frame = PROP_FRAMES[item.key];
-    const worldX = item.col * this.tileDisplaySize;
-    const worldY = item.row * this.tileDisplaySize;
-    const worldWidth = Math.round(
-      frame.sw * (this.tileDisplaySize / this.tileSize),
-    ); // Atlas-Pixel in Welt-Pixel umrechnen.
-    const worldHeight = Math.round(
-      frame.sh * (this.tileDisplaySize / this.tileSize),
-    );
     return {
       key: item.key,
       layer: item.layer,
       frame,
-      col: item.col,
-      row: item.row,
-      x: worldX,
-      y: worldY,
-      width: worldWidth,
-      height: worldHeight,
+      x: item.x,
+      y: item.y,
+      width: item.width,
+      height: item.height,
     };
   }
 
@@ -366,30 +355,22 @@ export class Level {
   drawSwitch(ctx, camera) {
     const frameKey = this.switchActivated ? "crank-up" : "crank-down"; // Visuelles Feedback fuer Schalterstatus.
     const frame = PROP_FRAMES[frameKey];
-    const width = frame.sw * (this.tileDisplaySize / this.tileSize);
-    const height = frame.sh * (this.tileDisplaySize / this.tileSize);
     this.drawPropFrame(
       ctx,
       frame,
       this.switchZone.x - camera.x,
       this.switchZone.y - camera.y,
-      width,
-      height,
+      this.switchZone.width,
+      this.switchZone.height,
     );
   }
 
   drawDoor(ctx, camera) {
-    const x = Math.round(this.tileDisplaySize * 80 - camera.x);
-    const y = Math.round(this.tileDisplaySize * 7 - camera.y);
+    const x = Math.round(3840 - camera.x);
+    const y = Math.round(336 - camera.y);
     const image = this.doorOpen ? this.uiDoorOpenImage : this.uiDoorClosedImage;
     if (image) {
-      ctx.drawImage(
-        image,
-        x,
-        y,
-        this.tileDisplaySize,
-        this.tileDisplaySize * 2,
-      );
+      ctx.drawImage(image, x, y, 66, 99);
       return; // Bevorzugt separate UI-Tuerbilder, fallback unten auf Atlas-Frame.
     }
 
@@ -399,20 +380,20 @@ export class Level {
       frame,
       x,
       y,
-      this.tileDisplaySize,
-      this.tileDisplaySize * 2,
+      66,
+      99,
     );
   }
 
   drawGoalHouse(ctx, camera) {
-    const x = Math.round(this.goal.x - camera.x);
-    const y = Math.round(this.goal.y - camera.y);
-    ctx.fillStyle = "#ffcc80";
-    ctx.fillRect(x, y, this.goal.width, this.goal.height);
-    ctx.fillStyle = "#8d6e63";
-    ctx.fillRect(x - 6, y - 18, this.goal.width + 12, 20);
-    ctx.fillStyle = "#5d4037";
-    ctx.fillRect(x + 28, y + 78, 20, 66);
+    this.drawPropFrame(
+      ctx,
+      PROP_FRAMES.house,
+      this.goal.x - camera.x,
+      this.goal.y - camera.y,
+      this.goal.width,
+      this.goal.height,
+    );
   }
 
   draw(ctx, camera) {
