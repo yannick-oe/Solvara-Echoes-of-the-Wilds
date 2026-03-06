@@ -1,48 +1,54 @@
-export class Input {
-  constructor() {
-    this.keys = {};
-    this.pressedThisFrame = {};
-    this.releasedThisFrame = {};
+export class Input { // Declare a class that can be used by other modules.
+  // This function handles the constructor behavior in this file.
+  constructor() { // Execute this step in the current flow.
+    this.keys = {}; // Store data on the current object instance.
+    this.pressedThisFrame = {}; // Store data on the current object instance.
+    this.releasedThisFrame = {}; // Store data on the current object instance.
 
-    let self = this;
+    let self = this; // Create a local variable that may change.
 
-    window.addEventListener("keydown", function (event) {
-      if (!event.repeat) {
-        self.pressedThisFrame[event.code] = true;
+    window.addEventListener("keydown", function (event) { // Execute this step in the current flow.
+      // This function handles the if behavior in this file.
+      if (!event.repeat) { // Check a condition before executing this block.
+        self.pressedThisFrame[event.code] = true; // Compute and store a value for later use.
       }
-      self.keys[event.code] = true;
+      self.keys[event.code] = true; // Compute and store a value for later use.
 
-      if (
-        event.code === "ArrowLeft" ||
-        event.code === "ArrowRight" ||
-        event.code === "ArrowUp" ||
-        event.code === "ArrowDown" ||
-        event.code === "Space"
-      ) {
-        event.preventDefault();
+      if ( // Check a condition before executing this block.
+        event.code === "ArrowLeft" || // Compute and store a value for later use.
+        event.code === "ArrowRight" || // Compute and store a value for later use.
+        event.code === "ArrowUp" || // Compute and store a value for later use.
+        event.code === "ArrowDown" || // Compute and store a value for later use.
+        event.code === "Space" // Compute and store a value for later use.
+      ) { // Execute this step in the current flow.
+        event.preventDefault(); // Call a function to perform this step.
       }
-    });
+    }); // Call a function to perform this step.
 
-    window.addEventListener("keyup", function (event) {
-      self.keys[event.code] = false;
-      self.releasedThisFrame[event.code] = true; // <-- neu
-    });
+    window.addEventListener("keyup", function (event) { // Execute this step in the current flow.
+      self.keys[event.code] = false; // Compute and store a value for later use.
+      self.releasedThisFrame[event.code] = true; // Compute and store a value for later use.
+    }); // Call a function to perform this step.
   }
 
-  isDown(code) {
-    return this.keys[code] === true;
+  // This function handles the isDown behavior in this file.
+  isDown(code) { // Execute this step in the current flow.
+    return this.keys[code] === true; // Return control (and optionally a value) to the caller.
   }
 
-  wasPressed(code) {
-    return this.pressedThisFrame[code] === true;
+  // This function handles the wasPressed behavior in this file.
+  wasPressed(code) { // Execute this step in the current flow.
+    return this.pressedThisFrame[code] === true; // Return control (and optionally a value) to the caller.
   }
 
-  wasReleased(code) {
-    return this.releasedThisFrame[code] === true; // <-- neu
+  // This function handles the wasReleased behavior in this file.
+  wasReleased(code) { // Execute this step in the current flow.
+    return this.releasedThisFrame[code] === true; // Return control (and optionally a value) to the caller.
   }
 
-  endFrame() {
-    this.pressedThisFrame = {};
-    this.releasedThisFrame = {}; // <-- neu
+  // This function handles the endFrame behavior in this file.
+  endFrame() { // Execute this step in the current flow.
+    this.pressedThisFrame = {}; // Store data on the current object instance.
+    this.releasedThisFrame = {}; // Store data on the current object instance.
   }
 }

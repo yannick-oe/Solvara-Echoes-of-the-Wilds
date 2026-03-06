@@ -1,29 +1,32 @@
-export class SpriteSheet { // Diese Klasse hilft uns, kleine Bilder aus einem großen Spritesheet zu holen.
-  constructor(image, frameWidth, frameHeight) { // Hier starten wir mit Bild und Frame-Größe.
-    this.image = image; // Das große Spritesheet-Bild.
-    this.frameWidth = frameWidth; // Breite von einem Frame im Spritesheet.
-    this.frameHeight = frameHeight; // Höhe von einem Frame im Spritesheet.
-    this.columns = Math.floor(image.width / frameWidth); // Wie viele Spalten es im Spritesheet gibt.
-  } // Ende vom Konstruktor.
+export class SpriteSheet { // Declare a class that can be used by other modules.
+  // This function handles the constructor behavior in this file.
+  constructor(image, frameWidth, frameHeight) { // Execute this step in the current flow.
+    this.image = image; // Store data on the current object instance.
+    this.frameWidth = frameWidth; // Store data on the current object instance.
+    this.frameHeight = frameHeight; // Store data on the current object instance.
+    this.columns = Math.floor(image.width / frameWidth); // Store data on the current object instance.
+  }
 
-  frame(index) { // Diese Funktion holt einen Frame über eine laufende Nummer.
-    const col = index % this.columns; // Spalte vom Frame ausrechnen.
-    const row = Math.floor(index / this.columns); // Reihe vom Frame ausrechnen.
+  // This function handles the frame behavior in this file.
+  frame(index) { // Execute this step in the current flow.
+    const col = index % this.columns; // Create a local constant for this scope.
+    const row = Math.floor(index / this.columns); // Create a local constant for this scope.
 
-    return { // Wir geben den Quell-Rechteck-Bereich für drawImage zurück.
-      sx: col * this.frameWidth, // Start-X im Spritesheet.
-      sy: row * this.frameHeight, // Start-Y im Spritesheet.
-      sw: this.frameWidth, // Quell-Breite.
-      sh: this.frameHeight, // Quell-Höhe.
-    }; // Ende Rückgabe-Objekt.
-  } // Ende von frame.
+    return { // Return control (and optionally a value) to the caller.
+      sx: col * this.frameWidth, // Execute this step in the current flow.
+      sy: row * this.frameHeight, // Execute this step in the current flow.
+      sw: this.frameWidth, // Execute this step in the current flow.
+      sh: this.frameHeight, // Execute this step in the current flow.
+    };
+  }
 
-  frameAt(column, row) { // Diese Funktion holt einen Frame direkt über Spalte und Reihe.
-    return { // Wir geben den Quell-Rechteck-Bereich für drawImage zurück.
-      sx: column * this.frameWidth, // Start-X im Spritesheet.
-      sy: row * this.frameHeight, // Start-Y im Spritesheet.
-      sw: this.frameWidth, // Quell-Breite.
-      sh: this.frameHeight, // Quell-Höhe.
-    }; // Ende Rückgabe-Objekt.
-  } // Ende von frameAt.
-} // Ende der SpriteSheet-Klasse.
+  // This function handles the frameAt behavior in this file.
+  frameAt(column, row) { // Execute this step in the current flow.
+    return { // Return control (and optionally a value) to the caller.
+      sx: column * this.frameWidth, // Execute this step in the current flow.
+      sy: row * this.frameHeight, // Execute this step in the current flow.
+      sw: this.frameWidth, // Execute this step in the current flow.
+      sh: this.frameHeight, // Execute this step in the current flow.
+    };
+  }
+}

@@ -1,25 +1,29 @@
-export class Camera { // Diese Klasse ist unsere Kamera im Spiel.
-  constructor(width, height) { // Hier starten wir die Kamera mit Breite und Höhe.
-    this.x = 0; // Startposition X der Kamera.
-    this.y = 0; // Startposition Y der Kamera.
-    this.width = width; // Sichtbare Breite der Kamera.
-    this.height = height; // Sichtbare Höhe der Kamera.
-  } // Ende vom Konstruktor.
+export class Camera { // Declare a class that can be used by other modules.
+  // This function handles the constructor behavior in this file.
+  constructor(width, height) { // Execute this step in the current flow.
+    this.x = 0; // Store data on the current object instance.
+    this.y = 0; // Store data on the current object instance.
+    this.width = width; // Store data on the current object instance.
+    this.height = height; // Store data on the current object instance.
+  }
 
-  follow(target, levelPixelWidth) { // Diese Funktion lässt die Kamera dem Ziel auf X folgen.
-    this.x = target.x + target.width / 2 - this.width / 2; // Kamera auf die Mitte vom Ziel setzen.
+  // This function handles the follow behavior in this file.
+  follow(target, levelPixelWidth) { // Execute this step in the current flow.
+    this.x = target.x + target.width / 2 - this.width / 2; // Store data on the current object instance.
 
-    if (this.x < 0) { // Wenn Kamera links über den Levelrand hinaus will...
-      this.x = 0; // ...bleibt sie am linken Rand.
-    } // Ende linker Rand.
+    // This function handles the if behavior in this file.
+    if (this.x < 0) { // Check a condition before executing this block.
+      this.x = 0; // Store data on the current object instance.
+    }
 
-    const maxX = Math.max(0, levelPixelWidth - this.width); // Das ist der maximal erlaubte X-Wert rechts.
-    if (this.x > maxX) { // Wenn Kamera rechts zu weit raus will...
-      this.x = maxX; // ...bleibt sie am rechten Rand.
-    } // Ende rechter Rand.
+    const maxX = Math.max(0, levelPixelWidth - this.width); // Create a local constant for this scope.
+    // This function handles the if behavior in this file.
+    if (this.x > maxX) { // Check a condition before executing this block.
+      this.x = maxX; // Store data on the current object instance.
+    }
 
-    this.x = Math.round(this.x); // Wir runden X für stabile Pixel-Darstellung.
+    this.x = Math.round(this.x); // Store data on the current object instance.
 
-    this.y = 0; // In diesem Spiel bleibt Kamera-Y fest auf 0.
-  } // Ende von follow.
-} // Ende der Camera-Klasse.
+    this.y = 0; // Store data on the current object instance.
+  }
+}
