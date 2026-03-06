@@ -1,0 +1,15 @@
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from './core/constants.js';
+import { GameManager }               from './core/gameManager.js';
+
+function init() {
+  const container = document.getElementById('gameContainer');
+  const canvas    = document.getElementById('gameCanvas');
+
+  canvas.width  = CANVAS_WIDTH;
+  canvas.height = CANVAS_HEIGHT;
+
+  const game = new GameManager(canvas);
+  game.start();
+}
+
+document.addEventListener('DOMContentLoaded', init);
