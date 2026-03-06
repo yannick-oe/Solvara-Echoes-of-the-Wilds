@@ -1,421 +1,424 @@
-import { COLLECTIBLE_TYPE, ENEMY_TYPE, GAMEPLAY } from "./constants.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
-import { ENEMY_RECT_FRAMES } from "./worldAtlasConfig.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { COLLECTIBLE_TYPE, ENEMY_TYPE, GAMEPLAY } from "./constants.js";
+import { ENEMY_RECT_FRAMES } from "./worldAtlasConfig.js";
 
-const PICKUP_FRAMES = { // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    [COLLECTIBLE_TYPE.diamond]: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 1, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 18, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 35, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 52, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 69, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    [COLLECTIBLE_TYPE.cherry]: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 87, sy: 3, sw: 15, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 108, sy: 3, sw: 17, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 132, sy: 3, sw: 17, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 156, sy: 3, sw: 15, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 182, sy: 2, sw: 14, sh: 16 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 204, sy: 2, sw: 14, sh: 16 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 227, sy: 2, sw: 14, sh: 16 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    [COLLECTIBLE_TYPE.starCoin]: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 249, sy: 3, sw: 26, sh: 26 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 281, sy: 1, sw: 18, sh: 18 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 316, sy: 2, sw: 28, sh: 29 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 355, sy: 7, sw: 18, sh: 18 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Pickup-Frames kommen aus demselben Atlas wie das HUD.
+const PICKUP_FRAMES = {
+  [COLLECTIBLE_TYPE.diamond]: [
+    { sx: 1, sy: 1, sw: 13, sh: 11 },
+    { sx: 18, sy: 1, sw: 13, sh: 11 },
+    { sx: 35, sy: 1, sw: 13, sh: 11 },
+    { sx: 52, sy: 1, sw: 13, sh: 11 },
+    { sx: 69, sy: 1, sw: 13, sh: 11 },
+  ],
+  [COLLECTIBLE_TYPE.cherry]: [
+    { sx: 87, sy: 3, sw: 15, sh: 15 },
+    { sx: 108, sy: 3, sw: 17, sh: 15 },
+    { sx: 132, sy: 3, sw: 17, sh: 15 },
+    { sx: 156, sy: 3, sw: 15, sh: 15 },
+    { sx: 182, sy: 2, sw: 14, sh: 16 },
+    { sx: 204, sy: 2, sw: 14, sh: 16 },
+    { sx: 227, sy: 2, sw: 14, sh: 16 },
+  ],
+  [COLLECTIBLE_TYPE.starCoin]: [
+    { sx: 249, sy: 3, sw: 26, sh: 26 },
+    { sx: 281, sy: 1, sw: 18, sh: 18 },
+    { sx: 316, sy: 2, sw: 28, sh: 29 },
+    { sx: 355, sy: 7, sw: 18, sh: 18 },
+  ],
 };
 
-function rectsOverlap(a, b) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+function rectsOverlap(a, b) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
 }
 
-export class Enemy { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
-    // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
-    constructor(config, spriteImage) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.type = config.type; // Speichert Daten in der aktuellen Objektinstanz.
-        this.spawnX = config.x; // Speichert Daten in der aktuellen Objektinstanz.
-        this.spawnY = config.y; // Speichert Daten in der aktuellen Objektinstanz.
-        this.width = config.width; // Speichert Daten in der aktuellen Objektinstanz.
-        this.height = config.height; // Speichert Daten in der aktuellen Objektinstanz.
-        this.patrolMin = config.patrolMin; // Speichert Daten in der aktuellen Objektinstanz.
-        this.patrolMax = config.patrolMax; // Speichert Daten in der aktuellen Objektinstanz.
-        this.speed = config.speed; // Speichert Daten in der aktuellen Objektinstanz.
-        this.direction = 1; // Speichert Daten in der aktuellen Objektinstanz.
-        this.x = this.spawnX; // Speichert Daten in der aktuellen Objektinstanz.
-        this.y = this.spawnY; // Speichert Daten in der aktuellen Objektinstanz.
-        this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.gravity = 1700; // Speichert Daten in der aktuellen Objektinstanz.
-        this.alive = true; // Speichert Daten in der aktuellen Objektinstanz.
-        this.jumpCooldown = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.verticalMin = config.verticalMin ?? this.spawnY; // Speichert Daten in der aktuellen Objektinstanz.
-        this.verticalMax = config.verticalMax ?? this.spawnY; // Speichert Daten in der aktuellen Objektinstanz.
-        this.spriteImage = spriteImage; // Speichert Daten in der aktuellen Objektinstanz.
-        this.animTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.animDuration = 0.12; // Speichert Daten in der aktuellen Objektinstanz.
-        this.animFrame = 0; // Speichert Daten in der aktuellen Objektinstanz.
+export class Enemy {
+  constructor(config, spriteImage) {
+    this.type = config.type;
+    this.spawnX = config.x;
+    this.spawnY = config.y;
+    this.width = config.width;
+    this.height = config.height;
+    // patrolMin/patrolMax begrenzen die Bewegungszone pro Gegner.
+    this.patrolMin = config.patrolMin;
+    this.patrolMax = config.patrolMax;
+    this.speed = config.speed;
+    this.direction = 1;
+    this.x = this.spawnX;
+    this.y = this.spawnY;
+    this.vx = 0;
+    this.vy = 0;
+    this.gravity = 1700;
+    this.alive = true;
+    this.jumpCooldown = 0;
+    this.verticalMin = config.verticalMin ?? this.spawnY;
+    this.verticalMax = config.verticalMax ?? this.spawnY;
+    this.spriteImage = spriteImage;
+    this.animTimer = 0;
+    this.animDuration = 0.12;
+    this.animFrame = 0;
+  }
+
+  reset() {
+    this.x = this.spawnX;
+    this.y = this.spawnY;
+    this.vx = 0;
+    this.vy = 0;
+    this.direction = 1;
+    this.alive = true;
+    this.jumpCooldown = 0;
+    this.animTimer = 0;
+    this.animFrame = 0;
+  }
+
+  getRect() {
+    return { x: this.x, y: this.y, width: this.width, height: this.height };
+  }
+
+  update(dt, level) {
+    if (!this.alive) return;
+    this.advanceAnimation(dt);
+    // Typ entscheidet, welche Bewegungs-Logik ausgefuehrt wird.
+    if (this.type === ENEMY_TYPE.possum) this.updatePossum(dt, level);
+    if (this.type === ENEMY_TYPE.frog) this.updateFrog(dt, level);
+    if (this.type === ENEMY_TYPE.eagle) this.updateEagle(dt);
+  }
+
+  advanceAnimation(dt) {
+    this.animTimer += dt;
+    if (this.animTimer < this.animDuration) return;
+    this.animTimer -= this.animDuration;
+    this.animFrame += 1;
+  }
+
+  getActiveFrames() {
+    const sets = ENEMY_RECT_FRAMES[this.type];
+    if (!sets) return [];
+    if (this.type === ENEMY_TYPE.possum) return sets.walk;
+    if (this.type === ENEMY_TYPE.eagle) return sets.fly;
+    if (this.type === ENEMY_TYPE.frog)
+      return Math.abs(this.vy) > 30 ? sets.jump : sets.idle;
+    return [];
+  }
+
+  updatePossum(dt, level) {
+    this.vx = this.speed * this.direction;
+    this.x += this.vx * dt;
+    // Possum dreht um, wenn Patrouillenbereich endet oder kein Boden mehr vor ihm liegt.
+    if (this.x < this.patrolMin || this.x + this.width > this.patrolMax)
+      this.turnAround();
+    if (!this.hasGroundAhead(level)) this.turnAround();
+  }
+
+  updateFrog(dt, level) {
+    this.jumpCooldown -= dt;
+    // Frog wechselt zwischen Wartezeit und Sprungimpuls.
+    if (this.jumpCooldown <= 0) this.startHop();
+    this.vy += this.gravity * dt;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.resolveGround(level);
+    if (this.x < this.patrolMin || this.x + this.width > this.patrolMax)
+      this.turnAround();
+  }
+
+  startHop() {
+    this.jumpCooldown = 1.05;
+    this.vx = this.speed * this.direction;
+    this.vy = -520;
+  }
+
+  updateEagle(dt) {
+    // Eagle patrouilliert vertikal zwischen verticalMin und verticalMax.
+    this.vx = 0;
+    this.y += this.speed * this.direction * dt;
+    if (this.y <= this.verticalMin) this.direction = 1;
+    if (this.y + this.height >= this.verticalMax) this.direction = -1;
+  }
+
+  resolveGround(level) {
+    const tileSize = level.tileDisplaySize;
+    const left = Math.floor(this.x / tileSize);
+    const right = Math.floor((this.x + this.width - 1) / tileSize);
+    const bottom = Math.floor((this.y + this.height - 1) / tileSize);
+    for (let col = left; col <= right; col++) {
+      if (!level.isSolidTile(col, bottom)) continue;
+      this.y = bottom * tileSize - this.height;
+      this.vy = 0;
+      return;
+    }
+  }
+
+  hasGroundAhead(level) {
+    const probeX = this.direction > 0 ? this.x + this.width + 2 : this.x - 2;
+    const probeY = this.y + this.height + 2;
+    const col = Math.floor(probeX / level.tileDisplaySize);
+    const row = Math.floor(probeY / level.tileDisplaySize);
+    return level.isSolidTile(col, row);
+  }
+
+  turnAround() {
+    this.direction *= -1;
+    if (this.type === ENEMY_TYPE.frog) this.vx = this.speed * this.direction;
+  }
+
+  draw(ctx, camera) {
+    if (!this.alive) return;
+    const x = Math.round(this.x - camera.x);
+    const y = Math.round(this.y - camera.y);
+    const frames = this.getActiveFrames();
+    if (!this.spriteImage || !frames.length) {
+      if (this.type === ENEMY_TYPE.possum) ctx.fillStyle = "#8d6e63";
+      if (this.type === ENEMY_TYPE.frog) ctx.fillStyle = "#43a047";
+      if (this.type === ENEMY_TYPE.eagle) ctx.fillStyle = "#5c6bc0";
+      ctx.fillRect(x, y, this.width, this.height);
+      return;
     }
 
-    // Diese Funktion verarbeitet das Verhalten "reset" in dieser Datei.
-    reset() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.x = this.spawnX; // Speichert Daten in der aktuellen Objektinstanz.
-        this.y = this.spawnY; // Speichert Daten in der aktuellen Objektinstanz.
-        this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.direction = 1; // Speichert Daten in der aktuellen Objektinstanz.
-        this.alive = true; // Speichert Daten in der aktuellen Objektinstanz.
-        this.jumpCooldown = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.animTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.animFrame = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    const frame = frames[this.animFrame % frames.length];
+    ctx.save();
+    if (this.direction < 0 && this.type !== ENEMY_TYPE.eagle) {
+      ctx.translate(x + this.width, y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        this.spriteImage,
+        frame.sx,
+        frame.sy,
+        frame.sw,
+        frame.sh,
+        0,
+        0,
+        this.width,
+        this.height,
+      );
+    } else {
+      ctx.drawImage(
+        this.spriteImage,
+        frame.sx,
+        frame.sy,
+        frame.sw,
+        frame.sh,
+        x,
+        y,
+        this.width,
+        this.height,
+      );
     }
-
-    // Diese Funktion verarbeitet das Verhalten "getRect" in dieser Datei.
-    getRect() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        return { x: this.x, y: this.y, width: this.width, height: this.height }; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "update" in dieser Datei.
-    update(dt, level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        if (!this.alive) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        this.advanceAnimation(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-        if (this.type === ENEMY_TYPE.possum) this.updatePossum(dt, level); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (this.type === ENEMY_TYPE.frog) this.updateFrog(dt, level); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (this.type === ENEMY_TYPE.eagle) this.updateEagle(dt); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "advanceAnimation" in dieser Datei.
-    advanceAnimation(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.animTimer += dt; // Speichert Daten in der aktuellen Objektinstanz.
-        if (this.animTimer < this.animDuration) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        this.animTimer -= this.animDuration; // Speichert Daten in der aktuellen Objektinstanz.
-        this.animFrame += 1; // Speichert Daten in der aktuellen Objektinstanz.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "getActiveFrames" in dieser Datei.
-    getActiveFrames() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        const sets = ENEMY_RECT_FRAMES[this.type]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        if (!sets) return []; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (this.type === ENEMY_TYPE.possum) return sets.walk; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (this.type === ENEMY_TYPE.eagle) return sets.fly; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (this.type === ENEMY_TYPE.frog) return Math.abs(this.vy) > 30 ? sets.jump : sets.idle; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        return []; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "updatePossum" in dieser Datei.
-    updatePossum(dt, level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.vx = this.speed * this.direction; // Speichert Daten in der aktuellen Objektinstanz.
-        this.x += this.vx * dt; // Speichert Daten in der aktuellen Objektinstanz.
-        if (this.x < this.patrolMin || this.x + this.width > this.patrolMax) this.turnAround(); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (!this.hasGroundAhead(level)) this.turnAround(); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "updateFrog" in dieser Datei.
-    updateFrog(dt, level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.jumpCooldown -= dt; // Speichert Daten in der aktuellen Objektinstanz.
-        if (this.jumpCooldown <= 0) this.startHop(); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        this.vy += this.gravity * dt; // Speichert Daten in der aktuellen Objektinstanz.
-        this.x += this.vx * dt; // Speichert Daten in der aktuellen Objektinstanz.
-        this.y += this.vy * dt; // Speichert Daten in der aktuellen Objektinstanz.
-        this.resolveGround(level); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-        if (this.x < this.patrolMin || this.x + this.width > this.patrolMax) this.turnAround(); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "startHop" in dieser Datei.
-    startHop() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.jumpCooldown = 1.05; // Speichert Daten in der aktuellen Objektinstanz.
-        this.vx = this.speed * this.direction; // Speichert Daten in der aktuellen Objektinstanz.
-        this.vy = -520; // Speichert Daten in der aktuellen Objektinstanz.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "updateEagle" in dieser Datei.
-    updateEagle(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.y += this.speed * this.direction * dt; // Speichert Daten in der aktuellen Objektinstanz.
-        if (this.y <= this.verticalMin) this.direction = 1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (this.y + this.height >= this.verticalMax) this.direction = -1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "resolveGround" in dieser Datei.
-    resolveGround(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        const tileSize = level.tileDisplaySize; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const left = Math.floor(this.x / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const right = Math.floor((this.x + this.width - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const bottom = Math.floor((this.y + this.height - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
-        for (let col = left; col <= right; col++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
-            if (!level.isSolidTile(col, bottom)) continue; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            this.y = bottom * tileSize - this.height; // Speichert Daten in der aktuellen Objektinstanz.
-            this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
-            return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-        }
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "hasGroundAhead" in dieser Datei.
-    hasGroundAhead(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        const probeX = this.direction > 0 ? this.x + this.width + 2 : this.x - 2; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const probeY = this.y + this.height + 2; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const col = Math.floor(probeX / level.tileDisplaySize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const row = Math.floor(probeY / level.tileDisplaySize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        return level.isSolidTile(col, row); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "turnAround" in dieser Datei.
-    turnAround() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.direction *= -1; // Speichert Daten in der aktuellen Objektinstanz.
-        if (this.type === ENEMY_TYPE.frog) this.vx = this.speed * this.direction; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "draw" in dieser Datei.
-    draw(ctx, camera) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        if (!this.alive) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        const x = Math.round(this.x - camera.x); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const y = Math.round(this.y - camera.y); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const frames = this.getActiveFrames(); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
-        if (!this.spriteImage || !frames.length) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            if (this.type === ENEMY_TYPE.possum) ctx.fillStyle = "#8d6e63"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            if (this.type === ENEMY_TYPE.frog) ctx.fillStyle = "#43a047"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            if (this.type === ENEMY_TYPE.eagle) ctx.fillStyle = "#5c6bc0"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            ctx.fillRect(x, y, this.width, this.height); // Zeichnet ein gefuelltes Rechteck auf dem Canvas.
-            return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-        }
-
-        const frame = frames[this.animFrame % frames.length]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        ctx.save(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
-        if (this.direction < 0 && this.type !== ENEMY_TYPE.eagle) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            ctx.translate(x + this.width, y); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-            ctx.scale(-1, 1); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-            ctx.drawImage( // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
-                this.spriteImage, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sx, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sy, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sw, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sh, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                0, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                0, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                this.width, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                this.height // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-        } else { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            ctx.drawImage( // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
-                this.spriteImage, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sx, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sy, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sw, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                frame.sh, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                x, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                y, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                this.width, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-                this.height // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-        }
-        ctx.restore(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-    }
+    ctx.restore();
+  }
 }
 
-export class Collectible { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
-    // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
-    constructor(config, sprite) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.type = config.type; // Speichert Daten in der aktuellen Objektinstanz.
-        this.value = config.value; // Speichert Daten in der aktuellen Objektinstanz.
-        this.x = config.x; // Speichert Daten in der aktuellen Objektinstanz.
-        this.y = config.y; // Speichert Daten in der aktuellen Objektinstanz.
-        this.width = config.width; // Speichert Daten in der aktuellen Objektinstanz.
-        this.height = config.height; // Speichert Daten in der aktuellen Objektinstanz.
-        this.collected = false; // Speichert Daten in der aktuellen Objektinstanz.
+export class Collectible {
+  constructor(config, sprite) {
+    this.type = config.type;
+    // value ist der Punktewert (z. B. 10 fuer Diamant, 50 fuer Sternmuenze).
+    this.value = config.value;
+    this.x = config.x;
+    this.y = config.y;
+    this.width = config.width;
+    this.height = config.height;
+    this.collected = false;
+    this.sprite = sprite;
+    this.frames = PICKUP_FRAMES[this.type] || [];
+    this.frameTimer = Math.random() * 0.3;
+    this.frameDuration = 0.11;
+    this.frameIndex = 0;
+  }
 
-        this.sprite = sprite; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frames = PICKUP_FRAMES[this.type] || []; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frameTimer = Math.random() * 0.3; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frameDuration = 0.11; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frameIndex = 0; // Speichert Daten in der aktuellen Objektinstanz.
+  reset() {
+    this.collected = false;
+    this.frameTimer = 0;
+    this.frameIndex = 0;
+  }
+
+  update(dt) {
+    if (this.collected) return;
+    if (!this.frames.length) return;
+    this.frameTimer += dt;
+    if (this.frameTimer < this.frameDuration) return;
+    this.frameTimer -= this.frameDuration;
+    this.frameIndex = (this.frameIndex + 1) % this.frames.length;
+  }
+
+  getRect() {
+    return { x: this.x, y: this.y, width: this.width, height: this.height };
+  }
+
+  tryCollect(playerRect, onCollect) {
+    if (this.collected) return;
+    if (!rectsOverlap(this.getRect(), playerRect)) return;
+    this.collected = true;
+    // onCollect wird vom Game aufgerufen, um Score/HUD zu aktualisieren.
+    onCollect(this);
+  }
+
+  draw(ctx, camera) {
+    if (this.collected) return;
+    const x = Math.round(this.x - camera.x);
+    const y = Math.round(this.y - camera.y);
+    if (!this.sprite || !this.frames.length) {
+      if (this.type === COLLECTIBLE_TYPE.diamond) ctx.fillStyle = "#4dd0e1";
+      if (this.type === COLLECTIBLE_TYPE.starCoin) ctx.fillStyle = "#ffca28";
+      if (this.type === COLLECTIBLE_TYPE.cherry) ctx.fillStyle = "#e53935";
+      ctx.fillRect(x, y, this.width, this.height);
+      return;
     }
 
-    // Diese Funktion verarbeitet das Verhalten "reset" in dieser Datei.
-    reset() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        this.collected = false; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frameTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frameIndex = 0; // Speichert Daten in der aktuellen Objektinstanz.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "update" in dieser Datei.
-    update(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        if (this.collected) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (!this.frames.length) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        this.frameTimer += dt; // Speichert Daten in der aktuellen Objektinstanz.
-        if (this.frameTimer < this.frameDuration) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        this.frameTimer -= this.frameDuration; // Speichert Daten in der aktuellen Objektinstanz.
-        this.frameIndex = (this.frameIndex + 1) % this.frames.length; // Speichert Daten in der aktuellen Objektinstanz.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "getRect" in dieser Datei.
-    getRect() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        return { x: this.x, y: this.y, width: this.width, height: this.height }; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "tryCollect" in dieser Datei.
-    tryCollect(playerRect, onCollect) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        if (this.collected) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        if (!rectsOverlap(this.getRect(), playerRect)) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        this.collected = true; // Speichert Daten in der aktuellen Objektinstanz.
-        onCollect(this); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-    }
-
-    // Diese Funktion verarbeitet das Verhalten "draw" in dieser Datei.
-    draw(ctx, camera) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        if (this.collected) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-        const x = Math.round(this.x - camera.x); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const y = Math.round(this.y - camera.y); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
-        if (!this.sprite || !this.frames.length) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            if (this.type === COLLECTIBLE_TYPE.diamond) ctx.fillStyle = "#4dd0e1"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            if (this.type === COLLECTIBLE_TYPE.starCoin) ctx.fillStyle = "#ffca28"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            if (this.type === COLLECTIBLE_TYPE.cherry) ctx.fillStyle = "#e53935"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-            ctx.fillRect(x, y, this.width, this.height); // Zeichnet ein gefuelltes Rechteck auf dem Canvas.
-            return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-        }
-
-        const frame = this.frames[this.frameIndex]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        const source = frame.sx !== undefined // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-            ? frame // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            : this.sprite.frameAt(frame.col, frame.row); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-        ctx.drawImage( // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
-            this.sprite.image, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            source.sx, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            source.sy, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            source.sw, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            source.sh, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            this.width, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            this.height // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-    }
+    const frame = this.frames[this.frameIndex];
+    const source =
+      frame.sx !== undefined
+        ? frame
+        : this.sprite.frameAt(frame.col, frame.row);
+    ctx.drawImage(
+      this.sprite.image,
+      source.sx,
+      source.sy,
+      source.sw,
+      source.sh,
+      x,
+      y,
+      this.width,
+      this.height,
+    );
+  }
 }
 
-export function isStompHit(player, enemy) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    if (!enemy.alive) return false; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height }; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    const enemyRect = enemy.getRect(); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    if (!rectsOverlap(playerRect, enemyRect)) return false; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    const playerBottom = player.y + player.height; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    const enemyHeadLimit = enemy.y + enemy.height * 0.35; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    return player.vy > 0 && playerBottom <= enemyHeadLimit; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+export function isStompHit(player, enemy) {
+  if (!enemy.alive) return false;
+  const playerRect = {
+    x: player.x,
+    y: player.y,
+    width: player.width,
+    height: player.height,
+  };
+  const enemyRect = enemy.getRect();
+  if (!rectsOverlap(playerRect, enemyRect)) return false;
+  const playerBottom = player.y + player.height;
+  const enemyHeadLimit = enemy.y + enemy.height * 0.35;
+  // Nur gueltig, wenn der Spieler von oben kommt und den oberen Bereich des Gegners trifft.
+  return player.vy > 0 && playerBottom <= enemyHeadLimit;
 }
 
-export function isBodyHit(player, enemy) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    if (!enemy.alive) return false; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
-    const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height }; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    return rectsOverlap(playerRect, enemy.getRect()); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+export function isBodyHit(player, enemy) {
+  if (!enemy.alive) return false;
+  const playerRect = {
+    x: player.x,
+    y: player.y,
+    width: player.width,
+    height: player.height,
+  };
+  return rectsOverlap(playerRect, enemy.getRect());
 }
 
-export function getDefaultEnemyLayout(tileSize) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    return [ // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-        {
-            type: ENEMY_TYPE.possum, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 10, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 7.6, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 30, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 20, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            patrolMin: tileSize * 8, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            patrolMax: tileSize * 14, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            speed: 80, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        {
-            type: ENEMY_TYPE.frog, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 39, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 5.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 30, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            patrolMin: tileSize * 36, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            patrolMax: tileSize * 43, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            speed: 110, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        {
-            type: ENEMY_TYPE.eagle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 103, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 2.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 30, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 20, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            speed: 90, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            verticalMin: tileSize * 1.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            verticalMax: tileSize * 5.5, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ]; // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+export function getDefaultEnemyLayout(tileSize) {
+  // Alle Werte sind in Weltpixeln und werden aus tileSize abgeleitet.
+  return [
+    {
+      type: ENEMY_TYPE.possum,
+      x: tileSize * 10,
+      y: tileSize * 7.6,
+      width: 30,
+      height: 20,
+      patrolMin: tileSize * 8,
+      patrolMax: tileSize * 14,
+      speed: 80,
+    },
+    {
+      type: ENEMY_TYPE.frog,
+      x: tileSize * 39,
+      y: tileSize * 5.2,
+      width: 30,
+      height: 24,
+      patrolMin: tileSize * 36,
+      patrolMax: tileSize * 43,
+      speed: 110,
+    },
+    {
+      type: ENEMY_TYPE.eagle,
+      x: tileSize * 103,
+      y: tileSize * 2.2,
+      width: 30,
+      height: 20,
+      speed: 90,
+      verticalMin: tileSize * 1.2,
+      verticalMax: tileSize * 5.5,
+    },
+  ];
 }
 
-export function getDefaultCollectiblesLayout(tileSize) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    const size = 18; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    return [ // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
-        ...buildDiamondLine(tileSize * 4, tileSize * 6, 7, tileSize * 1.2, size), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        ...buildDiamondArc(tileSize * 17, tileSize * 5.8, 6, tileSize * 0.8, size), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        ...buildDiamondLine(tileSize * 32, tileSize * 4.3, 5, tileSize * 1.1, size), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        {
-            type: COLLECTIBLE_TYPE.starCoin, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            value: GAMEPLAY.starCoinScore, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 44, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 2.7, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        {
-            type: COLLECTIBLE_TYPE.starCoin, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            value: GAMEPLAY.starCoinScore, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 81, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 6.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        {
-            type: COLLECTIBLE_TYPE.starCoin, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            value: GAMEPLAY.starCoinScore, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 111, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 1.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 24, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        {
-            type: COLLECTIBLE_TYPE.cherry, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            value: 1, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: tileSize * 85, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: tileSize * 8.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: 20, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: 20, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ]; // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+export function getDefaultCollectiblesLayout(tileSize) {
+  const size = 18;
+  // Mix aus Linien/Boegen erzeugt sichtbare Sammelrouten im Level.
+  return [
+    ...buildDiamondLine(tileSize * 4, tileSize * 6, 7, tileSize * 1.2, size),
+    ...buildDiamondArc(tileSize * 17, tileSize * 5.8, 6, tileSize * 0.8, size),
+    ...buildDiamondLine(tileSize * 32, tileSize * 4.3, 5, tileSize * 1.1, size),
+    {
+      type: COLLECTIBLE_TYPE.starCoin,
+      value: GAMEPLAY.starCoinScore,
+      x: tileSize * 44,
+      y: tileSize * 2.7,
+      width: 24,
+      height: 24,
+    },
+    {
+      type: COLLECTIBLE_TYPE.starCoin,
+      value: GAMEPLAY.starCoinScore,
+      x: tileSize * 81,
+      y: tileSize * 6.2,
+      width: 24,
+      height: 24,
+    },
+    {
+      type: COLLECTIBLE_TYPE.starCoin,
+      value: GAMEPLAY.starCoinScore,
+      x: tileSize * 111,
+      y: tileSize * 1.2,
+      width: 24,
+      height: 24,
+    },
+    {
+      type: COLLECTIBLE_TYPE.cherry,
+      value: 1,
+      x: tileSize * 85,
+      y: tileSize * 8.2,
+      width: 20,
+      height: 20,
+    },
+  ];
 }
 
-function buildDiamondLine(startX, y, count, gap, size) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    const items = []; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
-    for (let i = 0; i < count; i++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
-        items.push({ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            type: COLLECTIBLE_TYPE.diamond, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            value: GAMEPLAY.diamondScore, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: startX + i * gap, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: size, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: size, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-    }
-    return items; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+function buildDiamondLine(startX, y, count, gap, size) {
+  const items = [];
+  for (let i = 0; i < count; i++) {
+    items.push({
+      type: COLLECTIBLE_TYPE.diamond,
+      value: GAMEPLAY.diamondScore,
+      x: startX + i * gap,
+      y,
+      width: size,
+      height: size,
+    });
+  }
+  return items;
 }
 
-function buildDiamondArc(startX, startY, count, gap, size) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    const items = []; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-    // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
-    for (let i = 0; i < count; i++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
-        const wave = Math.sin((i / (count - 1)) * Math.PI) * 26; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
-        items.push({ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            type: COLLECTIBLE_TYPE.diamond, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            value: GAMEPLAY.diamondScore, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            x: startX + i * gap, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            y: startY - wave, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            width: size, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-            height: size, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        }); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
-    }
-    return items; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+function buildDiamondArc(startX, startY, count, gap, size) {
+  const items = [];
+  for (let i = 0; i < count; i++) {
+    const wave = Math.sin((i / (count - 1)) * Math.PI) * 26;
+    items.push({
+      type: COLLECTIBLE_TYPE.diamond,
+      value: GAMEPLAY.diamondScore,
+      x: startX + i * gap,
+      y: startY - wave,
+      width: size,
+      height: size,
+    });
+  }
+  return items;
 }

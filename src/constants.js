@@ -1,112 +1,116 @@
-export const CANVAS_WIDTH = 720; // Deklariert einen gemeinsamen konstanten Wert.
-export const CANVAS_HEIGHT = 480; // Deklariert einen gemeinsamen konstanten Wert.
+// Globale Basiswerte fuer Rendering und Gameplay-Logik in Solvara.
+export const CANVAS_WIDTH = 720;
+export const CANVAS_HEIGHT = 480;
+export const TILE_SIZE = 16;
+export const TILE_SCALE = 3;
+// Reale Tile-Groesse im Spiel (16px Atlas-Tile * 3x Darstellung).
+export const TILE_DISPLAY_SIZE = TILE_SIZE * TILE_SCALE;
 
-export const TILE_SIZE = 16; // Deklariert einen gemeinsamen konstanten Wert.
-export const TILE_SCALE = 3; // Deklariert einen gemeinsamen konstanten Wert.
-export const TILE_DISPLAY_SIZE = TILE_SIZE * TILE_SCALE; // Deklariert einen gemeinsamen konstanten Wert.
-
-export const ASSET_PATHS = { // Deklariert einen gemeinsamen konstanten Wert.
-  backgroundBack: "assets/images/backgrounds/forest/back.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  backgroundMiddle: "assets/images/backgrounds/forest/middle.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  tileSet: "assets/images/tilesets/tileset.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  propsAtlas: "assets/images/tilesets/atlas-props.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  playerSprite: "assets/images/sprites/player.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  enemyAtlas: "assets/images/sprites/enemies/atlas.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  pickupAtlas: "assets/images/sprites/pickups/atlas.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  uiDoorClosed: "assets/images/ui/door.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  uiDoorOpen: "assets/images/ui/door-opened.png", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  levelMusic: "assets/audio/music/platformer_level03_loop.ogg", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Zentrale Asset-Pfade; werden beim Spielstart in den ImageCache geladen.
+export const ASSET_PATHS = {
+  backgroundBack: "assets/images/backgrounds/forest/back.png",
+  backgroundMiddle: "assets/images/backgrounds/forest/middle.png",
+  tileSet: "assets/images/tilesets/tileset.png",
+  propsAtlas: "assets/images/tilesets/atlas-props.png",
+  playerSprite: "assets/images/sprites/player.png",
+  enemyAtlas: "assets/images/sprites/enemies/atlas.png",
+  pickupAtlas: "assets/images/sprites/pickups/atlas.png",
+  uiDoorClosed: "assets/images/ui/door.png",
+  uiDoorOpen: "assets/images/ui/door-opened.png",
+  levelMusic: "assets/audio/music/platformer_level03_loop.ogg",
 };
 
-export const TILE_ID = { // Deklariert einen gemeinsamen konstanten Wert.
-  empty: 0, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  grassLeft: 1, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  grassMiddle: 2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  grassRight: 3, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  grassMiddleAlt: 4, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  grassSingle: 5, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  dirtLeft: 26, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  dirtMiddle: 27, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  dirtRight: 28, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  dirtMiddleDark: 29, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  stoneBlock: 51, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  spike: 171, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-
-  caveWallA: 52, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  caveWallB: 53, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  caveFloor: 54, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  platformWood: 70, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  switchLever: 186, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  doorClosed: 187, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  doorOpen: 188, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  houseBase: 200, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  houseRoof: 201, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  spikeCeiling: 172, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// IDs muessen zum verwendeten Tileset passen, sonst werden falsche Kacheln gezeichnet.
+export const TILE_ID = {
+  empty: 0,
+  grassLeft: 1,
+  grassMiddle: 2,
+  grassRight: 3,
+  grassMiddleAlt: 4,
+  grassSingle: 5,
+  dirtLeft: 26,
+  dirtMiddle: 27,
+  dirtRight: 28,
+  dirtMiddleDark: 29,
+  stoneBlock: 51,
+  spike: 171,
+  caveWallA: 52,
+  caveWallB: 53,
+  caveFloor: 54,
+  platformWood: 70,
+  switchLever: 186,
+  doorClosed: 187,
+  doorOpen: 188,
+  houseBase: 200,
+  houseRoof: 201,
+  spikeCeiling: 172,
 };
 
-export const TILE_GROUPS = { // Deklariert einen gemeinsamen konstanten Wert.
-  SOLID_GROUND: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.grassLeft, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.grassMiddle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.grassRight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.grassMiddleAlt, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.grassSingle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.dirtLeft, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.dirtMiddle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.dirtRight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.dirtMiddleDark, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.stoneBlock, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.caveWallA, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.caveWallB, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.caveFloor, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.platformWood, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    TILE_ID.doorClosed, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  ONE_WAY_PLATFORM: [TILE_ID.platformWood], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  HAZARD_SPIKES: [TILE_ID.spike, TILE_ID.spikeCeiling], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  DECORATION: [TILE_ID.houseBase, TILE_ID.houseRoof], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  INTERACTABLE: [TILE_ID.switchLever, TILE_ID.doorClosed, TILE_ID.doorOpen], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Semantische Gruppen fuer Kollision, Logik und Editor-nahe Lesbarkeit.
+export const TILE_GROUPS = {
+  SOLID_GROUND: [
+    TILE_ID.grassLeft,
+    TILE_ID.grassMiddle,
+    TILE_ID.grassRight,
+    TILE_ID.grassMiddleAlt,
+    TILE_ID.grassSingle,
+    TILE_ID.dirtLeft,
+    TILE_ID.dirtMiddle,
+    TILE_ID.dirtRight,
+    TILE_ID.dirtMiddleDark,
+    TILE_ID.stoneBlock,
+    TILE_ID.caveWallA,
+    TILE_ID.caveWallB,
+    TILE_ID.caveFloor,
+    TILE_ID.platformWood,
+    TILE_ID.doorClosed,
+  ],
+  ONE_WAY_PLATFORM: [TILE_ID.platformWood],
+  HAZARD_SPIKES: [TILE_ID.spike, TILE_ID.spikeCeiling],
+  DECORATION: [TILE_ID.houseBase, TILE_ID.houseRoof],
+  INTERACTABLE: [TILE_ID.switchLever, TILE_ID.doorClosed, TILE_ID.doorOpen],
 };
 
-export const SOLID_TILE_IDS = [ // Deklariert einen gemeinsamen konstanten Wert.
-  TILE_ID.grassLeft, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.grassMiddle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.grassRight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.grassMiddleAlt, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.grassSingle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.dirtLeft, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.dirtMiddle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.dirtRight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.dirtMiddleDark, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.stoneBlock, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.caveWallA, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.caveWallB, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.caveFloor, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.platformWood, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  TILE_ID.doorClosed, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-]; // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Aktive Kollisionstiles fuer die Runtime-Abfragen in level.js.
+export const SOLID_TILE_IDS = [
+  TILE_ID.grassLeft,
+  TILE_ID.grassMiddle,
+  TILE_ID.grassRight,
+  TILE_ID.grassMiddleAlt,
+  TILE_ID.grassSingle,
+  TILE_ID.dirtLeft,
+  TILE_ID.dirtMiddle,
+  TILE_ID.dirtRight,
+  TILE_ID.dirtMiddleDark,
+  TILE_ID.stoneBlock,
+  TILE_ID.caveWallA,
+  TILE_ID.caveWallB,
+  TILE_ID.caveFloor,
+  TILE_ID.platformWood,
+  TILE_ID.doorClosed,
+];
+export const HAZARD_TILE_IDS = [TILE_ID.spike, TILE_ID.spikeCeiling];
 
-export const HAZARD_TILE_IDS = [TILE_ID.spike, TILE_ID.spikeCeiling]; // Deklariert einen gemeinsamen konstanten Wert.
+// Typen-Schluessel, damit Welt-Layouts und Runtime dieselben Bezeichner verwenden.
+export const ENEMY_TYPE = { possum: "possum", frog: "frog", eagle: "eagle" };
 
-export const ENEMY_TYPE = { // Deklariert einen gemeinsamen konstanten Wert.
-  possum: "possum", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  frog: "frog", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  eagle: "eagle", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+export const COLLECTIBLE_TYPE = {
+  diamond: "diamond",
+  starCoin: "starCoin",
+  cherry: "cherry",
 };
 
-export const COLLECTIBLE_TYPE = { // Deklariert einen gemeinsamen konstanten Wert.
-  diamond: "diamond", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  starCoin: "starCoin", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  cherry: "cherry", // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-};
-
-export const GAMEPLAY = { // Deklariert einen gemeinsamen konstanten Wert.
-  startHearts: 3, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  maxHearts: 5, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  hitInvulnerabilityTime: 1.2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  knockbackX: 180, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  knockbackY: 260, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  stompBounceFactor: 0.55, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  diamondScore: 10, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-  starCoinScore: 50, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+export const GAMEPLAY = {
+  // Startwert bei Spawn; kann per Cherry bis maxHearts wachsen.
+  startHearts: 3,
+  maxHearts: 5,
+  // Zeitfenster nach Treffer, in dem der Spieler keinen weiteren Schaden bekommt.
+  hitInvulnerabilityTime: 1.2,
+  // Rueckstoss nach Treffer in X/Y-Richtung.
+  knockbackX: 180,
+  knockbackY: 260,
+  // Multiplikator fuer den Aufwaertsbounce nach Stomp auf Gegner.
+  stompBounceFactor: 0.55,
+  diamondScore: 10,
+  starCoinScore: 50,
 };

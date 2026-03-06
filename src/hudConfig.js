@@ -1,48 +1,46 @@
-export const HUD_SPRITE = { // Deklariert einen gemeinsamen konstanten Wert.
-    frameWidth: 16, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    frameHeight: 16, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    scale: 2, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Basiswerte fuer HUD-Icon-Darstellung.
+export const HUD_SPRITE = { frameWidth: 16, frameHeight: 16, scale: 2 };
+
+// Pixelpositionen fuer die drei HUD-Zeilen links oben.
+export const HUD_LAYOUT = {
+  heartsY: 12,
+  starsY: 52,
+  diamondsY: 92,
+  leftX: 12,
+  iconGap: 8,
+  scoreGap: 12,
+  maxStars: 3,
 };
 
-export const HUD_LAYOUT = { // Deklariert einen gemeinsamen konstanten Wert.
-    heartsY: 12, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    starsY: 52, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    diamondsY: 92, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    leftX: 12, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    iconGap: 8, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    scoreGap: 12, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    maxStars: 3, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Quell-Rechtecke aus dem Pickup-Atlas fuer animierte HUD-Icons.
+export const HUD_FRAMES = {
+  hearts: [
+    { sx: 87, sy: 3, sw: 15, sh: 15 },
+    { sx: 108, sy: 3, sw: 17, sh: 15 },
+    { sx: 132, sy: 3, sw: 17, sh: 15 },
+    { sx: 156, sy: 3, sw: 15, sh: 15 },
+    { sx: 182, sy: 2, sw: 14, sh: 16 },
+    { sx: 204, sy: 2, sw: 14, sh: 16 },
+    { sx: 227, sy: 2, sw: 14, sh: 16 },
+  ],
+  diamondSpin: [
+    { sx: 1, sy: 1, sw: 13, sh: 11 },
+    { sx: 18, sy: 1, sw: 13, sh: 11 },
+    { sx: 35, sy: 1, sw: 13, sh: 11 },
+    { sx: 52, sy: 1, sw: 13, sh: 11 },
+    { sx: 69, sy: 1, sw: 13, sh: 11 },
+  ],
+  starCoinSpin: [
+    { sx: 249, sy: 3, sw: 26, sh: 26 },
+    { sx: 281, sy: 1, sw: 18, sh: 18 },
+    { sx: 316, sy: 2, sw: 28, sh: 29 },
+    { sx: 355, sy: 7, sw: 18, sh: 18 },
+  ],
 };
 
-export const HUD_FRAMES = { // Deklariert einen gemeinsamen konstanten Wert.
-    hearts: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 87, sy: 3, sw: 15, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 108, sy: 3, sw: 17, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 132, sy: 3, sw: 17, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 156, sy: 3, sw: 15, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 182, sy: 2, sw: 14, sh: 16 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 204, sy: 2, sw: 14, sh: 16 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 227, sy: 2, sw: 14, sh: 16 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-
-    diamondSpin: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 1, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 18, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 35, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 52, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 69, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-
-    starCoinSpin: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 249, sy: 3, sw: 26, sh: 26 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 281, sy: 1, sw: 18, sh: 18 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 316, sy: 2, sw: 28, sh: 29 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-        { sx: 355, sy: 7, sw: 18, sh: 18 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-};
-
-export const HUD_FALLBACK_FRAMES = { // Deklariert einen gemeinsamen konstanten Wert.
-    heart: { sx: 87, sy: 3, sw: 15, sh: 15 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    diamond: { sx: 1, sy: 1, sw: 13, sh: 11 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
-    starCoin: { sx: 249, sy: 3, sw: 26, sh: 26 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+// Fallback, falls eine Animationsliste leer oder nicht verfuegbar ist.
+export const HUD_FALLBACK_FRAMES = {
+  heart: { sx: 87, sy: 3, sw: 15, sh: 15 },
+  diamond: { sx: 1, sy: 1, sw: 13, sh: 11 },
+  starCoin: { sx: 249, sy: 3, sw: 26, sh: 26 },
 };
