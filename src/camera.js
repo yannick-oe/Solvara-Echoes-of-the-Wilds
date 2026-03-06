@@ -1,29 +1,29 @@
-export class Camera { // Declare a class that can be used by other modules.
-  // This function handles the constructor behavior in this file.
-  constructor(width, height) { // Execute this step in the current flow.
-    this.x = 0; // Store data on the current object instance.
-    this.y = 0; // Store data on the current object instance.
-    this.width = width; // Store data on the current object instance.
-    this.height = height; // Store data on the current object instance.
+export class Camera { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+  // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+  constructor(width, height) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.x = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.y = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.width = width; // Speichert Daten in der aktuellen Objektinstanz.
+    this.height = height; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the follow behavior in this file.
-  follow(target, levelPixelWidth) { // Execute this step in the current flow.
-    this.x = target.x + target.width / 2 - this.width / 2; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "follow" in dieser Datei.
+  follow(target, levelPixelWidth) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.x = target.x + target.width / 2 - this.width / 2; // Speichert Daten in der aktuellen Objektinstanz.
 
-    // This function handles the if behavior in this file.
-    if (this.x < 0) { // Check a condition before executing this block.
-      this.x = 0; // Store data on the current object instance.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.x < 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      this.x = 0; // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    const maxX = Math.max(0, levelPixelWidth - this.width); // Create a local constant for this scope.
-    // This function handles the if behavior in this file.
-    if (this.x > maxX) { // Check a condition before executing this block.
-      this.x = maxX; // Store data on the current object instance.
+    const maxX = Math.max(0, levelPixelWidth - this.width); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.x > maxX) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      this.x = maxX; // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    this.x = Math.round(this.x); // Store data on the current object instance.
+    this.x = Math.round(this.x); // Speichert Daten in der aktuellen Objektinstanz.
 
-    this.y = 0; // Store data on the current object instance.
+    this.y = 0; // Speichert Daten in der aktuellen Objektinstanz.
   }
 }

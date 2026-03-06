@@ -1,477 +1,477 @@
-import { SpriteSheet } from "./spriteSheet.js"; // Import a dependency used in this file.
-import { GAMEPLAY } from "./constants.js"; // Import a dependency used in this file.
+import { SpriteSheet } from "./spriteSheet.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { GAMEPLAY } from "./constants.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
 
-export class Player { // Declare a class that can be used by other modules.
-  // This function handles the constructor behavior in this file.
-  constructor(spriteImage, spawnX, spawnY) { // Execute this step in the current flow.
-    this.spawnX = spawnX; // Store data on the current object instance.
-    this.spawnY = spawnY; // Store data on the current object instance.
-
-
-    this.width = 28; // Store data on the current object instance.
-    this.height = 48; // Store data on the current object instance.
-
-    this.x = spawnX; // Store data on the current object instance.
-    this.y = spawnY; // Store data on the current object instance.
-
-    this.vx = 0; // Store data on the current object instance.
-    this.vy = 0; // Store data on the current object instance.
-
-    this.moveSpeed = 250; // Store data on the current object instance.
-    this.jumpForce = 620; // Store data on the current object instance.
-    this.gravity = 1800; // Store data on the current object instance.
-
-    this.onGround = false; // Store data on the current object instance.
-    this.facing = 1; // Store data on the current object instance.
+export class Player { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+  // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+  constructor(spriteImage, spawnX, spawnY) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.spawnX = spawnX; // Speichert Daten in der aktuellen Objektinstanz.
+    this.spawnY = spawnY; // Speichert Daten in der aktuellen Objektinstanz.
 
 
-    this.sprite = new SpriteSheet(spriteImage, 33, 32); // Store data on the current object instance.
-    this.spriteScale = 3; // Store data on the current object instance.
-    this.drawOffsetX = -37; // Store data on the current object instance.
-    this.drawOffsetY = 0; // Store data on the current object instance.
+    this.width = 28; // Speichert Daten in der aktuellen Objektinstanz.
+    this.height = 48; // Speichert Daten in der aktuellen Objektinstanz.
 
-    this.animations = { // Store data on the current object instance.
-      idle: [ // Execute this step in the current flow.
-        { col: 0, row: 0 }, // Execute this step in the current flow.
-        { col: 1, row: 0 }, // Execute this step in the current flow.
-        { col: 2, row: 0 }, // Execute this step in the current flow.
-        { col: 3, row: 0 }, // Execute this step in the current flow.
-      ], // Execute this step in the current flow.
-      walk: [ // Execute this step in the current flow.
-        { col: 0, row: 1 }, // Execute this step in the current flow.
-        { col: 1, row: 1 }, // Execute this step in the current flow.
-        { col: 2, row: 1 }, // Execute this step in the current flow.
-        { col: 3, row: 1 }, // Execute this step in the current flow.
-        { col: 4, row: 1 }, // Execute this step in the current flow.
-        { col: 5, row: 1 }, // Execute this step in the current flow.
-      ], // Execute this step in the current flow.
-      jump: [{ col: 0, row: 5 }], // Execute this step in the current flow.
-      fall: [{ col: 1, row: 5 }], // Execute this step in the current flow.
-      duck: [ // Execute this step in the current flow.
-        { col: 0, row: 3 }, // Execute this step in the current flow.
-        { col: 1, row: 3 }, // Execute this step in the current flow.
-        { col: 2, row: 3 }, // Execute this step in the current flow.
-      ], // Execute this step in the current flow.
-      hurt: [ // Execute this step in the current flow.
-        { col: 0, row: 4 }, // Execute this step in the current flow.
-        { col: 1, row: 4 }, // Execute this step in the current flow.
-      ], // Execute this step in the current flow.
-      climb: [ // Execute this step in the current flow.
-        { col: 0, row: 2 }, // Execute this step in the current flow.
-        { col: 1, row: 2 }, // Execute this step in the current flow.
-        { col: 2, row: 2 }, // Execute this step in the current flow.
-        { col: 3, row: 2 }, // Execute this step in the current flow.
-      ], // Execute this step in the current flow.
+    this.x = spawnX; // Speichert Daten in der aktuellen Objektinstanz.
+    this.y = spawnY; // Speichert Daten in der aktuellen Objektinstanz.
+
+    this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
+
+    this.moveSpeed = 250; // Speichert Daten in der aktuellen Objektinstanz.
+    this.jumpForce = 620; // Speichert Daten in der aktuellen Objektinstanz.
+    this.gravity = 1800; // Speichert Daten in der aktuellen Objektinstanz.
+
+    this.onGround = false; // Speichert Daten in der aktuellen Objektinstanz.
+    this.facing = 1; // Speichert Daten in der aktuellen Objektinstanz.
+
+
+    this.sprite = new SpriteSheet(spriteImage, 33, 32); // Speichert Daten in der aktuellen Objektinstanz.
+    this.spriteScale = 3; // Speichert Daten in der aktuellen Objektinstanz.
+    this.drawOffsetX = -37; // Speichert Daten in der aktuellen Objektinstanz.
+    this.drawOffsetY = 0; // Speichert Daten in der aktuellen Objektinstanz.
+
+    this.animations = { // Speichert Daten in der aktuellen Objektinstanz.
+      idle: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 0, row: 0 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 1, row: 0 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 2, row: 0 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 3, row: 0 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      walk: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 0, row: 1 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 1, row: 1 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 2, row: 1 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 3, row: 1 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 4, row: 1 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 5, row: 1 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      jump: [{ col: 0, row: 5 }], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      fall: [{ col: 1, row: 5 }], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      duck: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 0, row: 3 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 1, row: 3 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 2, row: 3 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      hurt: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 0, row: 4 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 1, row: 4 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      climb: [ // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 0, row: 2 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 1, row: 2 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 2, row: 2 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        { col: 3, row: 2 }, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ], // Fuehrt diesen Schritt im aktuellen Ablauf aus.
     };
 
-    this.currentAnimationName = "idle"; // Store data on the current object instance.
-    this.currentFramePointer = 0; // Store data on the current object instance.
-    this.animationTimer = 0; // Store data on the current object instance.
-    this.animationFrameDuration = 0.1; // Store data on the current object instance.
+    this.currentAnimationName = "idle"; // Speichert Daten in der aktuellen Objektinstanz.
+    this.currentFramePointer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.animationTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.animationFrameDuration = 0.1; // Speichert Daten in der aktuellen Objektinstanz.
 
-    this.deathCount = 0; // Store data on the current object instance.
-    this.isRespawning = false; // Store data on the current object instance.
-    this.respawnDuration = 0.45; // Store data on the current object instance.
-    this.respawnTimer = 0; // Store data on the current object instance.
+    this.deathCount = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.isRespawning = false; // Speichert Daten in der aktuellen Objektinstanz.
+    this.respawnDuration = 0.45; // Speichert Daten in der aktuellen Objektinstanz.
+    this.respawnTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
 
-    this.startHearts = GAMEPLAY.startHearts; // Store data on the current object instance.
-    this.hardMaxHearts = GAMEPLAY.maxHearts; // Store data on the current object instance.
-    this.maxHearts = this.startHearts; // Store data on the current object instance.
-    this.hearts = this.startHearts; // Store data on the current object instance.
-    this.hitInvulnerabilityTime = GAMEPLAY.hitInvulnerabilityTime; // Store data on the current object instance.
-    this.hitInvulnerabilityTimer = 0; // Store data on the current object instance.
-    this.worldResetRequested = false; // Store data on the current object instance.
+    this.startHearts = GAMEPLAY.startHearts; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hardMaxHearts = GAMEPLAY.maxHearts; // Speichert Daten in der aktuellen Objektinstanz.
+    this.maxHearts = this.startHearts; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hearts = this.startHearts; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hitInvulnerabilityTime = GAMEPLAY.hitInvulnerabilityTime; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hitInvulnerabilityTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.worldResetRequested = false; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the resetToSpawn behavior in this file.
-  resetToSpawn() { // Execute this step in the current flow.
-    this.x = this.spawnX; // Store data on the current object instance.
-    this.y = this.spawnY; // Store data on the current object instance.
-    this.vx = 0; // Store data on the current object instance.
-    this.vy = 0; // Store data on the current object instance.
-    this.onGround = false; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "resetToSpawn" in dieser Datei.
+  resetToSpawn() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.x = this.spawnX; // Speichert Daten in der aktuellen Objektinstanz.
+    this.y = this.spawnY; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.onGround = false; // Speichert Daten in der aktuellen Objektinstanz.
 
-    this.currentAnimationName = "idle"; // Store data on the current object instance.
-    this.currentFramePointer = 0; // Store data on the current object instance.
-    this.animationTimer = 0; // Store data on the current object instance.
+    this.currentAnimationName = "idle"; // Speichert Daten in der aktuellen Objektinstanz.
+    this.currentFramePointer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.animationTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
 
-    this.maxHearts = this.startHearts; // Store data on the current object instance.
-    this.hearts = this.startHearts; // Store data on the current object instance.
-    this.hitInvulnerabilityTimer = 0; // Store data on the current object instance.
+    this.maxHearts = this.startHearts; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hearts = this.startHearts; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hitInvulnerabilityTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the startRespawn behavior in this file.
-  startRespawn() { // Execute this step in the current flow.
-    this.deathCount += 1; // Store data on the current object instance.
-    this.isRespawning = true; // Store data on the current object instance.
-    this.respawnTimer = this.respawnDuration; // Store data on the current object instance.
-    this.vx = 0; // Store data on the current object instance.
-    this.vy = 0; // Store data on the current object instance.
-    this.currentAnimationName = "hurt"; // Store data on the current object instance.
-    this.currentFramePointer = 0; // Store data on the current object instance.
-    this.animationTimer = 0; // Store data on the current object instance.
-    this.worldResetRequested = true; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "startRespawn" in dieser Datei.
+  startRespawn() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.deathCount += 1; // Speichert Daten in der aktuellen Objektinstanz.
+    this.isRespawning = true; // Speichert Daten in der aktuellen Objektinstanz.
+    this.respawnTimer = this.respawnDuration; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.currentAnimationName = "hurt"; // Speichert Daten in der aktuellen Objektinstanz.
+    this.currentFramePointer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.animationTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.worldResetRequested = true; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the updateRespawnTimer behavior in this file.
-  updateRespawnTimer(dt) { // Execute this step in the current flow.
-    this.respawnTimer -= dt; // Store data on the current object instance.
-    if (this.respawnTimer > 0) return; // Check a condition before executing this block.
-    this.isRespawning = false; // Store data on the current object instance.
-    this.resetToSpawn(); // Call a function to perform this step.
+  // Diese Funktion verarbeitet das Verhalten "updateRespawnTimer" in dieser Datei.
+  updateRespawnTimer(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.respawnTimer -= dt; // Speichert Daten in der aktuellen Objektinstanz.
+    if (this.respawnTimer > 0) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.isRespawning = false; // Speichert Daten in der aktuellen Objektinstanz.
+    this.resetToSpawn(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the getRect behavior in this file.
-  getRect() { // Execute this step in the current flow.
-    return { x: this.x, y: this.y, width: this.width, height: this.height }; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "getRect" in dieser Datei.
+  getRect() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return { x: this.x, y: this.y, width: this.width, height: this.height }; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the updateInvulnerability behavior in this file.
-  updateInvulnerability(dt) { // Execute this step in the current flow.
-    this.hitInvulnerabilityTimer -= dt; // Store data on the current object instance.
-    if (this.hitInvulnerabilityTimer < 0) this.hitInvulnerabilityTimer = 0; // Check a condition before executing this block.
+  // Diese Funktion verarbeitet das Verhalten "updateInvulnerability" in dieser Datei.
+  updateInvulnerability(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.hitInvulnerabilityTimer -= dt; // Speichert Daten in der aktuellen Objektinstanz.
+    if (this.hitInvulnerabilityTimer < 0) this.hitInvulnerabilityTimer = 0; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
   }
 
-  // This function handles the canTakeHit behavior in this file.
-  canTakeHit() { // Execute this step in the current flow.
-    return this.hitInvulnerabilityTimer <= 0 && !this.isRespawning; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "canTakeHit" in dieser Datei.
+  canTakeHit() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return this.hitInvulnerabilityTimer <= 0 && !this.isRespawning; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the takeHit behavior in this file.
-  takeHit(hitFromX) { // Execute this step in the current flow.
-    if (!this.canTakeHit()) return; // Check a condition before executing this block.
-    this.hearts -= 1; // Store data on the current object instance.
-    this.hitInvulnerabilityTimer = this.hitInvulnerabilityTime; // Store data on the current object instance.
-    this.vx = hitFromX < this.x ? GAMEPLAY.knockbackX : -GAMEPLAY.knockbackX; // Store data on the current object instance.
-    this.vy = -GAMEPLAY.knockbackY; // Store data on the current object instance.
-    if (this.hearts > 0) return; // Check a condition before executing this block.
-    this.startRespawn(); // Call a function to perform this step.
+  // Diese Funktion verarbeitet das Verhalten "takeHit" in dieser Datei.
+  takeHit(hitFromX) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (!this.canTakeHit()) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.hearts -= 1; // Speichert Daten in der aktuellen Objektinstanz.
+    this.hitInvulnerabilityTimer = this.hitInvulnerabilityTime; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vx = hitFromX < this.x ? GAMEPLAY.knockbackX : -GAMEPLAY.knockbackX; // Speichert Daten in der aktuellen Objektinstanz.
+    this.vy = -GAMEPLAY.knockbackY; // Speichert Daten in der aktuellen Objektinstanz.
+    if (this.hearts > 0) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.startRespawn(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the stompBounce behavior in this file.
-  stompBounce() { // Execute this step in the current flow.
-    this.vy = -this.jumpForce * GAMEPLAY.stompBounceFactor; // Store data on the current object instance.
-    this.onGround = false; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "stompBounce" in dieser Datei.
+  stompBounce() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.vy = -this.jumpForce * GAMEPLAY.stompBounceFactor; // Speichert Daten in der aktuellen Objektinstanz.
+    this.onGround = false; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the consumeWorldResetRequest behavior in this file.
-  consumeWorldResetRequest() { // Execute this step in the current flow.
-    if (!this.worldResetRequested) return false; // Check a condition before executing this block.
-    this.worldResetRequested = false; // Store data on the current object instance.
-    return true; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "consumeWorldResetRequest" in dieser Datei.
+  consumeWorldResetRequest() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (!this.worldResetRequested) return false; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.worldResetRequested = false; // Speichert Daten in der aktuellen Objektinstanz.
+    return true; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the readHorizontalInput behavior in this file.
-  readHorizontalInput(input) { // Execute this step in the current flow.
-    let direction = 0; // Create a local variable that may change.
-    if (input.isDown("ArrowLeft") || input.isDown("KeyA")) direction -= 1; // Check a condition before executing this block.
-    if (input.isDown("ArrowRight") || input.isDown("KeyD")) direction += 1; // Check a condition before executing this block.
-    return direction; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "readHorizontalInput" in dieser Datei.
+  readHorizontalInput(input) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    let direction = 0; // Erzeugt eine lokale Variable, die sich aendern kann.
+    if (input.isDown("ArrowLeft") || input.isDown("KeyA")) direction -= 1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    if (input.isDown("ArrowRight") || input.isDown("KeyD")) direction += 1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    return direction; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the readJumpInput behavior in this file.
-  readJumpInput(input) { // Execute this step in the current flow.
-    return ( // Return control (and optionally a value) to the caller.
-      input.wasPressed("Space") || // Execute this step in the current flow.
-      input.wasPressed("ArrowUp") || // Execute this step in the current flow.
-      input.wasPressed("KeyW") // Execute this step in the current flow.
-    ); // Call a function to perform this step.
+  // Diese Funktion verarbeitet das Verhalten "readJumpInput" in dieser Datei.
+  readJumpInput(input) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return ( // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      input.wasPressed("Space") || // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      input.wasPressed("ArrowUp") || // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      input.wasPressed("KeyW") // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the readDuckInput behavior in this file.
-  readDuckInput(input) { // Execute this step in the current flow.
-    return input.isDown("ArrowDown") || input.isDown("KeyS"); // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "readDuckInput" in dieser Datei.
+  readDuckInput(input) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return input.isDown("ArrowDown") || input.isDown("KeyS"); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the updateFacing behavior in this file.
-  updateFacing(horizontalDirection) { // Execute this step in the current flow.
-    if (horizontalDirection > 0) this.facing = 1; // Check a condition before executing this block.
-    if (horizontalDirection < 0) this.facing = -1; // Check a condition before executing this block.
+  // Diese Funktion verarbeitet das Verhalten "updateFacing" in dieser Datei.
+  updateFacing(horizontalDirection) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (horizontalDirection > 0) this.facing = 1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    if (horizontalDirection < 0) this.facing = -1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
   }
 
-  // This function handles the applyHorizontalMovement behavior in this file.
-  applyHorizontalMovement(horizontalDirection, isDucking) { // Execute this step in the current flow.
-    this.vx = isDucking ? 0 : horizontalDirection * this.moveSpeed; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "applyHorizontalMovement" in dieser Datei.
+  applyHorizontalMovement(horizontalDirection, isDucking) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.vx = isDucking ? 0 : horizontalDirection * this.moveSpeed; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the tryJump behavior in this file.
-  tryJump(jumpPressed, isDucking) { // Execute this step in the current flow.
-    if (!jumpPressed || !this.onGround || isDucking) return; // Check a condition before executing this block.
-    this.vy = -this.jumpForce; // Store data on the current object instance.
-    this.onGround = false; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "tryJump" in dieser Datei.
+  tryJump(jumpPressed, isDucking) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (!jumpPressed || !this.onGround || isDucking) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.vy = -this.jumpForce; // Speichert Daten in der aktuellen Objektinstanz.
+    this.onGround = false; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the applyGravity behavior in this file.
-  applyGravity(dt) { // Execute this step in the current flow.
-    this.vy += this.gravity * dt; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "applyGravity" in dieser Datei.
+  applyGravity(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.vy += this.gravity * dt; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the moveHorizontally behavior in this file.
-  moveHorizontally(level, dt) { // Execute this step in the current flow.
-    this.x += this.vx * dt; // Store data on the current object instance.
-    this.resolveCollisionsX(level); // Call a function to perform this step.
+  // Diese Funktion verarbeitet das Verhalten "moveHorizontally" in dieser Datei.
+  moveHorizontally(level, dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.x += this.vx * dt; // Speichert Daten in der aktuellen Objektinstanz.
+    this.resolveCollisionsX(level); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the moveVertically behavior in this file.
-  moveVertically(level, dt) { // Execute this step in the current flow.
-    const previousBottom = this.y + this.height; // Create a local constant for this scope.
-    this.y += this.vy * dt; // Store data on the current object instance.
-    this.onGround = false; // Store data on the current object instance.
-    this.resolveCollisionsY(level, previousBottom); // Call a function to perform this step.
-    this.probeGround(level); // Call a function to perform this step.
+  // Diese Funktion verarbeitet das Verhalten "moveVertically" in dieser Datei.
+  moveVertically(level, dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const previousBottom = this.y + this.height; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    this.y += this.vy * dt; // Speichert Daten in der aktuellen Objektinstanz.
+    this.onGround = false; // Speichert Daten in der aktuellen Objektinstanz.
+    this.resolveCollisionsY(level, previousBottom); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.probeGround(level); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the fellOutOfWorld behavior in this file.
-  fellOutOfWorld(level) { // Execute this step in the current flow.
-    const killY = level.pixelHeight + level.tileDisplaySize * 2; // Create a local constant for this scope.
-    return this.y > killY; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "fellOutOfWorld" in dieser Datei.
+  fellOutOfWorld(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const killY = level.pixelHeight + level.tileDisplaySize * 2; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    return this.y > killY; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the touchesHazard behavior in this file.
-  touchesHazard(level) { // Execute this step in the current flow.
-    return level.rectTouchesHazard(this.x, this.y, this.width, this.height); // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "touchesHazard" in dieser Datei.
+  touchesHazard(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return level.rectTouchesHazard(this.x, this.y, this.width, this.height); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the shouldRespawn behavior in this file.
-  shouldRespawn(level) { // Execute this step in the current flow.
-    return this.fellOutOfWorld(level); // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "shouldRespawn" in dieser Datei.
+  shouldRespawn(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return this.fellOutOfWorld(level); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the update behavior in this file.
-  update(dt, input, level) { // Execute this step in the current flow.
-    // This function handles the if behavior in this file.
-    if (this.isRespawning) { // Check a condition before executing this block.
-      this.updateRespawnTimer(dt); // Call a function to perform this step.
-      return; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "update" in dieser Datei.
+  update(dt, input, level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.isRespawning) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      this.updateRespawnTimer(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+      return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    this.updateInvulnerability(dt); // Call a function to perform this step.
+    this.updateInvulnerability(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
 
-    const horizontalDirection = this.readHorizontalInput(input); // Create a local constant for this scope.
-    const jumpPressed = this.readJumpInput(input); // Create a local constant for this scope.
-    const isDucking = this.onGround && this.readDuckInput(input); // Create a local constant for this scope.
+    const horizontalDirection = this.readHorizontalInput(input); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const jumpPressed = this.readJumpInput(input); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const isDucking = this.onGround && this.readDuckInput(input); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    this.updateFacing(horizontalDirection); // Call a function to perform this step.
-    this.applyHorizontalMovement(horizontalDirection, isDucking); // Call a function to perform this step.
-    this.tryJump(jumpPressed, isDucking); // Call a function to perform this step.
-    this.applyGravity(dt); // Call a function to perform this step.
-    this.moveHorizontally(level, dt); // Call a function to perform this step.
-    this.moveVertically(level, dt); // Call a function to perform this step.
-    if (this.touchesHazard(level)) this.takeHit(this.x - this.facing * 20); // Check a condition before executing this block.
+    this.updateFacing(horizontalDirection); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.applyHorizontalMovement(horizontalDirection, isDucking); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.tryJump(jumpPressed, isDucking); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.applyGravity(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.moveHorizontally(level, dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.moveVertically(level, dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    if (this.touchesHazard(level)) this.takeHit(this.x - this.facing * 20); // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
 
-    // This function handles the if behavior in this file.
-    if (this.shouldRespawn(level)) { // Check a condition before executing this block.
-      this.startRespawn(); // Call a function to perform this step.
-      return; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.shouldRespawn(level)) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      this.startRespawn(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+      return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    this.updateAnimation(dt, horizontalDirection, isDucking); // Call a function to perform this step.
+    this.updateAnimation(dt, horizontalDirection, isDucking); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the resolveCollisionsX behavior in this file.
-  resolveCollisionsX(level) { // Execute this step in the current flow.
-    const tileSize = level.tileDisplaySize; // Create a local constant for this scope.
+  // Diese Funktion verarbeitet das Verhalten "resolveCollisionsX" in dieser Datei.
+  resolveCollisionsX(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const tileSize = level.tileDisplaySize; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    const top = Math.floor(this.y / tileSize); // Create a local constant for this scope.
-    const bottom = Math.floor((this.y + this.height - 1) / tileSize); // Create a local constant for this scope.
+    const top = Math.floor(this.y / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const bottom = Math.floor((this.y + this.height - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    // This function handles the if behavior in this file.
-    if (this.vx > 0) { // Check a condition before executing this block.
-      const right = Math.floor((this.x + this.width - 1) / tileSize); // Create a local constant for this scope.
-      // This function handles the for behavior in this file.
-      for (let row = top; row <= bottom; row++) { // Iterate through items or indices in a loop.
-        if (!level.isSolidTile(right, row)) continue; // Check a condition before executing this block.
-        this.x = right * tileSize - this.width; // Store data on the current object instance.
-        this.vx = 0; // Store data on the current object instance.
-        return; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.vx > 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      const right = Math.floor((this.x + this.width - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+      // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+      for (let row = top; row <= bottom; row++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+        if (!level.isSolidTile(right, row)) continue; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        this.x = right * tileSize - this.width; // Speichert Daten in der aktuellen Objektinstanz.
+        this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
       }
     }
 
-    // This function handles the if behavior in this file.
-    if (this.vx < 0) { // Check a condition before executing this block.
-      const left = Math.floor(this.x / tileSize); // Create a local constant for this scope.
-      // This function handles the for behavior in this file.
-      for (let row = top; row <= bottom; row++) { // Iterate through items or indices in a loop.
-        if (!level.isSolidTile(left, row)) continue; // Check a condition before executing this block.
-        this.x = (left + 1) * tileSize; // Store data on the current object instance.
-        this.vx = 0; // Store data on the current object instance.
-        return; // Return control (and optionally a value) to the caller.
-      }
-    }
-  }
-
-  // This function handles the resolveCollisionsY behavior in this file.
-  resolveCollisionsY(level, previousBottom) { // Execute this step in the current flow.
-    const tileSize = level.tileDisplaySize; // Create a local constant for this scope.
-
-    const left = Math.floor(this.x / tileSize); // Create a local constant for this scope.
-    const right = Math.floor((this.x + this.width - 1) / tileSize); // Create a local constant for this scope.
-
-    // This function handles the if behavior in this file.
-    if (this.vy > 0) { // Check a condition before executing this block.
-      const bottom = Math.floor((this.y + this.height - 1) / tileSize); // Create a local constant for this scope.
-      // This function handles the for behavior in this file.
-      for (let col = left; col <= right; col++) { // Iterate through items or indices in a loop.
-        const tileTop = bottom * tileSize; // Create a local constant for this scope.
-        const hitsSolid = level.isSolidTile(col, bottom); // Create a local constant for this scope.
-        const hitsOneWay = level.isOneWayTile(col, bottom) && previousBottom <= tileTop + 2; // Create a local constant for this scope.
-        if (!hitsSolid && !hitsOneWay) continue; // Check a condition before executing this block.
-        this.y = bottom * tileSize - this.height; // Store data on the current object instance.
-        this.vy = 0; // Store data on the current object instance.
-        this.onGround = true; // Store data on the current object instance.
-        return; // Return control (and optionally a value) to the caller.
-      }
-    }
-
-    // This function handles the if behavior in this file.
-    if (this.vy < 0) { // Check a condition before executing this block.
-      const top = Math.floor(this.y / tileSize); // Create a local constant for this scope.
-      // This function handles the for behavior in this file.
-      for (let col = left; col <= right; col++) { // Iterate through items or indices in a loop.
-        if (!level.isSolidTile(col, top)) continue; // Check a condition before executing this block.
-        this.y = (top + 1) * tileSize; // Store data on the current object instance.
-        this.vy = 0; // Store data on the current object instance.
-        return; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.vx < 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      const left = Math.floor(this.x / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+      // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+      for (let row = top; row <= bottom; row++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+        if (!level.isSolidTile(left, row)) continue; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        this.x = (left + 1) * tileSize; // Speichert Daten in der aktuellen Objektinstanz.
+        this.vx = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
       }
     }
   }
 
-  // This function handles the probeGround behavior in this file.
-  probeGround(level) { // Execute this step in the current flow.
-    if (this.onGround) return; // Check a condition before executing this block.
-    if (this.vy < 0) return; // Check a condition before executing this block.
+  // Diese Funktion verarbeitet das Verhalten "resolveCollisionsY" in dieser Datei.
+  resolveCollisionsY(level, previousBottom) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const tileSize = level.tileDisplaySize; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    const tileSize = level.tileDisplaySize; // Create a local constant for this scope.
-    const feetY = this.y + this.height; // Create a local constant for this scope.
-    const row = Math.floor(feetY / tileSize); // Create a local constant for this scope.
+    const left = Math.floor(this.x / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const right = Math.floor((this.x + this.width - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    const left = Math.floor(this.x / tileSize); // Create a local constant for this scope.
-    const right = Math.floor((this.x + this.width - 1) / tileSize); // Create a local constant for this scope.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.vy > 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      const bottom = Math.floor((this.y + this.height - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+      // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+      for (let col = left; col <= right; col++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+        const tileTop = bottom * tileSize; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const hitsSolid = level.isSolidTile(col, bottom); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const hitsOneWay = level.isOneWayTile(col, bottom) && previousBottom <= tileTop + 2; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        if (!hitsSolid && !hitsOneWay) continue; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        this.y = bottom * tileSize - this.height; // Speichert Daten in der aktuellen Objektinstanz.
+        this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        this.onGround = true; // Speichert Daten in der aktuellen Objektinstanz.
+        return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      }
+    }
 
-    // This function handles the for behavior in this file.
-    for (let col = left; col <= right; col++) { // Iterate through items or indices in a loop.
-      if (!level.isSolidTile(col, row)) continue; // Check a condition before executing this block.
-
-      this.y = row * tileSize - this.height; // Store data on the current object instance.
-      this.vy = 0; // Store data on the current object instance.
-      this.onGround = true; // Store data on the current object instance.
-      return; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.vy < 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      const top = Math.floor(this.y / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+      // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+      for (let col = left; col <= right; col++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+        if (!level.isSolidTile(col, top)) continue; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        this.y = (top + 1) * tileSize; // Speichert Daten in der aktuellen Objektinstanz.
+        this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      }
     }
   }
 
-  // This function handles the touchesGoal behavior in this file.
-  touchesGoal(goal) { // Execute this step in the current flow.
-    return ( // Return control (and optionally a value) to the caller.
-      this.x < goal.x + goal.width && // Execute this step in the current flow.
-      this.x + this.width > goal.x && // Execute this step in the current flow.
-      this.y < goal.y + goal.height && // Execute this step in the current flow.
-      this.y + this.height > goal.y // Execute this step in the current flow.
-    ); // Call a function to perform this step.
-  }
+  // Diese Funktion verarbeitet das Verhalten "probeGround" in dieser Datei.
+  probeGround(level) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (this.onGround) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    if (this.vy < 0) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
 
-  // This function handles the updateAnimation behavior in this file.
-  updateAnimation(dt, horizontalDirection, isDucking) { // Execute this step in the current flow.
-    if (this.playDuckAnimation(dt, isDucking)) return; // Check a condition before executing this block.
-    this.exitDuckAnimation(); // Call a function to perform this step.
+    const tileSize = level.tileDisplaySize; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const feetY = this.y + this.height; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const row = Math.floor(feetY / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    const nextAnimation = this.selectMovementAnimation(horizontalDirection); // Create a local constant for this scope.
-    this.changeAnimation(nextAnimation); // Call a function to perform this step.
-    this.advanceAnimation(dt); // Call a function to perform this step.
-  }
+    const left = Math.floor(this.x / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const right = Math.floor((this.x + this.width - 1) / tileSize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-  // This function handles the playDuckAnimation behavior in this file.
-  playDuckAnimation(dt, isDucking) { // Execute this step in the current flow.
-    if (!isDucking || !this.onGround) return false; // Check a condition before executing this block.
-    // This function handles the if behavior in this file.
-    if (this.currentAnimationName !== "duck") { // Check a condition before executing this block.
-      this.changeAnimation("duck"); // Call a function to perform this step.
-      return true; // Return control (and optionally a value) to the caller.
-    }
+    // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+    for (let col = left; col <= right; col++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+      if (!level.isSolidTile(col, row)) continue; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
 
-    this.animationTimer += dt; // Store data on the current object instance.
-    if (this.animationTimer < this.animationFrameDuration) return true; // Check a condition before executing this block.
-    this.animationTimer -= this.animationFrameDuration; // Store data on the current object instance.
-    this.currentFramePointer = this.currentFramePointer === 1 ? 2 : 1; // Store data on the current object instance.
-    if (this.currentFramePointer === 0) this.currentFramePointer = 1; // Check a condition before executing this block.
-    return true; // Return control (and optionally a value) to the caller.
-  }
-
-  // This function handles the exitDuckAnimation behavior in this file.
-  exitDuckAnimation() { // Execute this step in the current flow.
-    if (this.currentAnimationName !== "duck") return; // Check a condition before executing this block.
-    this.currentFramePointer = 0; // Store data on the current object instance.
-    this.animationTimer = 0; // Store data on the current object instance.
-  }
-
-  // This function handles the selectMovementAnimation behavior in this file.
-  selectMovementAnimation(horizontalDirection) { // Execute this step in the current flow.
-    if (!this.onGround) return this.vy < 0 ? "jump" : "fall"; // Check a condition before executing this block.
-    if (horizontalDirection !== 0) return "walk"; // Check a condition before executing this block.
-    return "idle"; // Return control (and optionally a value) to the caller.
-  }
-
-  // This function handles the changeAnimation behavior in this file.
-  changeAnimation(name) { // Execute this step in the current flow.
-    if (this.currentAnimationName === name) return; // Check a condition before executing this block.
-    this.currentAnimationName = name; // Store data on the current object instance.
-    this.currentFramePointer = 0; // Store data on the current object instance.
-    this.animationTimer = 0; // Store data on the current object instance.
-  }
-
-  // This function handles the advanceAnimation behavior in this file.
-  advanceAnimation(dt) { // Execute this step in the current flow.
-    const frames = this.animations[this.currentAnimationName]; // Create a local constant for this scope.
-    // This function handles the if behavior in this file.
-    if (frames.length <= 1) { // Check a condition before executing this block.
-      this.currentFramePointer = 0; // Store data on the current object instance.
-      return; // Return control (and optionally a value) to the caller.
-    }
-
-    this.animationTimer += dt; // Store data on the current object instance.
-    // This function handles the while behavior in this file.
-    while (this.animationTimer >= this.animationFrameDuration) { // Repeat this block while the condition is true.
-      this.animationTimer -= this.animationFrameDuration; // Store data on the current object instance.
-      this.currentFramePointer = (this.currentFramePointer + 1) % frames.length; // Store data on the current object instance.
+      this.y = row * tileSize - this.height; // Speichert Daten in der aktuellen Objektinstanz.
+      this.vy = 0; // Speichert Daten in der aktuellen Objektinstanz.
+      this.onGround = true; // Speichert Daten in der aktuellen Objektinstanz.
+      return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
   }
 
-  // This function handles the draw behavior in this file.
-  draw(ctx, camera) { // Execute this step in the current flow.
-    // This function handles the if behavior in this file.
-    if (this.hitInvulnerabilityTimer > 0) { // Check a condition before executing this block.
-      const flashVisible = Math.floor(this.hitInvulnerabilityTimer * 12) % 2 === 0; // Create a local constant for this scope.
-      if (!flashVisible) return; // Check a condition before executing this block.
+  // Diese Funktion verarbeitet das Verhalten "touchesGoal" in dieser Datei.
+  touchesGoal(goal) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return ( // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      this.x < goal.x + goal.width && // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      this.x + this.width > goal.x && // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      this.y < goal.y + goal.height && // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      this.y + this.height > goal.y // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+  }
+
+  // Diese Funktion verarbeitet das Verhalten "updateAnimation" in dieser Datei.
+  updateAnimation(dt, horizontalDirection, isDucking) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (this.playDuckAnimation(dt, isDucking)) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.exitDuckAnimation(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+
+    const nextAnimation = this.selectMovementAnimation(horizontalDirection); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    this.changeAnimation(nextAnimation); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    this.advanceAnimation(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+  }
+
+  // Diese Funktion verarbeitet das Verhalten "playDuckAnimation" in dieser Datei.
+  playDuckAnimation(dt, isDucking) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (!isDucking || !this.onGround) return false; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.currentAnimationName !== "duck") { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      this.changeAnimation("duck"); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+      return true; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    const currentFrames = this.animations[this.currentAnimationName]; // Create a local constant for this scope.
-    const framePos = currentFrames[this.currentFramePointer]; // Create a local constant for this scope.
-    const frame = this.sprite.frameAt(framePos.col, framePos.row); // Create a local constant for this scope.
+    this.animationTimer += dt; // Speichert Daten in der aktuellen Objektinstanz.
+    if (this.animationTimer < this.animationFrameDuration) return true; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.animationTimer -= this.animationFrameDuration; // Speichert Daten in der aktuellen Objektinstanz.
+    this.currentFramePointer = this.currentFramePointer === 1 ? 2 : 1; // Speichert Daten in der aktuellen Objektinstanz.
+    if (this.currentFramePointer === 0) this.currentFramePointer = 1; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    return true; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+  }
 
-    const drawX = Math.round(this.x + this.drawOffsetX - camera.x); // Create a local constant for this scope.
-    const drawY = Math.round(this.y + this.drawOffsetY - camera.y); // Create a local constant for this scope.
+  // Diese Funktion verarbeitet das Verhalten "exitDuckAnimation" in dieser Datei.
+  exitDuckAnimation() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (this.currentAnimationName !== "duck") return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.currentFramePointer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.animationTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+  }
 
-    const drawWidth = frame.sw * this.spriteScale; // Create a local constant for this scope.
-    const drawHeight = frame.sh * this.spriteScale; // Create a local constant for this scope.
+  // Diese Funktion verarbeitet das Verhalten "selectMovementAnimation" in dieser Datei.
+  selectMovementAnimation(horizontalDirection) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (!this.onGround) return this.vy < 0 ? "jump" : "fall"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    if (horizontalDirection !== 0) return "walk"; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    return "idle"; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+  }
 
-    ctx.save(); // Call a function to perform this step.
-    // This function handles the if behavior in this file.
-    if (this.facing < 0) { // Check a condition before executing this block.
-      ctx.translate(drawX + drawWidth, drawY); // Call a function to perform this step.
-      ctx.scale(-1, 1); // Call a function to perform this step.
-      ctx.drawImage(this.sprite.image, frame.sx, frame.sy, frame.sw, frame.sh, 0, 0, drawWidth, drawHeight); // Render an image (or sprite region) on the canvas.
-    } else { // Execute this step in the current flow.
-      ctx.drawImage( // Render an image (or sprite region) on the canvas.
-        this.sprite.image, // Execute this step in the current flow.
-        frame.sx, // Execute this step in the current flow.
-        frame.sy, // Execute this step in the current flow.
-        frame.sw, // Execute this step in the current flow.
-        frame.sh, // Execute this step in the current flow.
-        drawX, // Execute this step in the current flow.
-        drawY, // Execute this step in the current flow.
-        drawWidth, // Execute this step in the current flow.
-        drawHeight // Execute this step in the current flow.
-      ); // Call a function to perform this step.
+  // Diese Funktion verarbeitet das Verhalten "changeAnimation" in dieser Datei.
+  changeAnimation(name) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    if (this.currentAnimationName === name) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    this.currentAnimationName = name; // Speichert Daten in der aktuellen Objektinstanz.
+    this.currentFramePointer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+    this.animationTimer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+  }
+
+  // Diese Funktion verarbeitet das Verhalten "advanceAnimation" in dieser Datei.
+  advanceAnimation(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const frames = this.animations[this.currentAnimationName]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (frames.length <= 1) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      this.currentFramePointer = 0; // Speichert Daten in der aktuellen Objektinstanz.
+      return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
-    ctx.restore(); // Call a function to perform this step.
+
+    this.animationTimer += dt; // Speichert Daten in der aktuellen Objektinstanz.
+    // Diese Funktion verarbeitet das Verhalten "while" in dieser Datei.
+    while (this.animationTimer >= this.animationFrameDuration) { // Wiederholt diesen Block, solange die Bedingung wahr ist.
+      this.animationTimer -= this.animationFrameDuration; // Speichert Daten in der aktuellen Objektinstanz.
+      this.currentFramePointer = (this.currentFramePointer + 1) % frames.length; // Speichert Daten in der aktuellen Objektinstanz.
+    }
+  }
+
+  // Diese Funktion verarbeitet das Verhalten "draw" in dieser Datei.
+  draw(ctx, camera) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.hitInvulnerabilityTimer > 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      const flashVisible = Math.floor(this.hitInvulnerabilityTimer * 12) % 2 === 0; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+      if (!flashVisible) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+    }
+
+    const currentFrames = this.animations[this.currentAnimationName]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const framePos = currentFrames[this.currentFramePointer]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const frame = this.sprite.frameAt(framePos.col, framePos.row); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+
+    const drawX = Math.round(this.x + this.drawOffsetX - camera.x); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const drawY = Math.round(this.y + this.drawOffsetY - camera.y); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+
+    const drawWidth = frame.sw * this.spriteScale; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const drawHeight = frame.sh * this.spriteScale; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+
+    ctx.save(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+    if (this.facing < 0) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+      ctx.translate(drawX + drawWidth, drawY); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+      ctx.scale(-1, 1); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+      ctx.drawImage(this.sprite.image, frame.sx, frame.sy, frame.sw, frame.sh, 0, 0, drawWidth, drawHeight); // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
+    } else { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ctx.drawImage( // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
+        this.sprite.image, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        frame.sx, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        frame.sy, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        frame.sw, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        frame.sh, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        drawX, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        drawY, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        drawWidth, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        drawHeight // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    }
+    ctx.restore(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 }

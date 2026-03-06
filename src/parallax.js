@@ -1,26 +1,26 @@
-export class ParallaxLayer { // Declare a class that can be used by other modules.
-  // This function handles the constructor behavior in this file.
-  constructor(image, scrollFactor, scale, bottomOffset) { // Execute this step in the current flow.
-    this.image = image; // Store data on the current object instance.
-    this.scrollFactor = scrollFactor; // Store data on the current object instance.
-    this.scale = scale; // Store data on the current object instance.
-    this.bottomOffset = bottomOffset; // Store data on the current object instance.
+export class ParallaxLayer { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+  // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+  constructor(image, scrollFactor, scale, bottomOffset) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.image = image; // Speichert Daten in der aktuellen Objektinstanz.
+    this.scrollFactor = scrollFactor; // Speichert Daten in der aktuellen Objektinstanz.
+    this.scale = scale; // Speichert Daten in der aktuellen Objektinstanz.
+    this.bottomOffset = bottomOffset; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the draw behavior in this file.
-  draw(ctx, canvasWidth, canvasHeight, cameraX) { // Execute this step in the current flow.
-    const imageWidth = Math.ceil(this.image.width * this.scale); // Create a local constant for this scope.
-    const imageHeight = Math.ceil(this.image.height * this.scale); // Create a local constant for this scope.
-    const y = Math.round(canvasHeight - imageHeight - this.bottomOffset); // Create a local constant for this scope.
+  // Diese Funktion verarbeitet das Verhalten "draw" in dieser Datei.
+  draw(ctx, canvasWidth, canvasHeight, cameraX) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const imageWidth = Math.ceil(this.image.width * this.scale); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const imageHeight = Math.ceil(this.image.height * this.scale); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const y = Math.round(canvasHeight - imageHeight - this.bottomOffset); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    const scrollX = cameraX * this.scrollFactor; // Create a local constant for this scope.
-    const offset = ((scrollX % imageWidth) + imageWidth) % imageWidth; // Create a local constant for this scope.
+    const scrollX = cameraX * this.scrollFactor; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const offset = ((scrollX % imageWidth) + imageWidth) % imageWidth; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    let x = -Math.round(offset); // Create a local variable that may change.
-    // This function handles the while behavior in this file.
-    while (x < canvasWidth) { // Repeat this block while the condition is true.
-      ctx.drawImage(this.image, Math.round(x), y, imageWidth, imageHeight); // Render an image (or sprite region) on the canvas.
-      x += imageWidth; // Compute and store a value for later use.
+    let x = -Math.round(offset); // Erzeugt eine lokale Variable, die sich aendern kann.
+    // Diese Funktion verarbeitet das Verhalten "while" in dieser Datei.
+    while (x < canvasWidth) { // Wiederholt diesen Block, solange die Bedingung wahr ist.
+      ctx.drawImage(this.image, Math.round(x), y, imageWidth, imageHeight); // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
+      x += imageWidth; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
     }
   }
 }

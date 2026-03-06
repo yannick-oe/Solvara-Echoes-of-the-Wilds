@@ -1,32 +1,32 @@
-export class SpriteSheet { // Declare a class that can be used by other modules.
-  // This function handles the constructor behavior in this file.
-  constructor(image, frameWidth, frameHeight) { // Execute this step in the current flow.
-    this.image = image; // Store data on the current object instance.
-    this.frameWidth = frameWidth; // Store data on the current object instance.
-    this.frameHeight = frameHeight; // Store data on the current object instance.
-    this.columns = Math.floor(image.width / frameWidth); // Store data on the current object instance.
+export class SpriteSheet { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+  // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+  constructor(image, frameWidth, frameHeight) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.image = image; // Speichert Daten in der aktuellen Objektinstanz.
+    this.frameWidth = frameWidth; // Speichert Daten in der aktuellen Objektinstanz.
+    this.frameHeight = frameHeight; // Speichert Daten in der aktuellen Objektinstanz.
+    this.columns = Math.floor(image.width / frameWidth); // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the frame behavior in this file.
-  frame(index) { // Execute this step in the current flow.
-    const col = index % this.columns; // Create a local constant for this scope.
-    const row = Math.floor(index / this.columns); // Create a local constant for this scope.
+  // Diese Funktion verarbeitet das Verhalten "frame" in dieser Datei.
+  frame(index) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const col = index % this.columns; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const row = Math.floor(index / this.columns); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    return { // Return control (and optionally a value) to the caller.
-      sx: col * this.frameWidth, // Execute this step in the current flow.
-      sy: row * this.frameHeight, // Execute this step in the current flow.
-      sw: this.frameWidth, // Execute this step in the current flow.
-      sh: this.frameHeight, // Execute this step in the current flow.
+    return { // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      sx: col * this.frameWidth, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      sy: row * this.frameHeight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      sw: this.frameWidth, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      sh: this.frameHeight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
     };
   }
 
-  // This function handles the frameAt behavior in this file.
-  frameAt(column, row) { // Execute this step in the current flow.
-    return { // Return control (and optionally a value) to the caller.
-      sx: column * this.frameWidth, // Execute this step in the current flow.
-      sy: row * this.frameHeight, // Execute this step in the current flow.
-      sw: this.frameWidth, // Execute this step in the current flow.
-      sh: this.frameHeight, // Execute this step in the current flow.
+  // Diese Funktion verarbeitet das Verhalten "frameAt" in dieser Datei.
+  frameAt(column, row) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return { // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      sx: column * this.frameWidth, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      sy: row * this.frameHeight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      sw: this.frameWidth, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      sh: this.frameHeight, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
     };
   }
 }

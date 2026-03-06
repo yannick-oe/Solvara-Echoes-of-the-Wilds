@@ -1,54 +1,54 @@
-export class Input { // Declare a class that can be used by other modules.
-  // This function handles the constructor behavior in this file.
-  constructor() { // Execute this step in the current flow.
-    this.keys = {}; // Store data on the current object instance.
-    this.pressedThisFrame = {}; // Store data on the current object instance.
-    this.releasedThisFrame = {}; // Store data on the current object instance.
+export class Input { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+  // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+  constructor() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.keys = {}; // Speichert Daten in der aktuellen Objektinstanz.
+    this.pressedThisFrame = {}; // Speichert Daten in der aktuellen Objektinstanz.
+    this.releasedThisFrame = {}; // Speichert Daten in der aktuellen Objektinstanz.
 
-    let self = this; // Create a local variable that may change.
+    let self = this; // Erzeugt eine lokale Variable, die sich aendern kann.
 
-    window.addEventListener("keydown", function (event) { // Execute this step in the current flow.
-      // This function handles the if behavior in this file.
-      if (!event.repeat) { // Check a condition before executing this block.
-        self.pressedThisFrame[event.code] = true; // Compute and store a value for later use.
+    window.addEventListener("keydown", function (event) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+      if (!event.repeat) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        self.pressedThisFrame[event.code] = true; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
       }
-      self.keys[event.code] = true; // Compute and store a value for later use.
+      self.keys[event.code] = true; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
 
-      if ( // Check a condition before executing this block.
-        event.code === "ArrowLeft" || // Compute and store a value for later use.
-        event.code === "ArrowRight" || // Compute and store a value for later use.
-        event.code === "ArrowUp" || // Compute and store a value for later use.
-        event.code === "ArrowDown" || // Compute and store a value for later use.
-        event.code === "Space" // Compute and store a value for later use.
-      ) { // Execute this step in the current flow.
-        event.preventDefault(); // Call a function to perform this step.
+      if ( // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        event.code === "ArrowLeft" || // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        event.code === "ArrowRight" || // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        event.code === "ArrowUp" || // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        event.code === "ArrowDown" || // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        event.code === "Space" // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+      ) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        event.preventDefault(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
       }
-    }); // Call a function to perform this step.
+    }); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
 
-    window.addEventListener("keyup", function (event) { // Execute this step in the current flow.
-      self.keys[event.code] = false; // Compute and store a value for later use.
-      self.releasedThisFrame[event.code] = true; // Compute and store a value for later use.
-    }); // Call a function to perform this step.
+    window.addEventListener("keyup", function (event) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+      self.keys[event.code] = false; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+      self.releasedThisFrame[event.code] = true; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+    }); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 
-  // This function handles the isDown behavior in this file.
-  isDown(code) { // Execute this step in the current flow.
-    return this.keys[code] === true; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "isDown" in dieser Datei.
+  isDown(code) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return this.keys[code] === true; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the wasPressed behavior in this file.
-  wasPressed(code) { // Execute this step in the current flow.
-    return this.pressedThisFrame[code] === true; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "wasPressed" in dieser Datei.
+  wasPressed(code) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return this.pressedThisFrame[code] === true; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the wasReleased behavior in this file.
-  wasReleased(code) { // Execute this step in the current flow.
-    return this.releasedThisFrame[code] === true; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "wasReleased" in dieser Datei.
+  wasReleased(code) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return this.releasedThisFrame[code] === true; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the endFrame behavior in this file.
-  endFrame() { // Execute this step in the current flow.
-    this.pressedThisFrame = {}; // Store data on the current object instance.
-    this.releasedThisFrame = {}; // Store data on the current object instance.
+  // Diese Funktion verarbeitet das Verhalten "endFrame" in dieser Datei.
+  endFrame() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.pressedThisFrame = {}; // Speichert Daten in der aktuellen Objektinstanz.
+    this.releasedThisFrame = {}; // Speichert Daten in der aktuellen Objektinstanz.
   }
 }

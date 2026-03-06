@@ -1,358 +1,358 @@
-import { Input } from "./input.js"; // Import a dependency used in this file.
-import { ImageCache } from "./imageCache.js"; // Import a dependency used in this file.
-import { Camera } from "./camera.js"; // Import a dependency used in this file.
-import { ParallaxLayer } from "./parallax.js"; // Import a dependency used in this file.
-import { Level } from "./level.js"; // Import a dependency used in this file.
-import { Player } from "./player.js"; // Import a dependency used in this file.
-import { CANVAS_HEIGHT, CANVAS_WIDTH, ASSET_PATHS, COLLECTIBLE_TYPE } from "./constants.js"; // Import a dependency used in this file.
-import { SpriteSheet } from "./spriteSheet.js"; // Import a dependency used in this file.
-import { HUD_FALLBACK_FRAMES, HUD_FRAMES, HUD_LAYOUT, HUD_SPRITE } from "./hudConfig.js"; // Import a dependency used in this file.
-import { // Import a dependency used in this file.
-    Collectible, // Execute this step in the current flow.
-    Enemy, // Execute this step in the current flow.
-    getDefaultCollectiblesLayout, // Execute this step in the current flow.
-    getDefaultEnemyLayout, // Execute this step in the current flow.
-    isBodyHit, // Execute this step in the current flow.
-    isStompHit, // Execute this step in the current flow.
-} from "./worldEntities.js"; // Execute this step in the current flow.
+import { Input } from "./input.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { ImageCache } from "./imageCache.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { Camera } from "./camera.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { ParallaxLayer } from "./parallax.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { Level } from "./level.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { Player } from "./player.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { CANVAS_HEIGHT, CANVAS_WIDTH, ASSET_PATHS, COLLECTIBLE_TYPE } from "./constants.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { SpriteSheet } from "./spriteSheet.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { HUD_FALLBACK_FRAMES, HUD_FRAMES, HUD_LAYOUT, HUD_SPRITE } from "./hudConfig.js"; // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+import { // Importiert eine in dieser Datei verwendete Abhaengigkeit.
+    Collectible, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    Enemy, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    getDefaultCollectiblesLayout, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    getDefaultEnemyLayout, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    isBodyHit, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    isStompHit, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+} from "./worldEntities.js"; // Fuehrt diesen Schritt im aktuellen Ablauf aus.
 
-export class Game { // Declare a class that can be used by other modules.
-    // This function handles the constructor behavior in this file.
-    constructor(canvas) { // Execute this step in the current flow.
-        this.canvas = canvas; // Store data on the current object instance.
-        this.ctx = canvas.getContext("2d"); // Store data on the current object instance.
-        this.ctx.imageSmoothingEnabled = false; // Store data on the current object instance.
+export class Game { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+    // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+    constructor(canvas) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        this.canvas = canvas; // Speichert Daten in der aktuellen Objektinstanz.
+        this.ctx = canvas.getContext("2d"); // Speichert Daten in der aktuellen Objektinstanz.
+        this.ctx.imageSmoothingEnabled = false; // Speichert Daten in der aktuellen Objektinstanz.
 
-        this.input = new Input(); // Store data on the current object instance.
-        this.imageCache = new ImageCache(); // Store data on the current object instance.
-        this.camera = new Camera(CANVAS_WIDTH, CANVAS_HEIGHT); // Store data on the current object instance.
+        this.input = new Input(); // Speichert Daten in der aktuellen Objektinstanz.
+        this.imageCache = new ImageCache(); // Speichert Daten in der aktuellen Objektinstanz.
+        this.camera = new Camera(CANVAS_WIDTH, CANVAS_HEIGHT); // Speichert Daten in der aktuellen Objektinstanz.
 
-        this.level = null; // Store data on the current object instance.
-        this.player = null; // Store data on the current object instance.
-        this.parallaxLayers = []; // Store data on the current object instance.
-        this.enemies = []; // Store data on the current object instance.
-        this.collectibles = []; // Store data on the current object instance.
-        this.score = 0; // Store data on the current object instance.
-        this.stars = 0; // Store data on the current object instance.
-        this.enemyAtlasImage = null; // Store data on the current object instance.
-        this.pickupSprite = null; // Store data on the current object instance.
-        this.hudSprite = null; // Store data on the current object instance.
-        this.hudAnimTime = 0; // Store data on the current object instance.
+        this.level = null; // Speichert Daten in der aktuellen Objektinstanz.
+        this.player = null; // Speichert Daten in der aktuellen Objektinstanz.
+        this.parallaxLayers = []; // Speichert Daten in der aktuellen Objektinstanz.
+        this.enemies = []; // Speichert Daten in der aktuellen Objektinstanz.
+        this.collectibles = []; // Speichert Daten in der aktuellen Objektinstanz.
+        this.score = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        this.stars = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        this.enemyAtlasImage = null; // Speichert Daten in der aktuellen Objektinstanz.
+        this.pickupSprite = null; // Speichert Daten in der aktuellen Objektinstanz.
+        this.hudSprite = null; // Speichert Daten in der aktuellen Objektinstanz.
+        this.hudAnimTime = 0; // Speichert Daten in der aktuellen Objektinstanz.
 
-        this.lastTime = 0; // Store data on the current object instance.
-        this.levelCompleted = false; // Store data on the current object instance.
+        this.lastTime = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        this.levelCompleted = false; // Speichert Daten in der aktuellen Objektinstanz.
 
-        this._rafId = null; // Store data on the current object instance.
-        this._running = false; // Store data on the current object instance.
+        this._rafId = null; // Speichert Daten in der aktuellen Objektinstanz.
+        this._running = false; // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    // This function handles the start behavior in this file.
-    async start() { // Execute this step in the current flow.
-        if (this._running) return; // Check a condition before executing this block.
-        this._running = true; // Store data on the current object instance.
+    // Diese Funktion verarbeitet das Verhalten "start" in dieser Datei.
+    async start() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        if (this._running) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        this._running = true; // Speichert Daten in der aktuellen Objektinstanz.
 
-        await this.loadAssets(); // Wait for the async operation to finish.
+        await this.loadAssets(); // Wartet, bis die asynchrone Operation abgeschlossen ist.
 
-        const tileset = this.imageCache.get(ASSET_PATHS.tileSet); // Create a local constant for this scope.
-        const propsAtlas = this.imageCache.get(ASSET_PATHS.propsAtlas); // Create a local constant for this scope.
-        const playerSprite = this.imageCache.get(ASSET_PATHS.playerSprite); // Create a local constant for this scope.
-        const enemyAtlas = this.imageCache.get(ASSET_PATHS.enemyAtlas); // Create a local constant for this scope.
-        const pickupAtlas = this.imageCache.get(ASSET_PATHS.pickupAtlas); // Create a local constant for this scope.
-        const uiDoorClosed = this.imageCache.get(ASSET_PATHS.uiDoorClosed); // Create a local constant for this scope.
-        const uiDoorOpen = this.imageCache.get(ASSET_PATHS.uiDoorOpen); // Create a local constant for this scope.
-        const bgBack = this.imageCache.get(ASSET_PATHS.backgroundBack); // Create a local constant for this scope.
-        const bgMiddle = this.imageCache.get(ASSET_PATHS.backgroundMiddle); // Create a local constant for this scope.
+        const tileset = this.imageCache.get(ASSET_PATHS.tileSet); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const propsAtlas = this.imageCache.get(ASSET_PATHS.propsAtlas); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const playerSprite = this.imageCache.get(ASSET_PATHS.playerSprite); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const enemyAtlas = this.imageCache.get(ASSET_PATHS.enemyAtlas); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const pickupAtlas = this.imageCache.get(ASSET_PATHS.pickupAtlas); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const uiDoorClosed = this.imageCache.get(ASSET_PATHS.uiDoorClosed); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const uiDoorOpen = this.imageCache.get(ASSET_PATHS.uiDoorOpen); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const bgBack = this.imageCache.get(ASSET_PATHS.backgroundBack); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const bgMiddle = this.imageCache.get(ASSET_PATHS.backgroundMiddle); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-        this.level = new Level(tileset, propsAtlas, uiDoorClosed, uiDoorOpen); // Store data on the current object instance.
-        this.player = new Player(playerSprite, this.level.spawnX, this.level.spawnY); // Store data on the current object instance.
-        this.enemyAtlasImage = enemyAtlas; // Store data on the current object instance.
-        this.pickupSprite = new SpriteSheet( // Store data on the current object instance.
-            pickupAtlas, // Execute this step in the current flow.
-            HUD_SPRITE.frameWidth, // Execute this step in the current flow.
-            HUD_SPRITE.frameHeight // Execute this step in the current flow.
-        ); // Call a function to perform this step.
-        this.hudSprite = this.pickupSprite; // Store data on the current object instance.
-        this.enemies = this.createEnemies(); // Store data on the current object instance.
-        this.collectibles = this.createCollectibles(); // Store data on the current object instance.
+        this.level = new Level(tileset, propsAtlas, uiDoorClosed, uiDoorOpen); // Speichert Daten in der aktuellen Objektinstanz.
+        this.player = new Player(playerSprite, this.level.spawnX, this.level.spawnY); // Speichert Daten in der aktuellen Objektinstanz.
+        this.enemyAtlasImage = enemyAtlas; // Speichert Daten in der aktuellen Objektinstanz.
+        this.pickupSprite = new SpriteSheet( // Speichert Daten in der aktuellen Objektinstanz.
+            pickupAtlas, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            HUD_SPRITE.frameWidth, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            HUD_SPRITE.frameHeight // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.hudSprite = this.pickupSprite; // Speichert Daten in der aktuellen Objektinstanz.
+        this.enemies = this.createEnemies(); // Speichert Daten in der aktuellen Objektinstanz.
+        this.collectibles = this.createCollectibles(); // Speichert Daten in der aktuellen Objektinstanz.
 
-        const backScale = CANVAS_HEIGHT / bgBack.height; // Create a local constant for this scope.
-        const middleScale = (CANVAS_HEIGHT * 0.55) / bgMiddle.height; // Create a local constant for this scope.
-        this.parallaxLayers = [ // Store data on the current object instance.
-            new ParallaxLayer(bgBack, 0.1, backScale, 0), // Execute this step in the current flow.
-            new ParallaxLayer(bgMiddle, 0.3, middleScale, 0), // Execute this step in the current flow.
-        ]; // Execute this step in the current flow.
+        const backScale = CANVAS_HEIGHT / bgBack.height; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const middleScale = (CANVAS_HEIGHT * 0.55) / bgMiddle.height; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        this.parallaxLayers = [ // Speichert Daten in der aktuellen Objektinstanz.
+            new ParallaxLayer(bgBack, 0.1, backScale, 0), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            new ParallaxLayer(bgMiddle, 0.3, middleScale, 0), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        ]; // Fuehrt diesen Schritt im aktuellen Ablauf aus.
 
-        this.lastTime = performance.now(); // Store data on the current object instance.
-        this._rafId = requestAnimationFrame(this.loop.bind(this)); // Store data on the current object instance.
+        this.lastTime = performance.now(); // Speichert Daten in der aktuellen Objektinstanz.
+        this._rafId = requestAnimationFrame(this.loop.bind(this)); // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    // This function handles the createEnemies behavior in this file.
-    createEnemies() { // Execute this step in the current flow.
-        const layout = getDefaultEnemyLayout(this.level.tileDisplaySize); // Create a local constant for this scope.
-        return layout.map((config) => new Enemy(config, this.enemyAtlasImage)); // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "createEnemies" in dieser Datei.
+    createEnemies() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const layout = getDefaultEnemyLayout(this.level.tileDisplaySize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        return layout.map((config) => new Enemy(config, this.enemyAtlasImage)); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    // This function handles the createCollectibles behavior in this file.
-    createCollectibles() { // Execute this step in the current flow.
-        const layout = getDefaultCollectiblesLayout(this.level.tileDisplaySize); // Create a local constant for this scope.
-        return layout.map((config) => new Collectible(config, this.pickupSprite)); // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "createCollectibles" in dieser Datei.
+    createCollectibles() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const layout = getDefaultCollectiblesLayout(this.level.tileDisplaySize); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        return layout.map((config) => new Collectible(config, this.pickupSprite)); // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    // This function handles the resetWorldState behavior in this file.
-    resetWorldState() { // Execute this step in the current flow.
-        this.level.resetRuntimeState(); // Call a function to perform this step.
-        for (const enemy of this.enemies) enemy.reset(); // Iterate through items or indices in a loop.
-        for (const item of this.collectibles) item.reset(); // Iterate through items or indices in a loop.
-        this.score = 0; // Store data on the current object instance.
-        this.stars = 0; // Store data on the current object instance.
+    // Diese Funktion verarbeitet das Verhalten "resetWorldState" in dieser Datei.
+    resetWorldState() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        this.level.resetRuntimeState(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        for (const enemy of this.enemies) enemy.reset(); // Iteriert in einer Schleife ueber Elemente oder Indizes.
+        for (const item of this.collectibles) item.reset(); // Iteriert in einer Schleife ueber Elemente oder Indizes.
+        this.score = 0; // Speichert Daten in der aktuellen Objektinstanz.
+        this.stars = 0; // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    // This function handles the loadAssets behavior in this file.
-    async loadAssets() { // Execute this step in the current flow.
-        await this.imageCache.loadAll([ // Wait for the async operation to finish.
-            ASSET_PATHS.backgroundBack, // Execute this step in the current flow.
-            ASSET_PATHS.backgroundMiddle, // Execute this step in the current flow.
-            ASSET_PATHS.tileSet, // Execute this step in the current flow.
-            ASSET_PATHS.propsAtlas, // Execute this step in the current flow.
-            ASSET_PATHS.playerSprite, // Execute this step in the current flow.
-            ASSET_PATHS.enemyAtlas, // Execute this step in the current flow.
-            ASSET_PATHS.pickupAtlas, // Execute this step in the current flow.
-            ASSET_PATHS.uiDoorClosed, // Execute this step in the current flow.
-            ASSET_PATHS.uiDoorOpen, // Execute this step in the current flow.
-        ]); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "loadAssets" in dieser Datei.
+    async loadAssets() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        await this.imageCache.loadAll([ // Wartet, bis die asynchrone Operation abgeschlossen ist.
+            ASSET_PATHS.backgroundBack, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.backgroundMiddle, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.tileSet, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.propsAtlas, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.playerSprite, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.enemyAtlas, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.pickupAtlas, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.uiDoorClosed, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            ASSET_PATHS.uiDoorOpen, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        ]); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
     }
 
-    // This function handles the loop behavior in this file.
-    loop(timestamp) { // Execute this step in the current flow.
-        const rawDt = (timestamp - this.lastTime) / 1000; // Create a local constant for this scope.
-        const dt = Math.min(0.05, rawDt); // Create a local constant for this scope.
-        this.lastTime = timestamp; // Store data on the current object instance.
+    // Diese Funktion verarbeitet das Verhalten "loop" in dieser Datei.
+    loop(timestamp) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const rawDt = (timestamp - this.lastTime) / 1000; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const dt = Math.min(0.05, rawDt); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        this.lastTime = timestamp; // Speichert Daten in der aktuellen Objektinstanz.
 
-        this.update(dt); // Call a function to perform this step.
-        this.draw(); // Call a function to perform this step.
+        this.update(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.draw(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
 
-        this._rafId = requestAnimationFrame(this.loop.bind(this)); // Store data on the current object instance.
+        this._rafId = requestAnimationFrame(this.loop.bind(this)); // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    // This function handles the update behavior in this file.
-    update(dt) { // Execute this step in the current flow.
-        // This function handles the if behavior in this file.
-        if (!this.level || !this.player) { // Check a condition before executing this block.
-            return; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "update" in dieser Datei.
+    update(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (!this.level || !this.player) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
         }
 
-        // This function handles the if behavior in this file.
-        if (!this.levelCompleted) { // Check a condition before executing this block.
-            this.player.update(dt, this.input, this.level); // Call a function to perform this step.
-            this.updateHudAnimation(dt); // Call a function to perform this step.
-            this.updateSwitch(); // Call a function to perform this step.
-            this.updateEnemies(dt); // Call a function to perform this step.
-            this.updateCollectibles(dt); // Call a function to perform this step.
-            this.tryApplyWorldReset(); // Call a function to perform this step.
-            this.camera.follow(this.player, this.level.pixelWidth); // Call a function to perform this step.
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (!this.levelCompleted) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            this.player.update(dt, this.input, this.level); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.updateHudAnimation(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.updateSwitch(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.updateEnemies(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.updateCollectibles(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.tryApplyWorldReset(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.camera.follow(this.player, this.level.pixelWidth); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
 
-            // This function handles the if behavior in this file.
-            if (this.level.touchesGoalHouse(this.player.getRect())) { // Check a condition before executing this block.
-                this.levelCompleted = true; // Store data on the current object instance.
+            // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+            if (this.level.touchesGoalHouse(this.player.getRect())) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+                this.levelCompleted = true; // Speichert Daten in der aktuellen Objektinstanz.
             }
         }
 
-        this.input.endFrame(); // Call a function to perform this step.
+        this.input.endFrame(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
     }
 
-    // This function handles the draw behavior in this file.
-    draw() { // Execute this step in the current flow.
-        this.ctx.fillStyle = "#5DC8E8"; // Store data on the current object instance.
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); // Draw a filled rectangle on the canvas.
+    // Diese Funktion verarbeitet das Verhalten "draw" in dieser Datei.
+    draw() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        this.ctx.fillStyle = "#5DC8E8"; // Speichert Daten in der aktuellen Objektinstanz.
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); // Zeichnet ein gefuelltes Rechteck auf dem Canvas.
 
-        // This function handles the if behavior in this file.
-        if (!this.level || !this.player) { // Check a condition before executing this block.
-            return; // Return control (and optionally a value) to the caller.
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (!this.level || !this.player) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
         }
 
-        // This function handles the for behavior in this file.
-        for (let i = 0; i < this.parallaxLayers.length; i++) { // Iterate through items or indices in a loop.
-            this.parallaxLayers[i].draw(this.ctx, this.canvas.width, this.canvas.height, this.camera.x); // Call a function to perform this step.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (let i = 0; i < this.parallaxLayers.length; i++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            this.parallaxLayers[i].draw(this.ctx, this.canvas.width, this.canvas.height, this.camera.x); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
 
-        this.level.draw(this.ctx, this.camera); // Call a function to perform this step.
-        this.drawCollectibles(); // Call a function to perform this step.
-        this.drawEnemies(); // Call a function to perform this step.
-        this.player.draw(this.ctx, this.camera); // Call a function to perform this step.
+        this.level.draw(this.ctx, this.camera); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.drawCollectibles(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.drawEnemies(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.player.draw(this.ctx, this.camera); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
 
-        this.drawHud(); // Call a function to perform this step.
+        this.drawHud(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
     }
 
-    // This function handles the updateHudAnimation behavior in this file.
-    updateHudAnimation(dt) { // Execute this step in the current flow.
-        this.hudAnimTime += dt; // Store data on the current object instance.
+    // Diese Funktion verarbeitet das Verhalten "updateHudAnimation" in dieser Datei.
+    updateHudAnimation(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        this.hudAnimTime += dt; // Speichert Daten in der aktuellen Objektinstanz.
     }
 
-    // This function handles the getAnimatedHudFrame behavior in this file.
-    getAnimatedHudFrame(frames, fallback) { // Execute this step in the current flow.
-        if (!frames || frames.length === 0) return fallback; // Check a condition before executing this block.
-        const index = Math.floor(this.hudAnimTime * 10) % frames.length; // Create a local constant for this scope.
-        return frames[index]; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "getAnimatedHudFrame" in dieser Datei.
+    getAnimatedHudFrame(frames, fallback) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        if (!frames || frames.length === 0) return fallback; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        const index = Math.floor(this.hudAnimTime * 10) % frames.length; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        return frames[index]; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    // This function handles the getPulseHudFrame behavior in this file.
-    getPulseHudFrame(frames, fallback) { // Execute this step in the current flow.
-        if (!frames || frames.length === 0) return fallback; // Check a condition before executing this block.
-        const loopLength = frames.length * 2 - 2; // Create a local constant for this scope.
-        if (loopLength <= 0) return frames[0]; // Check a condition before executing this block.
-        const index = Math.floor(this.hudAnimTime * 6) % loopLength; // Create a local constant for this scope.
-        const pingPongIndex = index < frames.length ? index : loopLength - index; // Create a local constant for this scope.
-        return frames[pingPongIndex]; // Return control (and optionally a value) to the caller.
+    // Diese Funktion verarbeitet das Verhalten "getPulseHudFrame" in dieser Datei.
+    getPulseHudFrame(frames, fallback) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        if (!frames || frames.length === 0) return fallback; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        const loopLength = frames.length * 2 - 2; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        if (loopLength <= 0) return frames[0]; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        const index = Math.floor(this.hudAnimTime * 6) % loopLength; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const pingPongIndex = index < frames.length ? index : loopLength - index; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        return frames[pingPongIndex]; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
     }
 
-    // This function handles the drawHudIcon behavior in this file.
-    drawHudIcon(frame, x, y, alpha = 1) { // Compute and store a value for later use.
-        if (!this.hudSprite) return; // Check a condition before executing this block.
-        const source = frame.sx !== undefined // Create a local constant for this scope.
-            ? frame // Execute this step in the current flow.
-            : this.hudSprite.frameAt(frame.col, frame.row); // Call a function to perform this step.
-        const size = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Create a local constant for this scope.
-        this.ctx.save(); // Call a function to perform this step.
-        this.ctx.globalAlpha = alpha; // Store data on the current object instance.
-        this.ctx.drawImage( // Render an image (or sprite region) on the canvas.
-            this.hudSprite.image, // Execute this step in the current flow.
-            source.sx, // Execute this step in the current flow.
-            source.sy, // Execute this step in the current flow.
-            source.sw, // Execute this step in the current flow.
-            source.sh, // Execute this step in the current flow.
-            Math.round(x), // Execute this step in the current flow.
-            Math.round(y), // Execute this step in the current flow.
-            size, // Execute this step in the current flow.
-            size // Execute this step in the current flow.
-        ); // Call a function to perform this step.
-        this.ctx.restore(); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "drawHudIcon" in dieser Datei.
+    drawHudIcon(frame, x, y, alpha = 1) { // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        if (!this.hudSprite) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        const source = frame.sx !== undefined // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+            ? frame // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            : this.hudSprite.frameAt(frame.col, frame.row); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        const size = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        this.ctx.save(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.ctx.globalAlpha = alpha; // Speichert Daten in der aktuellen Objektinstanz.
+        this.ctx.drawImage( // Rendert ein Bild (oder einen Sprite-Bereich) auf dem Canvas.
+            this.hudSprite.image, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            source.sx, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            source.sy, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            source.sw, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            source.sh, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            Math.round(x), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            Math.round(y), // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            size, // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+            size // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        ); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.ctx.restore(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
     }
 
-    // This function handles the drawHeartsHud behavior in this file.
-    drawHeartsHud(startX, startY) { // Execute this step in the current flow.
-        const frame = this.getPulseHudFrame(HUD_FRAMES.hearts, HUD_FALLBACK_FRAMES.heart); // Create a local constant for this scope.
-        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Create a local constant for this scope.
-        const iconStep = iconSize + HUD_LAYOUT.iconGap; // Create a local constant for this scope.
-        // This function handles the for behavior in this file.
-        for (let i = 0; i < this.player.maxHearts; i++) { // Iterate through items or indices in a loop.
-            const alpha = i < this.player.hearts ? 1 : 0.25; // Create a local constant for this scope.
-            this.drawHudIcon(frame, startX + i * iconStep, startY, alpha); // Call a function to perform this step.
-        }
-    }
-
-    // This function handles the drawDiamondHud behavior in this file.
-    drawDiamondHud(startX, startY) { // Execute this step in the current flow.
-        const frame = this.getAnimatedHudFrame(HUD_FRAMES.diamondSpin, HUD_FALLBACK_FRAMES.diamond); // Create a local constant for this scope.
-        this.drawHudIcon(frame, startX, startY); // Call a function to perform this step.
-        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Create a local constant for this scope.
-        this.ctx.fillStyle = "#ffffff"; // Store data on the current object instance.
-        this.ctx.font = "24px monospace"; // Store data on the current object instance.
-        this.ctx.fillText(String(this.score), startX + iconSize + HUD_LAYOUT.scoreGap, startY + iconSize - 7); // Draw text on the canvas.
-    }
-
-    // This function handles the drawStarsHud behavior in this file.
-    drawStarsHud(startX, startY) { // Execute this step in the current flow.
-        const idleFrame = HUD_FRAMES.starCoinSpin[0] || HUD_FALLBACK_FRAMES.starCoin; // Create a local constant for this scope.
-        const spinFrame = this.getAnimatedHudFrame(HUD_FRAMES.starCoinSpin, HUD_FALLBACK_FRAMES.starCoin); // Create a local constant for this scope.
-        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Create a local constant for this scope.
-        const iconStep = iconSize + HUD_LAYOUT.iconGap; // Create a local constant for this scope.
-        // This function handles the for behavior in this file.
-        for (let i = 0; i < HUD_LAYOUT.maxStars; i++) { // Iterate through items or indices in a loop.
-            const collected = i < this.stars; // Create a local constant for this scope.
-            const frame = collected ? spinFrame : idleFrame; // Create a local constant for this scope.
-            const alpha = collected ? 1 : 0.25; // Create a local constant for this scope.
-            this.drawHudIcon(frame, startX + i * iconStep, startY, alpha); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "drawHeartsHud" in dieser Datei.
+    drawHeartsHud(startX, startY) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const frame = this.getPulseHudFrame(HUD_FRAMES.hearts, HUD_FALLBACK_FRAMES.heart); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const iconStep = iconSize + HUD_LAYOUT.iconGap; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (let i = 0; i < this.player.maxHearts; i++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            const alpha = i < this.player.hearts ? 1 : 0.25; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+            this.drawHudIcon(frame, startX + i * iconStep, startY, alpha); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
     }
 
-    // This function handles the drawHud behavior in this file.
-    drawHud() { // Execute this step in the current flow.
-        this.drawHeartsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.heartsY); // Call a function to perform this step.
-        this.drawStarsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.starsY); // Call a function to perform this step.
-        this.drawDiamondHud(HUD_LAYOUT.leftX, HUD_LAYOUT.diamondsY); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "drawDiamondHud" in dieser Datei.
+    drawDiamondHud(startX, startY) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const frame = this.getAnimatedHudFrame(HUD_FRAMES.diamondSpin, HUD_FALLBACK_FRAMES.diamond); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        this.drawHudIcon(frame, startX, startY); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        this.ctx.fillStyle = "#ffffff"; // Speichert Daten in der aktuellen Objektinstanz.
+        this.ctx.font = "24px monospace"; // Speichert Daten in der aktuellen Objektinstanz.
+        this.ctx.fillText(String(this.score), startX + iconSize + HUD_LAYOUT.scoreGap, startY + iconSize - 7); // Zeichnet Text auf dem Canvas.
     }
 
-    // This function handles the updateSwitch behavior in this file.
-    updateSwitch() { // Execute this step in the current flow.
-        const wantsInteract = this.input.wasPressed("KeyE") || this.input.wasPressed("ArrowUp"); // Create a local constant for this scope.
-        this.level.tryActivateSwitch(this.player.getRect(), wantsInteract); // Call a function to perform this step.
-    }
-
-    // This function handles the updateEnemies behavior in this file.
-    updateEnemies(dt) { // Execute this step in the current flow.
-        // This function handles the for behavior in this file.
-        for (const enemy of this.enemies) { // Iterate through items or indices in a loop.
-            enemy.update(dt, this.level); // Call a function to perform this step.
-            this.resolveEnemyContact(enemy); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "drawStarsHud" in dieser Datei.
+    drawStarsHud(startX, startY) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const idleFrame = HUD_FRAMES.starCoinSpin[0] || HUD_FALLBACK_FRAMES.starCoin; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const spinFrame = this.getAnimatedHudFrame(HUD_FRAMES.starCoinSpin, HUD_FALLBACK_FRAMES.starCoin); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const iconSize = HUD_SPRITE.frameWidth * HUD_SPRITE.scale; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        const iconStep = iconSize + HUD_LAYOUT.iconGap; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (let i = 0; i < HUD_LAYOUT.maxStars; i++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            const collected = i < this.stars; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+            const frame = collected ? spinFrame : idleFrame; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+            const alpha = collected ? 1 : 0.25; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+            this.drawHudIcon(frame, startX + i * iconStep, startY, alpha); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
     }
 
-    // This function handles the resolveEnemyContact behavior in this file.
-    resolveEnemyContact(enemy) { // Execute this step in the current flow.
-        if (!enemy.alive) return; // Check a condition before executing this block.
-        // This function handles the if behavior in this file.
-        if (isStompHit(this.player, enemy)) { // Check a condition before executing this block.
-            enemy.alive = false; // Compute and store a value for later use.
-            this.player.stompBounce(); // Call a function to perform this step.
-            this.score += 25; // Store data on the current object instance.
-            return; // Return control (and optionally a value) to the caller.
-        }
+    // Diese Funktion verarbeitet das Verhalten "drawHud" in dieser Datei.
+    drawHud() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        this.drawHeartsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.heartsY); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.drawStarsHud(HUD_LAYOUT.leftX, HUD_LAYOUT.starsY); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+        this.drawDiamondHud(HUD_LAYOUT.leftX, HUD_LAYOUT.diamondsY); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    }
 
-        // This function handles the if behavior in this file.
-        if (isBodyHit(this.player, enemy)) { // Check a condition before executing this block.
-            this.player.takeHit(enemy.x); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "updateSwitch" in dieser Datei.
+    updateSwitch() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const wantsInteract = this.input.wasPressed("KeyE") || this.input.wasPressed("ArrowUp"); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        this.level.tryActivateSwitch(this.player.getRect(), wantsInteract); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+    }
+
+    // Diese Funktion verarbeitet das Verhalten "updateEnemies" in dieser Datei.
+    updateEnemies(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (const enemy of this.enemies) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            enemy.update(dt, this.level); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.resolveEnemyContact(enemy); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
     }
 
-    // This function handles the updateCollectibles behavior in this file.
-    updateCollectibles(dt) { // Execute this step in the current flow.
-        const playerRect = this.player.getRect(); // Create a local constant for this scope.
-        // This function handles the for behavior in this file.
-        for (const item of this.collectibles) { // Iterate through items or indices in a loop.
-            item.update(dt); // Call a function to perform this step.
-            item.tryCollect(playerRect, (collected) => this.onCollect(collected)); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "resolveEnemyContact" in dieser Datei.
+    resolveEnemyContact(enemy) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        if (!enemy.alive) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (isStompHit(this.player, enemy)) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            enemy.alive = false; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+            this.player.stompBounce(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            this.score += 25; // Speichert Daten in der aktuellen Objektinstanz.
+            return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+        }
+
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (isBodyHit(this.player, enemy)) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            this.player.takeHit(enemy.x); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
     }
 
-    // This function handles the onCollect behavior in this file.
-    onCollect(collected) { // Execute this step in the current flow.
-        if (collected.type === COLLECTIBLE_TYPE.diamond) this.score += collected.value; // Check a condition before executing this block.
-        // This function handles the if behavior in this file.
-        if (collected.type === COLLECTIBLE_TYPE.starCoin) { // Check a condition before executing this block.
-            this.score += collected.value; // Store data on the current object instance.
-            this.stars += 1; // Store data on the current object instance.
+    // Diese Funktion verarbeitet das Verhalten "updateCollectibles" in dieser Datei.
+    updateCollectibles(dt) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        const playerRect = this.player.getRect(); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (const item of this.collectibles) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            item.update(dt); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
+            item.tryCollect(playerRect, (collected) => this.onCollect(collected)); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
-        // This function handles the if behavior in this file.
-        if (collected.type === COLLECTIBLE_TYPE.cherry) { // Check a condition before executing this block.
-            // This function handles the if behavior in this file.
-            if (this.player.maxHearts < this.player.hardMaxHearts) { // Check a condition before executing this block.
-                this.player.maxHearts += 1; // Store data on the current object instance.
-                this.player.hearts = this.player.maxHearts; // Store data on the current object instance.
-                return; // Return control (and optionally a value) to the caller.
+    }
+
+    // Diese Funktion verarbeitet das Verhalten "onCollect" in dieser Datei.
+    onCollect(collected) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        if (collected.type === COLLECTIBLE_TYPE.diamond) this.score += collected.value; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (collected.type === COLLECTIBLE_TYPE.starCoin) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            this.score += collected.value; // Speichert Daten in der aktuellen Objektinstanz.
+            this.stars += 1; // Speichert Daten in der aktuellen Objektinstanz.
+        }
+        // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+        if (collected.type === COLLECTIBLE_TYPE.cherry) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+            // Diese Funktion verarbeitet das Verhalten "if" in dieser Datei.
+            if (this.player.maxHearts < this.player.hardMaxHearts) { // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+                this.player.maxHearts += 1; // Speichert Daten in der aktuellen Objektinstanz.
+                this.player.hearts = this.player.maxHearts; // Speichert Daten in der aktuellen Objektinstanz.
+                return; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
             }
-            this.player.hearts = Math.min(this.player.maxHearts, this.player.hearts + 1); // Store data on the current object instance.
+            this.player.hearts = Math.min(this.player.maxHearts, this.player.hearts + 1); // Speichert Daten in der aktuellen Objektinstanz.
         }
     }
 
-    // This function handles the tryApplyWorldReset behavior in this file.
-    tryApplyWorldReset() { // Execute this step in the current flow.
-        if (!this.player.consumeWorldResetRequest()) return; // Check a condition before executing this block.
-        this.resetWorldState(); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "tryApplyWorldReset" in dieser Datei.
+    tryApplyWorldReset() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        if (!this.player.consumeWorldResetRequest()) return; // Prueft eine Bedingung, bevor dieser Block ausgefuehrt wird.
+        this.resetWorldState(); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
     }
 
-    // This function handles the drawEnemies behavior in this file.
-    drawEnemies() { // Execute this step in the current flow.
-        // This function handles the for behavior in this file.
-        for (const enemy of this.enemies) { // Iterate through items or indices in a loop.
-            enemy.draw(this.ctx, this.camera); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "drawEnemies" in dieser Datei.
+    drawEnemies() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (const enemy of this.enemies) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            enemy.draw(this.ctx, this.camera); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
     }
 
-    // This function handles the drawCollectibles behavior in this file.
-    drawCollectibles() { // Execute this step in the current flow.
-        // This function handles the for behavior in this file.
-        for (const item of this.collectibles) { // Iterate through items or indices in a loop.
-            item.draw(this.ctx, this.camera); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "drawCollectibles" in dieser Datei.
+    drawCollectibles() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+        // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+        for (const item of this.collectibles) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+            item.draw(this.ctx, this.camera); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
         }
     }
 }

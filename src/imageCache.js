@@ -1,44 +1,44 @@
-export class ImageCache { // Declare a class that can be used by other modules.
-  // This function handles the constructor behavior in this file.
-  constructor() { // Execute this step in the current flow.
-    this.cache = {}; // Store data on the current object instance.
+export class ImageCache { // Deklariert eine Klasse, die von anderen Modulen verwendet werden kann.
+  // Diese Funktion verarbeitet das Verhalten "constructor" in dieser Datei.
+  constructor() { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    this.cache = {}; // Speichert Daten in der aktuellen Objektinstanz.
   }
 
-  // This function handles the loadAll behavior in this file.
-  async loadAll(paths) { // Execute this step in the current flow.
-    const uniquePaths = [...new Set(paths)]; // Create a local constant for this scope.
-    const tasks = []; // Create a local constant for this scope.
+  // Diese Funktion verarbeitet das Verhalten "loadAll" in dieser Datei.
+  async loadAll(paths) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    const uniquePaths = [...new Set(paths)]; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
+    const tasks = []; // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-    // This function handles the for behavior in this file.
-    for (let i = 0; i < uniquePaths.length; i++) { // Iterate through items or indices in a loop.
-      tasks.push(this.loadOne(uniquePaths[i])); // Call a function to perform this step.
+    // Diese Funktion verarbeitet das Verhalten "for" in dieser Datei.
+    for (let i = 0; i < uniquePaths.length; i++) { // Iteriert in einer Schleife ueber Elemente oder Indizes.
+      tasks.push(this.loadOne(uniquePaths[i])); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
     }
 
-    await Promise.all(tasks); // Wait for the async operation to finish.
+    await Promise.all(tasks); // Wartet, bis die asynchrone Operation abgeschlossen ist.
   }
 
-  // This function handles the get behavior in this file.
-  get(path) { // Execute this step in the current flow.
-    return this.cache[path]; // Return control (and optionally a value) to the caller.
+  // Diese Funktion verarbeitet das Verhalten "get" in dieser Datei.
+  get(path) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    return this.cache[path]; // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
   }
 
-  // This function handles the loadOne behavior in this file.
-  loadOne(path) { // Execute this step in the current flow.
-    let self = this; // Create a local variable that may change.
+  // Diese Funktion verarbeitet das Verhalten "loadOne" in dieser Datei.
+  loadOne(path) { // Fuehrt diesen Schritt im aktuellen Ablauf aus.
+    let self = this; // Erzeugt eine lokale Variable, die sich aendern kann.
 
-    return new Promise(function (resolve, reject) { // Return control (and optionally a value) to the caller.
-      const image = new Image(); // Create a local constant for this scope.
+    return new Promise(function (resolve, reject) { // Gibt die Kontrolle (und optional einen Wert) an den Aufrufer zurueck.
+      const image = new Image(); // Erzeugt eine lokale Konstante fuer diesen Geltungsbereich.
 
-      image.onload = function () { // Compute and store a value for later use.
-        self.cache[path] = image; // Compute and store a value for later use.
-        resolve(image); // Call a function to perform this step.
+      image.onload = function () { // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        self.cache[path] = image; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        resolve(image); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
       };
 
-      image.onerror = function () { // Compute and store a value for later use.
-        reject(new Error(`Image could not be loaded: ${path}`)); // Call a function to perform this step.
+      image.onerror = function () { // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+        reject(new Error(`Image could not be loaded: ${path}`)); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
       };
 
-      image.src = path; // Compute and store a value for later use.
-    }); // Call a function to perform this step.
+      image.src = path; // Berechnet und speichert einen Wert fuer die spaetere Verwendung.
+    }); // Ruft eine Funktion auf, um diesen Schritt auszufuehren.
   }
 }
