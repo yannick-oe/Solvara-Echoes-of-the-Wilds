@@ -8,6 +8,9 @@ import { DeathEffect } from '../entities/effects/deathEffect.js';
 import { Gem }         from '../entities/pickups/gem.js';
 import { StarCoin }    from '../entities/pickups/starCoin.js';
 import { Cherry }      from '../entities/pickups/cherry.js';
+import { Door }        from '../entities/interactables/door.js';
+import { Switch }      from '../entities/interactables/switch.js';
+import { GoalZone }    from '../entities/interactables/goalZone.js';
 import { Hud }         from '../ui/hud.js';
 import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
@@ -53,8 +56,9 @@ export class GameManager {
     this._enemies       = [];
     this._effects       = [];
 
-    this._pickups    = [];
-    this._hud        = new Hud(imageCache);
+    this._pickups       = [];
+    this._interactables = [];   // Switch, Door, GoalZone
+    this._hud           = new Hud(imageCache);
     this._deathTimeoutId = null;
 
     this._startScreen = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
@@ -72,6 +76,7 @@ export class GameManager {
     this._player  = this._createPlayer();
     this._enemies  = this._spawnEnemies();
     this._pickups  = this._spawnPickups();
+    this._interactables = this._spawnInteractables();
     this._effects  = [];
     this._camera.y = 0;
 
@@ -95,6 +100,7 @@ export class GameManager {
     this._player        = this._createPlayer();
     this._enemies       = this._spawnEnemies();
     this._pickups       = this._spawnPickups();
+    this._interactables = this._spawnInteractables();
     this._effects       = [];
     this._camera.x      = 0;
     this._camera.y      = 0;
@@ -123,7 +129,6 @@ export class GameManager {
    * Koordinaten: Weltpixel (links-oben der Hitbox).
    * Gems liegen auf der Bodenreihe (row 8) – 1 Tile über dem Boden (y = 8*TS - 20).
    * StarCoins sind auf erhöhten Plattformen verteilt.
-   * Cherry ist leicht versteckt auf der oberen Plattform.
    */
   _spawnPickups() {
     const TS = TILE_SIZE;
@@ -142,9 +147,21 @@ export class GameManager {
       new StarCoin(13 * TS + 8, 5 * TS - 30, 1),   // mittlere Plattform row 5
       new StarCoin(19 * TS + 8, 2 * TS - 30, 2),   // obere Plattform row 2
 
-      // Cherry – auf der obersten Plattform (row 2, rechts)
-      new Cherry(21 * TS, 2 * TS - 20),
+      // Cherry hinter der Tür (optionale Belohnung, row 8)
+      new Cherry(22 * TS, 8 * TS - 20),
     ];
+  }
+
+  /** Erstellt Schalter, Tür und Zielzone für Level 01. */
+  _spawnInteractables() {
+    const TS   = TILE_SIZE;
+    // Tür steht auf dem Boden bei col 20 – y so dass Unterkante auf row 8 liegt
+    const door   = new Door(20 * TS, 8 * TS - 96);
+    // Schalter liegt auf dem Boden beim Spielerpfad, col 12
+    const sw     = new Switch(12 * TS + 8, 8 * TS - 24, door);
+    // Zielzone ganz rechts nach der Tür, col 23
+    const goal   = new GoalZone(23 * TS, 8 * TS - 96);
+    return [door, sw, goal];
   }
 
   _setState(next) {
@@ -191,11 +208,21 @@ export class GameManager {
         // Stomp-Kollision
         this._checkStomp();
 
-        // Gegner-Körperkontakt (Schaden)
-        this._checkEnemyDamage();
+        // Gegner-Körperkontakt (Schaden) – nur wenn nicht sterbend
+        if (!this._player.dying) {
+          this._checkEnemyDamage();
 
-        // Pickup-Kollision
-        this._checkPickups();
+          // Pickup-Kollision
+          this._checkPickups();
+
+          // Schalter + Zielzone prüfen
+          this._checkInteractables();
+        }
+
+        // Spieler hat den Bildschirm unten verlassen → Level neu starten
+        if (this._player.dying && this._player.y > this._level.height + CANVAS_HEIGHT) {
+          this._resetLevelState();
+        }
 
         // Effekte updaten; inaktive entfernen
         for (const fx of this._effects) fx.update(dt);
@@ -249,6 +276,12 @@ export class GameManager {
     this._camera.applyTransform(this.ctx);
 
     this._level.tileMap?.draw(this.ctx, this._camera);
+
+    // Interaktierbare Objekte (hinter Spieler, damit diese sichtbar bleiben)
+    for (const obj of this._interactables) {
+      obj.draw(this.ctx, this._camera, imageCache);
+    }
+
     this._player?.draw(this.ctx, this._camera, imageCache);
     for (const enemy of this._enemies) {
       if (enemy.active) enemy.draw(this.ctx, this._camera, imageCache);
@@ -315,6 +348,32 @@ export class GameManager {
     }
   }
 
+  /** Schalter automatisch bei Berührung aktivieren; Tür-Blocking; Zielzone. */
+  _checkInteractables() {
+    const p = this._player;
+    for (const obj of this._interactables) {
+      if (obj instanceof Switch) {
+        if (p.intersects(obj)) obj.activate();
+      } else if (obj instanceof Door) {
+        if (obj.blocks(p)) {
+          // Spieler horizontal zurückdrängen
+          const pushRight = p.x + p.w / 2 < obj.x + obj.w / 2;
+          if (pushRight) {
+            p.x    = obj.x - p.w;
+          } else {
+            p.x    = obj.x + obj.w;
+          }
+          p.velX = 0;
+        }
+      } else if (obj instanceof GoalZone) {
+        if (!obj.reached && p.intersects(obj)) {
+          obj.reached = true;
+          this._setState(GAME_STATES.VICTORY);
+        }
+      }
+    }
+  }
+
   /**
    * Prüft Kollision zwischen Spieler und Gegnerkörper.
    * Schäden werden nur vergeben wenn kein gültiger Stomp vorliegt.
@@ -342,12 +401,9 @@ export class GameManager {
     }
   }
 
-  /** Setzt den Spieler in den Sterbe-Zustand und plant den Level-Reset. */
+  /** Setzt den Spieler in den Sterbe-Zustand. Der Reset erfolgt wenn er vom Screen fällt. */
   _handlePlayerDeath() {
     this._player.startDying();
-    this._deathTimeoutId = setTimeout(() => {
-      this._resetLevelState();
-    }, 1500);
   }
 
   /**
@@ -360,6 +416,7 @@ export class GameManager {
     this._player         = this._createPlayer();
     this._enemies        = this._spawnEnemies();
     this._pickups        = this._spawnPickups();
+    this._interactables  = this._spawnInteractables();
     this._effects        = [];
     this._camera.x       = 0;
     this._camera.y       = 0;

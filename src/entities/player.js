@@ -5,6 +5,7 @@ import {
   MAX_FALL_SPEED,
   JUMP_FORCE,
   PLAYER_SPEED,
+  CANVAS_HEIGHT,
 } from '../core/constants.js';
 
 // Kollisions-Hitbox in Weltpixeln
@@ -65,11 +66,13 @@ export class Player extends Entity {
    * @param {import('../world/tileMap.js').TileMap}   tileMap
    */
   update(dt, input, tileMap) {
-    // Während Sterbe-Animation: nur Physik, keine Eingabe
+    // Während Sterbe-Animation: nur freier Fall, keine Tile-Kollision, kein Input
     if (this.dying) {
-      this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
-      this.y   += this.velY * dt;
-      this._resolveY(tileMap);
+      this.velY  = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+      this.y    += this.velY * dt;
+      this.x    += this.velX * dt;
+      // Horizontale Geschwindigkeit abbremsen
+      this.velX *= Math.max(0, 1 - 4 * dt);
       return;
     }
 
@@ -149,8 +152,11 @@ export class Player extends Entity {
    * @param {import('../core/imageCache.js').ImageCache} imageCache
    */
   draw(ctx, _cam, imageCache) {
-    // Blinken während Unverwundbarkeit: jeden zweiten Tick ausblenden
-    if (this._invulTimer > 0 && Math.floor(this._invulTimer / BLINK_INTERVAL) % 2 === 0) return;
+    // Während des Sterbens: immer zeichnen, kein Blinken
+    if (!this.dying) {
+      // Blinken während Unverwundbarkeit: jeden zweiten Tick ausblenden
+      if (this._invulTimer > 0 && Math.floor(this._invulTimer / BLINK_INTERVAL) % 2 === 0) return;
+    }
 
     const anim = ANIM[this.state];
     const fi   = this.state === 'fall' ? FALL_FRAME : this.frameIndex;

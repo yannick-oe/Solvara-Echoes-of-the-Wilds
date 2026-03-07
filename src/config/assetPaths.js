@@ -40,6 +40,13 @@ export const ASSET_PATHS = {
 
   // --- Effekte ---
   DEATH_EFFECT: [1,2,3,4].map(n => `${SPRITES}/effects/enemy-death-${n}.png`),
+
+  // --- Props / Interaktierbare Objekte ---
+  PROP_CRANK_UP:     `${IMG}/props/crank-up.png`,
+  PROP_CRANK_DOWN:   `${IMG}/props/crank-down.png`,
+  PROP_DOOR:         `${IMG}/props/door.png`,
+  PROP_DOOR_OPENED:  `${IMG}/props/door-opened.png`,
+  PROP_SIGN:         `${IMG}/props/sign.png`,
 };
 
 // Audio separat – wird nicht über ImageCache geladen
