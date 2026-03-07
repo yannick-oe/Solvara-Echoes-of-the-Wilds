@@ -72,7 +72,7 @@ export class GameManager {
     this._pauseScreen    = new PauseScreen({
       onResume:      () => { this.state = GAME_STATES.PLAYING; },
       onRestart:     () => this.restart(),
-      onBackToStart: () => { audioManager.stopMusic(); this.state = GAME_STATES.START; },
+      onBackToStart: () => { audioManager.stopMusic(); this._startScreen.reset(); this.state = GAME_STATES.START; },
     });
 
     this._loop = this._loop.bind(this);

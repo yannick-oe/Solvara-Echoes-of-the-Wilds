@@ -1,12 +1,13 @@
 class InputManager {
   constructor() {
-    this.left         = false;
-    this.right        = false;
-    this.jump         = false;
-    this.jumpPressed  = false;  // nur im Frame des Tastendrucks true
-    this.down         = false;
-    this.up           = false;
-    this.escPressed   = false;  // nur im Frame des ersten ESC-Tastendrucks true
+    this.left          = false;
+    this.right         = false;
+    this.jump          = false;
+    this.jumpPressed   = false;  // nur im Frame des Tastendrucks true
+    this.enterPressed  = false;  // nur im Frame des Enter-Tastendrucks true
+    this.down          = false;
+    this.up            = false;
+    this.escPressed    = false;  // nur im Frame des ersten ESC-Tastendrucks true
 
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp   = this._onKeyUp.bind(this);
@@ -24,8 +25,9 @@ class InputManager {
 
   /** Setzt frame-basierte Einmal-Flags zurück. Wird am Ende jedes update() aufgerufen. */
   resetFrameState() {
-    this.jumpPressed = false;
-    this.escPressed  = false;
+    this.jumpPressed  = false;
+    this.enterPressed = false;
+    this.escPressed   = false;
   }
 
   /** Erlaubt TouchControls, Aktionen direkt zu setzen. */
@@ -63,6 +65,9 @@ class InputManager {
         break;
       case 'ArrowDown': case 'KeyS':
         this.down  = value;
+        break;
+      case 'Enter': case 'NumpadEnter':
+        if (value) this.enterPressed = true;
         break;
       case 'Escape':
         // escPressed nur beim Niederdrücken setzen (value===true), nicht beim Loslassen

@@ -3,20 +3,20 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 export class StartScreen {
   /** @param {Function} onStart  Callback wenn Spieler startet */
   constructor(onStart) {
-    this._onStart  = onStart;
-    this._started  = false;
-
-    // Enter-Taste direkt abhören, da InputManager sie nicht mapped
-    this._onEnterKey = (e) => { if (e.code === 'Enter') this._start(); };
-    window.addEventListener('keydown', this._onEnterKey);
+    this._onStart = onStart;
+    this._started = false;
   }
 
   /** Verhindert Doppelauslösung egal ob via Space oder Enter. */
   _start() {
     if (this._started) return;
     this._started = true;
-    window.removeEventListener('keydown', this._onEnterKey);
     this._onStart();
+  }
+
+  /** Beim Zurückkehren zum Startbildschirm: Zustand zurücksetzen. */
+  reset() {
+    this._started = false;
   }
 
   draw(ctx) {
@@ -65,6 +65,6 @@ export class StartScreen {
 
   /** @param {import('../../core/input.js').InputManager} input */
   handleInput(input) {
-    if (input.jump) this._start();
+    if (input.jumpPressed || input.enterPressed) this._start();
   }
 }

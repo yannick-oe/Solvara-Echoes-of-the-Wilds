@@ -73,8 +73,8 @@ export class PauseScreen {
     this._prevUp   = upNow;
     this._prevDown = downNow;
 
-    // Space (jumpPressed ist bereits One-Shot) → aktiven Menüpunkt ausführen
-    if (input.jumpPressed) {
+    // Space oder Enter (beide One-Shot) → aktiven Menüpunkt ausführen
+    if (input.jumpPressed || input.enterPressed) {
       this._activate(ITEMS[this._selectedIndex]);
     }
   }

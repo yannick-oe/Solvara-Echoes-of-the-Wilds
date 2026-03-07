@@ -18,7 +18,7 @@ export class VictoryScreen {
 
   /** @param {import('../../core/input.js').InputManager} input */
   handleInput(input) {
-    if (input.jump) {
+    if (input.jumpPressed || input.enterPressed) {
       this._onRestart();
     }
   }
