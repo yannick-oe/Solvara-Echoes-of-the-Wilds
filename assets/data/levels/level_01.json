@@ -18,10 +18,40 @@
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null,null,null,null,null,null,null],
     ["g","g","g","g","g","g",null,null,"g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g"],
     ["d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
-  ]
+  ],
+  "content": {
+    "playerSpawn": { "x": 96, "y": 336 },
+    "enemies": [
+      { "type": "ant",   "x": 240, "y": 352 },
+      { "type": "frog",  "x": 480, "y": 304 },
+      { "type": "eagle", "x": 768, "minY": 48, "maxY": 192 }
+    ],
+    "pickups": [
+      { "type": "gem", "x": 144,  "y": 360 },
+      { "type": "gem", "x": 192,  "y": 360 },
+      { "type": "gem", "x": 528,  "y": 360 },
+      { "type": "gem", "x": 576,  "y": 360 },
+      { "type": "gem", "x": 672,  "y": 360 },
+      { "type": "gem", "x": 720,  "y": 360 },
+      { "type": "starCoin", "x": 486, "y": 306, "slotIndex": 0 },
+      { "type": "starCoin", "x": 774, "y": 210, "slotIndex": 1 },
+      { "type": "starCoin", "x": 918, "y": 114, "slotIndex": 2 },
+      { "type": "cherry",   "x": 1056, "y": 220 }
+    ],
+    "hazards": [
+      { "type": "floorSpike",   "x": 434, "y": 354 },
+      { "type": "floorSpike",   "x": 479, "y": 354 },
+      { "type": "ceilingSpike", "x": 624, "y": 2, "triggers": false },
+      { "type": "ceilingSpike", "x": 718, "y": 2, "triggers": true, "triggerRange": 88 }
+    ],
+    "interactables": [
+      { "type": "door",   "id": 0, "x": 1008, "y": 288 },
+      { "type": "switch",         "x": 824,  "y": 360, "linkedDoor": 0 }
+    ]
+  }
 }

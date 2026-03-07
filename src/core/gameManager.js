@@ -115,79 +115,72 @@ export class GameManager {
   }
 
   _createPlayer() {
-    return new Player(2 * TILE_SIZE, 8 * TILE_SIZE - 48);
+    const spawn = this._level.content?.playerSpawn;
+    const x = spawn?.x ?? 2 * TILE_SIZE;
+    const y = spawn?.y ?? (8 * TILE_SIZE - 48);
+    return new Player(x, y);
   }
 
-  /** Erstellt die Gegner für Level 01. */
+  /** Erstellt Gegner aus den JSON-Definitionen des Levels. */
   _spawnEnemies() {
-    const TS = TILE_SIZE;
-    return [
-      // Ameise auf dem Boden (col 5) – erste Begegnung, früher Abschnitt
-      new AntEnemy(5 * TS, 8 * TS - 32),
-      // Frosch auf der niedrigen Plattform (row 7, col 10)
-      new FrogEnemy(10 * TS, 7 * TS - 32),
-      // Adler: vertikale Patrouille im Mittelabschnitt zwischen row 1 und row 4
-      new EagleEnemy(16 * TS, 1 * TS, 4 * TS),
-    ];
+    const defs = this._level.content?.enemies ?? [];
+    return defs.map(def => {
+      switch (def.type) {
+        case 'ant':   return new AntEnemy(def.x, def.y);
+        case 'frog':  return new FrogEnemy(def.x, def.y);
+        case 'eagle': return new EagleEnemy(def.x, def.minY, def.maxY);
+        default:      return null;
+      }
+    }).filter(Boolean);
   }
 
-  /**
-   * Spawn-Positionen der Sammelobjekte für Level 01.
-   * TS = 48 px (TILE_SIZE). Boden: row 8, y = 8*TS.
-   */
+  /** Erstellt Pickups aus den JSON-Definitionen des Levels. */
   _spawnPickups() {
-    const TS = TILE_SIZE;
-    return [
-      // Gems als Wegweiser links (col 3-4, Bodenebene)
-      new Gem( 3 * TS, 8 * TS - 24),
-      new Gem( 4 * TS, 8 * TS - 24),
-
-      // Gems nach der Spike-Lücke als "du hast es geschafft"-Bestätigung
-      new Gem(11 * TS, 8 * TS - 24),
-      new Gem(12 * TS, 8 * TS - 24),
-
-      // Gems im gefährlichen Deckenspike-Bereich als Anreiz
-      new Gem(14 * TS, 8 * TS - 24),
-      new Gem(15 * TS, 8 * TS - 24),
-
-      // StarCoin 0: auf der niedrigen Plattform (row 7, col 10) – direkt erreichbar
-      new StarCoin(10 * TS + 6, 7 * TS - 30, 0),
-
-      // StarCoin 1: auf der mittleren Plattform (row 5, col 16) – mittleres Risiko
-      new StarCoin(16 * TS + 6, 5 * TS - 30, 1),
-
-      // StarCoin 2: auf der hohen Plattform (row 3, col 19) – höchstes Commitment
-      new StarCoin(19 * TS + 6, 3 * TS - 30, 2),
-
-      // Cherry versteckt über der Tür (col 22, row 5-ähnliche Höhe) – optionale Belohnung
-      new Cherry(22 * TS, 5 * TS - 20),
-    ];
+    const defs = this._level.content?.pickups ?? [];
+    return defs.map(def => {
+      switch (def.type) {
+        case 'gem':      return new Gem(def.x, def.y);
+        case 'starCoin': return new StarCoin(def.x, def.y, def.slotIndex);
+        case 'cherry':   return new Cherry(def.x, def.y);
+        default:         return null;
+      }
+    }).filter(Boolean);
   }
 
-  /** Erstellt Schalter und Tür für Level 01. */
+  /** Erstellt Schalter und Tür aus den JSON-Definitionen des Levels. */
   _spawnInteractables() {
-    const TS   = TILE_SIZE;
-    // Tür steht auf dem Boden bei col 21 – Unterkante auf row 8
-    const door   = new Door(21 * TS, 8 * TS - 96);
-    // Schalter liegt auf dem Boden beim Spielerpfad, col 17
-    const sw     = new Switch(17 * TS + 8, 8 * TS - 24, door);
-    return [door, sw];
+    const defs  = this._level.content?.interactables ?? [];
+    // Zuerst alle Türen anlegen und per id indizieren
+    const doors = {};
+    for (const def of defs) {
+      if (def.type === 'door') {
+        doors[def.id] = new Door(def.x, def.y);
+      }
+    }
+    // Dann Schalter anlegen und mit der gewünschten Tür verknüpfen
+    const result = Object.values(doors);
+    for (const def of defs) {
+      if (def.type === 'switch') {
+        const linked = doors[def.linkedDoor ?? 0];
+        result.push(new Switch(def.x, def.y, linked));
+      }
+    }
+    return result;
   }
 
-  /** Erstellt Bodenspikes und Deckenspikes für Level 01. */
+  /** Erstellt Gefahren-Props aus den JSON-Definitionen des Levels. */
   _spawnHazards() {
-    const TS = TILE_SIZE;
-    return [
-      // Bodenspike-Gruppe bei col 9 – kleine Lücke im sicheren Weg, fair übersprungbar
-      new FloorSpike(9 * TS + 2,  8 * TS - 30),
-      new FloorSpike(9 * TS + 47, 8 * TS - 30),
-
-      // Deckenspike statisch bei col 13 – visuelle Warnung, fällt nicht
-      new CeilingSpike(13 * TS,       2,  false),
-
-      // Deckenspike-Falle bei col 15 – fällt wenn Spieler näher als 88 px herankommt
-      new CeilingSpike(15 * TS - 2,   2,  true,  88),
-    ];
+    const defs = this._level.content?.hazards ?? [];
+    return defs.map(def => {
+      switch (def.type) {
+        case 'floorSpike':
+          return new FloorSpike(def.x, def.y);
+        case 'ceilingSpike':
+          return new CeilingSpike(def.x, def.y, def.triggers ?? false, def.triggerRange ?? 88);
+        default:
+          return null;
+      }
+    }).filter(Boolean);
   }
 
   _setState(next) {

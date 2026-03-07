@@ -27,4 +27,11 @@ export class Level {
 
   /** Welthöhe in Pixeln (TILE_SIZE-basiert). */
   get height() { return this._data ? this._data.meta.rows    * TILE_SIZE : 0; }
+
+  /**
+   * Liefert den `content`-Block aus der Level-JSON.
+   * Enthält playerSpawn, enemies, pickups, hazards, interactables.
+   * @returns {object|null}
+   */
+  get content() { return this._data?.content ?? null; }
 }
