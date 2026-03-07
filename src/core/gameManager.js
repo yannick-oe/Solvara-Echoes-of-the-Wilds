@@ -23,6 +23,7 @@ import { Parallax } from '../world/parallax.js';
 import { StartScreen } from '../ui/screens/startScreen.js';
 import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
 import { VictoryScreen } from '../ui/screens/victoryScreen.js';
+import { PauseScreen } from '../ui/screens/pauseScreen.js';
 
 // Kamera-Lookup-Effekt
 const CAM_LOOKUP_OFFSET = 80;  // px – Kamera hebt sich beim Hochschauen
@@ -65,9 +66,10 @@ export class GameManager {
     this._deathTimeoutId  = null;
     this._victoryPoseTimer = 0;  // > 0 while victory pose plays before screen switch
 
-    this._startScreen = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
+    this._startScreen   = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
     this._gameOverScreen = new GameOverScreen(() => this.restart());
-    this._victoryScreen = new VictoryScreen(() => this.restart());
+    this._victoryScreen  = new VictoryScreen(() => this.restart());
+    this._pauseScreen    = new PauseScreen();
 
     this._loop = this._loop.bind(this);
   }
@@ -221,6 +223,11 @@ export class GameManager {
         this._startScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PLAYING:
+        // Pause-Toggle: ESC während PLAYING
+        if (inputManager.escPressed) {
+          this.state = GAME_STATES.PAUSED;
+          break;
+        }
         // Sieges-Pose läuft: nur Timer herunterzählen, Welt eingefroren
         if (this._victoryPoseTimer > 0) {
           this._victoryPoseTimer -= dt;
@@ -290,6 +297,12 @@ export class GameManager {
       case GAME_STATES.VICTORY:
         this._victoryScreen.handleInput(inputManager);
         break;
+      case GAME_STATES.PAUSED:
+        // Pause aufheben: ESC erneut drücken
+        if (inputManager.escPressed) {
+          this.state = GAME_STATES.PLAYING;
+        }
+        break;
     }
   }
 
@@ -302,6 +315,11 @@ export class GameManager {
         break;
       case GAME_STATES.PLAYING:
         this._drawWorld();
+        break;
+      case GAME_STATES.PAUSED:
+        // Spielwelt eingefroren im Hintergrund, Pause-Overlay darüber
+        this._drawWorld();
+        this._pauseScreen.draw(this.ctx);
         break;
       case GAME_STATES.GAMEOVER:
         this._gameOverScreen.draw(this.ctx);
