@@ -46,6 +46,17 @@ export class StartScreen {
     this._prevDown  = false;
     this._prevLeft  = false;
     this._prevRight = false;
+    // Glühwürmchen-Partikel
+    this._fireflies = Array.from({ length: 12 }, () => ({
+      x:     Math.random() * CANVAS_WIDTH,
+      y:     40 + Math.random() * (CANVAS_HEIGHT - 80),
+      vx:    (Math.random() - 0.5) * 22,
+      vy:    -3 - Math.random() * 9,
+      size:  0.9 + Math.random() * 1.4,
+      phase: Math.random() * Math.PI * 2,
+      color: Math.random() < 0.55 ? '#c8ff9a' : '#eaffb0',
+    }));
+    this._lastDrawTime = null;
   }
 
   /** Beim erneuten Betreten des START-States alles zurücksetzen. */
@@ -119,9 +130,22 @@ export class StartScreen {
 
   /** @param {CanvasRenderingContext2D} ctx */
   draw(ctx) {
+    const now = performance.now() / 1000;
+    const dt  = this._lastDrawTime !== null
+      ? Math.min(now - this._lastDrawTime, 0.05)
+      : 0;
+    this._lastDrawTime = now;
+
+    // Glühwürmchen-Positionen aktualisieren
+    for (const ff of this._fireflies) {
+      ff.x = ((ff.x + ff.vx * dt) % CANVAS_WIDTH  + CANVAS_WIDTH)  % CANVAS_WIDTH;
+      ff.y = ((ff.y + ff.vy * dt) % CANVAS_HEIGHT + CANVAS_HEIGHT) % CANVAS_HEIGHT;
+    }
+
     this._drawBackground(ctx);
+    this._drawFireflies(ctx, now);
     this._drawVignette(ctx);
-    this._drawTitle(ctx);
+    this._drawTitle(ctx, now);
 
     if (this._subScreen !== null) {
       // Titel im Hintergrund abdunkeln, dann Panel obendrauf
@@ -129,52 +153,57 @@ export class StartScreen {
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       this._drawSubPanel(ctx);
     } else {
-      this._drawMenu(ctx);
+      this._drawMenu(ctx, now);
     }
   }
 
   _drawBackground(ctx) {
-    // Himmels-Gradient als Fallback / Sky-Base
+    // Himmels-Gradient
     const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    sky.addColorStop(0,   '#2e5470');
-    sky.addColorStop(0.6, '#5a8fa8');
-    sky.addColorStop(1,   '#7aac8c');
+    sky.addColorStop(0,   '#1e3a52');
+    sky.addColorStop(0.5, '#4a7a94');
+    sky.addColorStop(1,   '#6a9c7c');
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Entfernter Waldlayer (camX=0 → kein Scrolling auf Startscreen)
+    // Entfernter Waldlayer
     const bgBack = imageCache.get('BG_FOREST_BACK');
     if (bgBack) {
       const scale = CANVAS_HEIGHT / bgBack.naturalHeight;
-      const drawW = Math.ceil(bgBack.naturalWidth * scale);
+      const drawW = Math.round(bgBack.naturalWidth * scale);
       ctx.drawImage(bgBack, 0, 0, drawW, CANVAS_HEIGHT);
     }
 
-    // Näherer Waldlayer
+    // Näherer Waldlayer – unterer Bereich (Baumkronen-/Büschellinie)
     const bgMiddle = imageCache.get('BG_FOREST_MIDDLE');
     if (bgMiddle) {
-      const scale = CANVAS_HEIGHT / bgMiddle.naturalHeight;
-      const drawW = Math.ceil(bgMiddle.naturalWidth * scale);
-      ctx.drawImage(bgMiddle, 0, 0, drawW, CANVAS_HEIGHT);
+      const drawH = Math.round(CANVAS_HEIGHT * 0.58);
+      const scale = drawH / bgMiddle.naturalHeight;
+      const drawW = Math.round(bgMiddle.naturalWidth * scale);
+      const drawY = CANVAS_HEIGHT - drawH;
+      for (let x = 0; x < CANVAS_WIDTH; x += drawW) {
+        ctx.drawImage(bgMiddle, Math.floor(x), drawY, drawW, drawH);
+      }
     }
   }
 
-  _drawTitle(ctx) {
+  _drawTitle(ctx, now) {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // Haupttitel mit Leuchteffekt
+    // Haupttitel mit pulsierendem Leuchteffekt
+    const blur = 12 + Math.sin(now * 2.0) * 4;
     ctx.save();
-    ctx.shadowColor   = 'rgba(240, 192, 0, 0.70)';
-    ctx.shadowBlur    = 18;
+    ctx.shadowColor   = 'rgba(240, 192, 0, 0.80)';
+    ctx.shadowBlur    = blur;
     ctx.fillStyle     = '#f0c040';
     ctx.font          = 'bold 46px serif';
     ctx.fillText('Solvara', CX, TITLE_Y);
     ctx.restore();
 
-    // Untertitel (leichter Schatten für Lesbarkeit auf dem Waldhintergrund)
+    // Untertitel mit Lesbarkeits-Schatten
     ctx.save();
-    ctx.shadowColor   = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowColor   = 'rgba(0, 0, 0, 0.90)';
     ctx.shadowBlur    = 6;
     ctx.fillStyle     = '#d4f0d4';
     ctx.font          = '19px serif';
@@ -182,15 +211,20 @@ export class StartScreen {
     ctx.restore();
   }
 
-  _drawMenu(ctx) {
-    // Holzpanel zeichnen
-    this._drawWoodPanel(ctx, WOOD_X, WOOD_Y, WOOD_W, WOOD_H);
+  _drawMenu(ctx, now) {
+    // Schwebendes Panel: sanfte Auf-/Abbewegung
+    const floatY     = Math.round(Math.sin(now * 0.6) * 3);
+    const woodY      = WOOD_Y + floatY;
+    const menuStartY = woodY + 40;
+    const footerY    = woodY + WOOD_H + 22;
+
+    this._drawWoodPanel(ctx, WOOD_X, woodY, WOOD_W, WOOD_H);
 
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
     MENU_IDS.forEach((id, i) => {
-      const y        = MENU_START_Y + i * MENU_STEP;
+      const y        = menuStartY + i * MENU_STEP;
       const selected = i === this._selectedIndex;
 
       // Label dynamisch aufbauen
@@ -203,13 +237,18 @@ export class StartScreen {
       }
 
       if (selected) {
-        // Auswahlbalken (dunkle Holzfärbung)
-        ctx.fillStyle = 'rgba(40, 20, 8, 0.40)';
-        ctx.fillRect(WOOD_X + 12, y - 16, WOOD_W - 24, 32);
+        // Auswahlbalken – horizontaler Gradient für gebogene Holzleisten-Optik
+        const hl = ctx.createLinearGradient(WOOD_X, y, WOOD_X + WOOD_W, y);
+        hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
+        hl.addColorStop(0.12, 'rgba(20, 10, 4, 0.55)');
+        hl.addColorStop(0.88, 'rgba(20, 10, 4, 0.55)');
+        hl.addColorStop(1,    'rgba(20, 10, 4, 0.00)');
+        ctx.fillStyle = hl;
+        ctx.fillRect(WOOD_X, y - 16, WOOD_W, 32);
         // Auswahlpfeil
         ctx.save();
-        ctx.shadowColor = 'rgba(240,192,0,0.5)';
-        ctx.shadowBlur  = 6;
+        ctx.shadowColor = 'rgba(240,192,0,0.6)';
+        ctx.shadowBlur  = 8;
         ctx.fillStyle   = '#f0c040';
         ctx.font        = 'bold 13px monospace';
         ctx.textAlign   = 'left';
@@ -230,7 +269,7 @@ export class StartScreen {
     ctx.font        = '12px monospace';
     ctx.fillStyle   = '#d6c7a2';
     ctx.textAlign   = 'center';
-    ctx.fillText(t('pressEnter'), CX, FOOTER_Y);
+    ctx.fillText(t('pressEnter'), CX, footerY);
     ctx.restore();
   }
 
@@ -326,43 +365,85 @@ export class StartScreen {
   _drawWoodPanel(ctx, x, y, w, h) {
     const r = 8;
 
-    // Weicher Schlagschatten
+    // Schlagschatten
     ctx.save();
-    ctx.shadowColor   = 'rgba(0, 0, 0, 0.65)';
-    ctx.shadowBlur    = 20;
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 7;
+    ctx.shadowColor   = 'rgba(0, 0, 0, 0.72)';
+    ctx.shadowBlur    = 26;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 10;
     ctx.fillStyle = '#7a5433';
     this._rrect(ctx, x, y, w, h, r);
     ctx.fill();
     ctx.restore();
 
-    // Basis-Holzfarbe
+    // Basis-Holz
     ctx.fillStyle = '#7a5433';
     this._rrect(ctx, x, y, w, h, r);
     ctx.fill();
 
-    // Heller Mitte-Verlauf (simuliert Holzmaserung / Lichteinfall)
-    const grad = ctx.createLinearGradient(x, y, x, y + h);
-    grad.addColorStop(0,    'rgba(190, 130, 65, 0.30)');
-    grad.addColorStop(0.35, 'rgba(210, 150, 75, 0.42)');
-    grad.addColorStop(0.65, 'rgba(210, 150, 75, 0.42)');
-    grad.addColorStop(1,    'rgba(35,  18,  6,  0.38)');
+    // Holzmaserung – helles Zentrum, dunkle Ober-/Unterkante
+    const grain = ctx.createLinearGradient(x, y, x, y + h);
+    grain.addColorStop(0,    'rgba(40,  20,  5,  0.60)');
+    grain.addColorStop(0.10, 'rgba(195, 138, 68, 0.40)');
+    grain.addColorStop(0.50, 'rgba(215, 158, 82, 0.46)');
+    grain.addColorStop(0.90, 'rgba(125, 76,  30, 0.34)');
+    grain.addColorStop(1,    'rgba(25,  12,  3,  0.68)');
     this._rrect(ctx, x, y, w, h, r);
-    ctx.fillStyle = grad;
+    ctx.fillStyle = grain;
     ctx.fill();
 
-    // Dunkler Außenrahmen (Holzkante)
+    // Dunkles Trimband oben
+    ctx.fillStyle = 'rgba(28, 14, 4, 0.52)';
+    ctx.fillRect(x + r, y, w - r * 2, 11);
+
+    // Dunkles Trimband unten
+    ctx.fillStyle = 'rgba(28, 14, 4, 0.58)';
+    ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
+
+    // Horizontale Plankenlinien
+    ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
+    ctx.lineWidth   = 1;
+    const planks = 3;
+    for (let i = 1; i <= planks; i++) {
+      const py = Math.floor(y + (h / (planks + 1)) * i);
+      ctx.beginPath();
+      ctx.moveTo(x + 8,     py);
+      ctx.lineTo(x + w - 8, py);
+      ctx.stroke();
+    }
+
+    // Äußerer Rahmen
     ctx.strokeStyle = '#3b2615';
-    ctx.lineWidth   = 3;
+    ctx.lineWidth   = 4;
     this._rrect(ctx, x, y, w, h, r);
     ctx.stroke();
 
-    // Innere Highlight-Linie (oberste Lichtkante des Holzes)
-    ctx.strokeStyle = 'rgba(230, 185, 115, 0.28)';
+    // Innere Highlight-Linie
+    ctx.strokeStyle = 'rgba(220, 175, 100, 0.22)';
     ctx.lineWidth   = 1;
-    this._rrect(ctx, x + 4, y + 4, w - 8, h - 8, Math.max(r - 3, 2));
+    this._rrect(ctx, x + 5, y + 5, w - 10, h - 10, Math.max(r - 3, 2));
     ctx.stroke();
+
+    // Eckverzierungen (kleine Rauten)
+    const corners = [
+      [x + 7,     y + 7    ],
+      [x + w - 7, y + 7    ],
+      [x + 7,     y + h - 7],
+      [x + w - 7, y + h - 7],
+    ];
+    ctx.fillStyle   = '#4a2f1a';
+    ctx.strokeStyle = 'rgba(220, 175, 100, 0.40)';
+    ctx.lineWidth   = 1;
+    for (const [ox, oy] of corners) {
+      ctx.beginPath();
+      ctx.moveTo(ox,     oy - 4);
+      ctx.lineTo(ox + 4, oy);
+      ctx.lineTo(ox,     oy + 4);
+      ctx.lineTo(ox - 4, oy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
   }
 
   /** Hilfsmethode: Zeichnet einen abgerundeten Rechteck-Pfad (kein fill/stroke). */
@@ -378,6 +459,23 @@ export class StartScreen {
     ctx.lineTo(x,     y + r);
     ctx.arcTo(x,     y,     x + r, y,         r);
     ctx.closePath();
+  }
+
+  /** Glühwürmchen hinter dem Panel, über dem Hintergrund. */
+  _drawFireflies(ctx, now) {
+    for (const ff of this._fireflies) {
+      const alpha = 0.22 + Math.abs(Math.sin(now * 1.5 + ff.phase)) * 0.48;
+      const glow  = 4   + Math.sin(now * 2.3 + ff.phase) * 2.5;
+      ctx.save();
+      ctx.globalAlpha = Math.min(0.75, alpha);
+      ctx.shadowColor = ff.color;
+      ctx.shadowBlur  = glow * 3;
+      ctx.fillStyle   = ff.color;
+      ctx.beginPath();
+      ctx.arc(ff.x, ff.y, ff.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   /** Radiale Vignette über das gesamte Canvas. */

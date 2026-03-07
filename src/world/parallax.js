@@ -18,19 +18,21 @@ export class Parallax {
    */
   draw(ctx, camX) {
     for (const layer of this._layers) {
-      const { img, speed } = layer;
+      const { img, speed, drawH: layerH, alignBottom } = layer;
       if (!img) continue;
 
-      // Bild auf Canvas-Höhe skalieren, Seitenverhältnis beibehalten
-      const scale = CANVAS_HEIGHT / img.naturalHeight;
-      const drawW = Math.ceil(img.naturalWidth * scale);
+      // Optionale Höhe pro Layer (Standard: ganzes Canvas)
+      const drawH = layerH ?? CANVAS_HEIGHT;
+      const scale = drawH / img.naturalHeight;
+      const drawW = Math.round(img.naturalWidth * scale);
+      const drawY = alignBottom ? (CANVAS_HEIGHT - drawH) : 0;
 
-      // Immer-positiver Offset für nahtloses horizontales Tiling
+      // floor-Positionen vermeiden Sub-Pixel-Risse beim Tiling
       const rawOff = (-camX * speed) % drawW;
-      const startX = ((rawOff % drawW) + drawW) % drawW - drawW;
+      const startX = Math.floor(((rawOff % drawW) + drawW) % drawW) - drawW;
 
       for (let x = startX; x < CANVAS_WIDTH; x += drawW) {
-        ctx.drawImage(img, x, 0, drawW, CANVAS_HEIGHT);
+        ctx.drawImage(img, Math.floor(x), drawY, drawW, drawH);
       }
     }
   }

@@ -92,8 +92,9 @@ export class GameManager {
     this._camera.y = 0;
 
     this._parallax = new Parallax([
-      { img: imageCache.get('BG_FOREST_BACK'), speed: 0.15 },
-      { img: imageCache.get('BG_FOREST_MIDDLE'), speed: 0.4 },
+      { img: imageCache.get('BG_FOREST_BACK'),   speed: 0.15 },
+      { img: imageCache.get('BG_FOREST_MIDDLE'), speed: 0.4,
+        drawH: Math.round(CANVAS_HEIGHT * 0.58), alignBottom: true },
     ]);
 
     inputManager.init();
