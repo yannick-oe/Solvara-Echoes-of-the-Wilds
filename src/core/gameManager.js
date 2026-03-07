@@ -55,6 +55,7 @@ export class GameManager {
 
     this._pickups    = [];
     this._hud        = new Hud(imageCache);
+    this._deathTimeoutId = null;
 
     this._startScreen = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
     this._gameOverScreen = new GameOverScreen(() => this.restart());
@@ -85,6 +86,10 @@ export class GameManager {
   }
 
   restart() {
+    if (this._deathTimeoutId !== null) {
+      clearTimeout(this._deathTimeoutId);
+      this._deathTimeoutId = null;
+    }
     intervalManager.stopAll();
     this.gameState      = createGameState();
     this._player        = this._createPlayer();
@@ -185,6 +190,9 @@ export class GameManager {
 
         // Stomp-Kollision
         this._checkStomp();
+
+        // Gegner-Körperkontakt (Schaden)
+        this._checkEnemyDamage();
 
         // Pickup-Kollision
         this._checkPickups();
@@ -305,6 +313,57 @@ export class GameManager {
         pickup.collect(p, this.gameState);
       }
     }
+  }
+
+  /**
+   * Prüft Kollision zwischen Spieler und Gegnerkörper.
+   * Schäden werden nur vergeben wenn kein gültiger Stomp vorliegt.
+   * Pro Frame kann maximal ein Treffer verarbeitet werden.
+   */
+  _checkEnemyDamage() {
+    if (this._player.dying) return;
+    const p = this._player;
+    for (const enemy of this._enemies) {
+      if (!enemy.active || enemy.dead) continue;
+      if (!p.intersects(enemy)) continue;
+
+      // Stomp-Zone ausschließen: fällt der Spieler und trifft oben aufs Drittel?
+      if (p.velY > 0 && p.y + p.h <= enemy.y + enemy.h / 3) continue;
+
+      const tookDamage = p.takeDamage(enemy.x + enemy.w / 2);
+      if (!tookDamage) break;
+
+      this.gameState.hearts--;
+      if (this.gameState.hearts <= 0) {
+        this.gameState.hearts = 0;
+        this._handlePlayerDeath();
+      }
+      break;  // nur ein Treffer pro Frame
+    }
+  }
+
+  /** Setzt den Spieler in den Sterbe-Zustand und plant den Level-Reset. */
+  _handlePlayerDeath() {
+    this._player.startDying();
+    this._deathTimeoutId = setTimeout(() => {
+      this._resetLevelState();
+    }, 1500);
+  }
+
+  /**
+   * Setzt den Level-Zustand vollständig zurück (Spieler, Gegner, Pickups, Kamera).
+   * Pickups werden neu gespawnt, sodass ein vollständiger Level-Reset erfolgt.
+   */
+  _resetLevelState() {
+    this._deathTimeoutId = null;
+    this.gameState       = createGameState();
+    this._player         = this._createPlayer();
+    this._enemies        = this._spawnEnemies();
+    this._pickups        = this._spawnPickups();
+    this._effects        = [];
+    this._camera.x       = 0;
+    this._camera.y       = 0;
+    this._camLookOffset  = 0;
   }
 
   _drawLoadingScreen() {

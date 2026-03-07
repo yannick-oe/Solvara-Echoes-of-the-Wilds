@@ -29,10 +29,19 @@ const ANIM = {
   fall:   { prefix: 'PLAYER_JUMP',    frames: 1, fps: 0  },  // Frame 1: Abstieg
   crouch: { prefix: 'PLAYER_CROUCH',  frames: 2, fps: 6  },
   lookUp: { prefix: 'PLAYER_LOOK_UP', frames: 1, fps: 0  },
+  hurt:   { prefix: 'PLAYER_HURT',    frames: 2, fps: 8  },
+  hurt2:  { prefix: 'PLAYER_HURT2',   frames: 1, fps: 0  },  // Tod-Pose
 };
 
 // Fester Frame-Index für die Fall-Pose
 const FALL_FRAME = 1;
+
+// Schaden / Unverwundbarkeit
+const INVUL_DURATION = 1.1;   // Sekunden Unverwundbarkeit nach Treffer
+const HURT_DURATION  = 0.35;  // Sekunden gesperrte Eingabe im Hurt-State
+const BLINK_INTERVAL = 0.09;  // Sekunden pro Blink-Tick
+const KNOCKBACK_X    = 280;   // px/s horizontaler Knockback
+const KNOCKBACK_Y    = -340;  // px/s vertikaler Knockback (aufwärts)
 
 export class Player extends Entity {
   /** @param {number} x  Spawn-X  @param {number} y  Spawn-Y */
@@ -44,6 +53,10 @@ export class Player extends Entity {
     this.state = 'idle';
     this.frameIndex = 0;
     this.frameTimer = 0;
+
+    this._invulTimer = 0;   // verbleibende Unverwundbarkeitszeit (Sekunden)
+    this._hurtTimer  = 0;   // verbleibende Zeit mit gesperrter Eingabe
+    this.dying       = false;
   }
 
   /**
@@ -52,26 +65,40 @@ export class Player extends Entity {
    * @param {import('../world/tileMap.js').TileMap}   tileMap
    */
   update(dt, input, tileMap) {
-    // --- Horizontale Geschwindigkeit ---
-    if (input.left) {
-      this.velX = -PLAYER_SPEED;
-      this.facingRight = false;
-    } else if (input.right) {
-      this.velX = PLAYER_SPEED;
-      this.facingRight = true;
-    } else {
-      this.velX = 0;
+    // Während Sterbe-Animation: nur Physik, keine Eingabe
+    if (this.dying) {
+      this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+      this.y   += this.velY * dt;
+      this._resolveY(tileMap);
+      return;
     }
 
-    // Crouch und LookUp unterdrücken horizontale Bewegung
-    if (this.onGround && (input.down || input.up)) {
-      this.velX = 0;
-    }
+    // Timer herunterzählen
+    if (this._invulTimer > 0) this._invulTimer = Math.max(0, this._invulTimer - dt);
+    if (this._hurtTimer  > 0) this._hurtTimer  = Math.max(0, this._hurtTimer  - dt);
 
-    // --- Sprung (nur wenn Boden berührt, einmaliger Tastendruck) ---
-    if (input.jumpPressed && this.onGround) {
-      this.velY = JUMP_FORCE;
-      this.onGround = false;
+    // --- Eingabe: Nur außerhalb der gesperrten Hurt-Phase ---
+    if (this._hurtTimer <= 0) {
+      if (input.left) {
+        this.velX = -PLAYER_SPEED;
+        this.facingRight = false;
+      } else if (input.right) {
+        this.velX = PLAYER_SPEED;
+        this.facingRight = true;
+      } else {
+        this.velX = 0;
+      }
+
+      // Crouch und LookUp unterdrücken horizontale Bewegung
+      if (this.onGround && (input.down || input.up)) {
+        this.velX = 0;
+      }
+
+      // --- Sprung (nur wenn Boden berührt, einmaliger Tastendruck) ---
+      if (input.jumpPressed && this.onGround) {
+        this.velY = JUMP_FORCE;
+        this.onGround = false;
+      }
     }
 
     // --- Schwerkraft ---
@@ -91,15 +118,43 @@ export class Player extends Entity {
   }
 
   /**
+   * Wendet Trefferschaden an. Gibt true zurück wenn Schaden angenommen wurde.
+   * @param {number} enemyCenterX  X-Mittelpunkt des angreifenden Gegners
+   * @returns {boolean}
+   */
+  takeDamage(enemyCenterX) {
+    if (this._invulTimer > 0 || this.dying) return false;
+    const dir    = (this.x + this.w / 2) < enemyCenterX ? -1 : 1;
+    this.velX        = dir * KNOCKBACK_X;
+    this.velY        = KNOCKBACK_Y;
+    this._hurtTimer  = HURT_DURATION;
+    this._invulTimer = INVUL_DURATION;
+    return true;
+  }
+
+  /** Versetzt den Spieler in den Sterbe-Zustand. Kein Input mehr, Death-Pose. */
+  startDying() {
+    this.dying       = true;
+    this.state       = 'hurt2';
+    this.frameIndex  = 0;
+    this._invulTimer = 0;   // Blinken stoppen
+    this.velX        = 0;
+    this.velY        = -200;
+  }
+
+  /**
    * Zeichnet den aktuellen Animations-Frame; spiegelt wenn links schauend.
    * @param {CanvasRenderingContext2D}                    ctx
    * @param {*}                                          _cam  (unused)
    * @param {import('../core/imageCache.js').ImageCache} imageCache
    */
   draw(ctx, _cam, imageCache) {
-    const anim  = ANIM[this.state];
-    const fi    = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
-    const img   = imageCache.get(`${anim.prefix}_${fi}`);
+    // Blinken während Unverwundbarkeit: jeden zweiten Tick ausblenden
+    if (this._invulTimer > 0 && Math.floor(this._invulTimer / BLINK_INTERVAL) % 2 === 0) return;
+
+    const anim = ANIM[this.state];
+    const fi   = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
+    const img  = imageCache.get(`${anim.prefix}_${fi}`);
     if (!img) return;
 
     // Sprite-Position: Hitbox-Ursprung + Zeichenoffset
@@ -142,7 +197,10 @@ export class Player extends Entity {
 
     const FALL_THRESHOLD = 60;
 
-    if (!this.onGround) {
+    // Hurt-Phase: Hurt-Animation hat Vorrang
+    if (this._hurtTimer > 0) {
+      next = 'hurt';
+    } else if (!this.onGround) {
       next = this.velY < 0 || this.velY <= FALL_THRESHOLD ? 'jump' : 'fall';
     } else if (input.down) {
       next = 'crouch';
