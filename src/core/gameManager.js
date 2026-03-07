@@ -66,7 +66,7 @@ export class GameManager {
     this._deathTimeoutId  = null;
     this._victoryPoseTimer = 0;  // > 0 while victory pose plays before screen switch
 
-    this._startScreen   = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
+    this._startScreen   = new StartScreen(() => this.restart());
     this._gameOverScreen = new GameOverScreen(() => this.restart());
     this._victoryScreen  = new VictoryScreen(() => this.restart());
     this._pauseScreen    = new PauseScreen({
