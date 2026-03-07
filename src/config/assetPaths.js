@@ -47,6 +47,10 @@ export const ASSET_PATHS = {
   PROP_DOOR:         `${IMG}/props/door.png`,
   PROP_DOOR_OPENED:  `${IMG}/props/door-opened.png`,
   PROP_SIGN:         `${IMG}/props/sign.png`,
+
+  // --- Gefahren-Props ---
+  PROP_SPIKES:       `${IMG}/props/spikes.png`,
+  PROP_SPIKES_TOP:   `${IMG}/props/spikes-top.png`,
 };
 
 // Audio separat – wird nicht über ImageCache geladen

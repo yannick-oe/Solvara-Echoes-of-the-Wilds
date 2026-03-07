@@ -5,34 +5,22 @@
     "columns": 25,
     "rows": 12
   },
-"tiles": {
-  "g": {
-    "pass": false,
-    "txCol": 1,
-    "txRow": 1
+  "tiles": {
+    "g": { "pass": false, "txCol": 1, "txRow": 1 },
+    "d": { "pass": false, "txCol": 7, "txRow": 1 },
+    "p": { "pass": false, "txCol": 8, "txRow": 5 }
   },
-  "d": {
-    "pass": false,
-    "txCol": 7,
-    "txRow": 1
-  },
-  "p": {
-    "pass": false,
-    "txCol": 8,
-    "txRow": 5
-  }
-},
   "map": [
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null,null,"p","p","p","p",null,null,null],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p",null,null,null,null],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,"p","p","p",null,null,null,null,null,null,"p","p","p","p",null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"g",null,null,null,null,null,null,null,null],
-    ["g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g"],
-    ["d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["g","g","g","g","g","g",null,null,"g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g"],
+    ["d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
   ]

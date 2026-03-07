@@ -10,6 +10,8 @@ import { StarCoin }    from '../entities/pickups/starCoin.js';
 import { Cherry }      from '../entities/pickups/cherry.js';
 import { Door }        from '../entities/interactables/door.js';
 import { Switch }      from '../entities/interactables/switch.js';
+import { FloorSpike }  from '../entities/hazards/floorSpike.js';
+import { CeilingSpike } from '../entities/hazards/ceilingSpike.js';
 import { Hud }         from '../ui/hud.js';
 import { audioManager } from './audioManager.js';
 import { inputManager } from './input.js';
@@ -58,6 +60,7 @@ export class GameManager {
 
     this._pickups       = [];
     this._interactables = [];   // Switch, Door
+    this._hazards       = [];   // FloorSpike, CeilingSpike
     this._hud           = new Hud(imageCache);
     this._deathTimeoutId  = null;
     this._victoryPoseTimer = 0;  // > 0 while victory pose plays before screen switch
@@ -78,6 +81,7 @@ export class GameManager {
     this._enemies  = this._spawnEnemies();
     this._pickups  = this._spawnPickups();
     this._interactables = this._spawnInteractables();
+    this._hazards       = this._spawnHazards();
     this._effects  = [];
     this._camera.y = 0;
 
@@ -102,6 +106,7 @@ export class GameManager {
     this._enemies       = this._spawnEnemies();
     this._pickups       = this._spawnPickups();
     this._interactables = this._spawnInteractables();
+    this._hazards       = this._spawnHazards();
     this._effects       = [];
     this._camera.x      = 0;
     this._camera.y      = 0;
@@ -113,54 +118,76 @@ export class GameManager {
     return new Player(2 * TILE_SIZE, 8 * TILE_SIZE - 48);
   }
 
-  /** Erstellt die Test-Gegner für Level 01. */
+  /** Erstellt die Gegner für Level 01. */
   _spawnEnemies() {
+    const TS = TILE_SIZE;
     return [
-      // Ameise auf dem Boden rechts vom Spieler-Spawn
-      new AntEnemy(8 * TILE_SIZE, 9 * TILE_SIZE),
-      // Frosch auf der unteren Plattform (row 7, col 13)
-      new FrogEnemy(13 * TILE_SIZE, 7 * TILE_SIZE - 32),
-      // Adler: vertikale Patrouille zwischen row 1 und row 4 (obere Bühne)
-      new EagleEnemy(20 * TILE_SIZE, 1 * TILE_SIZE, 4 * TILE_SIZE),
+      // Ameise auf dem Boden (col 5) – erste Begegnung, früher Abschnitt
+      new AntEnemy(5 * TS, 8 * TS - 32),
+      // Frosch auf der niedrigen Plattform (row 7, col 10)
+      new FrogEnemy(10 * TS, 7 * TS - 32),
+      // Adler: vertikale Patrouille im Mittelabschnitt zwischen row 1 und row 4
+      new EagleEnemy(16 * TS, 1 * TS, 4 * TS),
     ];
   }
 
   /**
    * Spawn-Positionen der Sammelobjekte für Level 01.
-   * Koordinaten: Weltpixel (links-oben der Hitbox).
-   * Gems liegen auf der Bodenreihe (row 8) – 1 Tile über dem Boden (y = 8*TS - 20).
-   * StarCoins sind auf erhöhten Plattformen verteilt.
+   * TS = 48 px (TILE_SIZE). Boden: row 8, y = 8*TS.
    */
   _spawnPickups() {
     const TS = TILE_SIZE;
     return [
-      // Gems entlang des Spielerpfades (Bodennaher Korridor)
-      new Gem( 4 * TS, 8 * TS - 20),
-      new Gem( 5 * TS, 8 * TS - 20),
-      new Gem( 6 * TS, 8 * TS - 20),
-      new Gem(10 * TS, 8 * TS - 20),
-      new Gem(11 * TS, 8 * TS - 20),
-      new Gem(15 * TS, 8 * TS - 20),
-      new Gem(16 * TS, 8 * TS - 20),
+      // Gems als Wegweiser links (col 3-4, Bodenebene)
+      new Gem( 3 * TS, 8 * TS - 24),
+      new Gem( 4 * TS, 8 * TS - 24),
 
-      // StarCoins auf unterschiedlichen Plattformen (slotIndex 0-2)
-      new StarCoin( 4 * TS + 8, 5 * TS - 30, 0),   // linke Plattform row 5
-      new StarCoin(13 * TS + 8, 5 * TS - 30, 1),   // mittlere Plattform row 5
-      new StarCoin(19 * TS + 8, 2 * TS - 30, 2),   // obere Plattform row 2
+      // Gems nach der Spike-Lücke als "du hast es geschafft"-Bestätigung
+      new Gem(11 * TS, 8 * TS - 24),
+      new Gem(12 * TS, 8 * TS - 24),
 
-      // Cherry hinter der Tür (optionale Belohnung, row 8)
-      new Cherry(22 * TS, 8 * TS - 20),
+      // Gems im gefährlichen Deckenspike-Bereich als Anreiz
+      new Gem(14 * TS, 8 * TS - 24),
+      new Gem(15 * TS, 8 * TS - 24),
+
+      // StarCoin 0: auf der niedrigen Plattform (row 7, col 10) – direkt erreichbar
+      new StarCoin(10 * TS + 6, 7 * TS - 30, 0),
+
+      // StarCoin 1: auf der mittleren Plattform (row 5, col 16) – mittleres Risiko
+      new StarCoin(16 * TS + 6, 5 * TS - 30, 1),
+
+      // StarCoin 2: auf der hohen Plattform (row 3, col 19) – höchstes Commitment
+      new StarCoin(19 * TS + 6, 3 * TS - 30, 2),
+
+      // Cherry versteckt über der Tür (col 22, row 5-ähnliche Höhe) – optionale Belohnung
+      new Cherry(22 * TS, 5 * TS - 20),
     ];
   }
 
   /** Erstellt Schalter und Tür für Level 01. */
   _spawnInteractables() {
     const TS   = TILE_SIZE;
-    // Tür steht auf dem Boden bei col 20 – Unterkante auf row 8
-    const door   = new Door(20 * TS, 8 * TS - 96);
-    // Schalter liegt auf dem Boden beim Spielerpfad, col 12
-    const sw     = new Switch(12 * TS + 8, 8 * TS - 24, door);
+    // Tür steht auf dem Boden bei col 21 – Unterkante auf row 8
+    const door   = new Door(21 * TS, 8 * TS - 96);
+    // Schalter liegt auf dem Boden beim Spielerpfad, col 17
+    const sw     = new Switch(17 * TS + 8, 8 * TS - 24, door);
     return [door, sw];
+  }
+
+  /** Erstellt Bodenspikes und Deckenspikes für Level 01. */
+  _spawnHazards() {
+    const TS = TILE_SIZE;
+    return [
+      // Bodenspike-Gruppe bei col 9 – kleine Lücke im sicheren Weg, fair übersprungbar
+      new FloorSpike(9 * TS + 2,  8 * TS - 30),
+      new FloorSpike(9 * TS + 47, 8 * TS - 30),
+
+      // Deckenspike statisch bei col 13 – visuelle Warnung, fällt nicht
+      new CeilingSpike(13 * TS,       2,  false),
+
+      // Deckenspike-Falle bei col 15 – fällt wenn Spieler näher als 88 px herankommt
+      new CeilingSpike(15 * TS - 2,   2,  true,  88),
+    ];
   }
 
   _setState(next) {
@@ -217,6 +244,12 @@ export class GameManager {
           if (enemy.active) enemy.update(dt, this._level.tileMap);
         }
 
+        // Gefahren updaten (CeilingSpike-Fallen)
+        const groundY = this._level.tileMap.height - this._level.tileMap.height % 48;
+        for (const hz of this._hazards) {
+          if (hz.update) hz.update(dt, this._player, groundY);
+        }
+
         // Pickups animieren
         for (const pickup of this._pickups) {
           if (pickup.active) pickup.update(dt);
@@ -234,6 +267,9 @@ export class GameManager {
 
           // Schalter + Zielzone prüfen
           this._checkInteractables();
+
+          // Spike-Kollision prüfen
+          this._checkHazards();
         }
 
         // Spieler hat den Bildschirm unten verlassen → Level neu starten
@@ -293,6 +329,11 @@ export class GameManager {
     this._camera.applyTransform(this.ctx);
 
     this._level.tileMap?.draw(this.ctx, this._camera);
+
+    // Gefahren hinter dem Spieler zeichnen
+    for (const hz of this._hazards) {
+      hz.draw(this.ctx, this._camera, imageCache);
+    }
 
     // Interaktierbare Objekte (hinter Spieler, damit diese sichtbar bleiben)
     for (const obj of this._interactables) {
@@ -399,6 +440,24 @@ export class GameManager {
   }
 
   /**
+   * Prüft ob der Spieler eine Spike-Gefahr berührt.
+   * FloorSpike: statisch, immer tödlich.
+   * CeilingSpike: nur tödlich während des Falls (isLethal).
+   */
+  _checkHazards() {
+    const p = this._player;
+    for (const hz of this._hazards) {
+      if (!hz.active) continue;
+      const lethal = hz instanceof CeilingSpike ? hz.isLethal : true;
+      if (lethal && p.intersects(hz)) {
+        this.gameState.hearts = 0;
+        this._handlePlayerDeath();
+        return;   // nur ein Treffer pro Frame
+      }
+    }
+  }
+
+  /**
    * Prüft Kollision zwischen Spieler und Gegnerkörper.
    * Schäden werden nur vergeben wenn kein gültiger Stomp vorliegt.
    * Pro Frame kann maximal ein Treffer verarbeitet werden.
@@ -441,6 +500,7 @@ export class GameManager {
     this._enemies        = this._spawnEnemies();
     this._pickups        = this._spawnPickups();
     this._interactables  = this._spawnInteractables();
+    this._hazards        = this._spawnHazards();
     this._effects        = [];
     this._camera.x       = 0;
     this._camera.y       = 0;
