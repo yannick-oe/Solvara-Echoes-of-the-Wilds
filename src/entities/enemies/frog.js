@@ -18,7 +18,7 @@ const IDLE_FPS    = 6;
 // Frog-Verhalten
 const IDLE_DURATION  = 1.8;  // Sekunden zwischen Sprüngen
 const JUMP_VEL_Y     = -650; // px/s nach oben
-const JUMP_SPEED_X   = 50;   // px/s horizontal (zufällige Richtung)
+const JUMP_SPEED_X   = 140;  // px/s horizontal (~2 Kacheln Reichweite pro Sprung)
 
 export class FrogEnemy extends Enemy {
   /**

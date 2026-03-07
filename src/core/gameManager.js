@@ -3,6 +3,7 @@ import { imageCache } from './imageCache.js';
 import { Player }      from '../entities/player.js';
 import { AntEnemy }    from '../entities/enemies/ant.js';
 import { FrogEnemy }   from '../entities/enemies/frog.js';
+import { EagleEnemy }  from '../entities/enemies/eagle.js';
 import { DeathEffect } from '../entities/effects/deathEffect.js';
 import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
@@ -98,6 +99,8 @@ export class GameManager {
       new AntEnemy(8 * TILE_SIZE, 9 * TILE_SIZE),
       // Frosch auf der unteren Plattform (row 7, col 13)
       new FrogEnemy(13 * TILE_SIZE, 7 * TILE_SIZE - 32),
+      // Adler: vertikale Patrouille zwischen row 1 und row 4 (obere Bühne)
+      new EagleEnemy(20 * TILE_SIZE, 1 * TILE_SIZE, 4 * TILE_SIZE),
     ];
   }
 
