@@ -1,17 +1,27 @@
 import { Pickup } from './pickup.js';
 
-/** Verstecktes Sammelobjekt – 1 pro Level, kein Pflichtpfad. */
+const FRAME_COUNT = 7;
+const FRAME_SEC   = 0.1;  // 100 ms pro Frame
+const SIZE        = 24;   // Zeichengröße in Weltpixeln
+
+/** Heilt +1 Herz. Überschreitet niemals heartsMax. */
 export class Cherry extends Pickup {
   constructor(x, y) {
-    super(x, y, 16, 16);
+    super(x, y, 20, 20, FRAME_COUNT, FRAME_SEC);
   }
 
   collect(player, gameState) {
     super.collect(player, gameState);
-    gameState.cherryFound = true;
+    // Herzen auf Maximum begrenzen
+    gameState.hearts = Math.min(gameState.hearts + 1, gameState.heartsMax);
   }
 
-  draw(ctx, cam, imageCache) {
-    // TODO: Cherry-Frames zeichnen
+  draw(ctx, _cam, imageCache) {
+    if (!this.active) return;
+    const img = imageCache.get(`CHERRY_${this._frameIndex}`);
+    if (!img) return;
+    const ox = (this.w - SIZE) / 2;
+    const oy = (this.h - SIZE) / 2;
+    ctx.drawImage(img, this.x + ox, this.y + oy, SIZE, SIZE);
   }
 }

@@ -5,6 +5,10 @@ import { AntEnemy }    from '../entities/enemies/ant.js';
 import { FrogEnemy }   from '../entities/enemies/frog.js';
 import { EagleEnemy }  from '../entities/enemies/eagle.js';
 import { DeathEffect } from '../entities/effects/deathEffect.js';
+import { Gem }         from '../entities/pickups/gem.js';
+import { StarCoin }    from '../entities/pickups/starCoin.js';
+import { Cherry }      from '../entities/pickups/cherry.js';
+import { Hud }         from '../ui/hud.js';
 import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
 import { Camera } from './camera.js';
@@ -21,11 +25,11 @@ const CAM_LERP_SPEED    = 6;   // Interpolationsgeschwindigkeit (1/s)
 
 function createGameState() {
   return {
-    hearts: PLAYER_START_HEARTS,
-    heartsMax: 5,
-    gems: 0,
-    starCoins: new Array(STAR_COIN_COUNT).fill(false),
-    cherryFound: false,
+    hearts:         PLAYER_START_HEARTS,
+    heartsMax:      5,
+    score:          0,
+    gemsCollected:  0,
+    starCoins:      new Array(STAR_COIN_COUNT).fill(false),
   };
 }
 
@@ -49,6 +53,9 @@ export class GameManager {
     this._enemies       = [];
     this._effects       = [];
 
+    this._pickups    = [];
+    this._hud        = new Hud(imageCache);
+
     this._startScreen = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
     this._gameOverScreen = new GameOverScreen(() => this.restart());
     this._victoryScreen = new VictoryScreen(() => this.restart());
@@ -63,6 +70,7 @@ export class GameManager {
 
     this._player  = this._createPlayer();
     this._enemies  = this._spawnEnemies();
+    this._pickups  = this._spawnPickups();
     this._effects  = [];
     this._camera.y = 0;
 
@@ -78,9 +86,10 @@ export class GameManager {
 
   restart() {
     intervalManager.stopAll();
-    this.gameState = createGameState();
+    this.gameState      = createGameState();
     this._player        = this._createPlayer();
     this._enemies       = this._spawnEnemies();
+    this._pickups       = this._spawnPickups();
     this._effects       = [];
     this._camera.x      = 0;
     this._camera.y      = 0;
@@ -101,6 +110,35 @@ export class GameManager {
       new FrogEnemy(13 * TILE_SIZE, 7 * TILE_SIZE - 32),
       // Adler: vertikale Patrouille zwischen row 1 und row 4 (obere Bühne)
       new EagleEnemy(20 * TILE_SIZE, 1 * TILE_SIZE, 4 * TILE_SIZE),
+    ];
+  }
+
+  /**
+   * Spawn-Positionen der Sammelobjekte für Level 01.
+   * Koordinaten: Weltpixel (links-oben der Hitbox).
+   * Gems liegen auf der Bodenreihe (row 8) – 1 Tile über dem Boden (y = 8*TS - 20).
+   * StarCoins sind auf erhöhten Plattformen verteilt.
+   * Cherry ist leicht versteckt auf der oberen Plattform.
+   */
+  _spawnPickups() {
+    const TS = TILE_SIZE;
+    return [
+      // Gems entlang des Spielerpfades (Bodennaher Korridor)
+      new Gem( 4 * TS, 8 * TS - 20),
+      new Gem( 5 * TS, 8 * TS - 20),
+      new Gem( 6 * TS, 8 * TS - 20),
+      new Gem(10 * TS, 8 * TS - 20),
+      new Gem(11 * TS, 8 * TS - 20),
+      new Gem(15 * TS, 8 * TS - 20),
+      new Gem(16 * TS, 8 * TS - 20),
+
+      // StarCoins auf unterschiedlichen Plattformen (slotIndex 0-2)
+      new StarCoin( 4 * TS + 8, 5 * TS - 30, 0),   // linke Plattform row 5
+      new StarCoin(13 * TS + 8, 5 * TS - 30, 1),   // mittlere Plattform row 5
+      new StarCoin(19 * TS + 8, 2 * TS - 30, 2),   // obere Plattform row 2
+
+      // Cherry – auf der obersten Plattform (row 2, rechts)
+      new Cherry(21 * TS, 2 * TS - 20),
     ];
   }
 
@@ -140,8 +178,16 @@ export class GameManager {
           if (enemy.active) enemy.update(dt, this._level.tileMap);
         }
 
+        // Pickups animieren
+        for (const pickup of this._pickups) {
+          if (pickup.active) pickup.update(dt);
+        }
+
         // Stomp-Kollision
         this._checkStomp();
+
+        // Pickup-Kollision
+        this._checkPickups();
 
         // Effekte updaten; inaktive entfernen
         for (const fx of this._effects) fx.update(dt);
@@ -203,9 +249,14 @@ export class GameManager {
       if (fx.active) fx.draw(this.ctx, this._camera, imageCache);
     }
 
+    for (const pickup of this._pickups) {
+      if (pickup.active) pickup.draw(this.ctx, this._camera, imageCache);
+    }
+
     this.ctx.restore();
 
-    // 3. HUD im Screen-Space (TODO)
+    // 3. HUD im Screen-Space
+    this._hud.draw(this.ctx, this.gameState);
   }
 
   /**
@@ -242,6 +293,17 @@ export class GameManager {
       enemy.stompDie();
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
       p.velY = -400;   // kleiner Bounce
+    }
+  }
+
+  /** AABB-Überlappung Spieler ↔ Pickup; bei Treffer collect() aufrufen. */
+  _checkPickups() {
+    const p = this._player;
+    for (const pickup of this._pickups) {
+      if (!pickup.active) continue;
+      if (p.intersects(pickup)) {
+        pickup.collect(p, this.gameState);
+      }
     }
   }
 
