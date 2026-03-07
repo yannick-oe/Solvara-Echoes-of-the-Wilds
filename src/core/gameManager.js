@@ -10,8 +10,8 @@ import { StarCoin }    from '../entities/pickups/starCoin.js';
 import { Cherry }      from '../entities/pickups/cherry.js';
 import { Door }        from '../entities/interactables/door.js';
 import { Switch }      from '../entities/interactables/switch.js';
-import { GoalZone }    from '../entities/interactables/goalZone.js';
 import { Hud }         from '../ui/hud.js';
+import { audioManager } from './audioManager.js';
 import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
 import { Camera } from './camera.js';
@@ -57,9 +57,10 @@ export class GameManager {
     this._effects       = [];
 
     this._pickups       = [];
-    this._interactables = [];   // Switch, Door, GoalZone
+    this._interactables = [];   // Switch, Door
     this._hud           = new Hud(imageCache);
-    this._deathTimeoutId = null;
+    this._deathTimeoutId  = null;
+    this._victoryPoseTimer = 0;  // > 0 while victory pose plays before screen switch
 
     this._startScreen = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
     this._gameOverScreen = new GameOverScreen(() => this.restart());
@@ -152,20 +153,27 @@ export class GameManager {
     ];
   }
 
-  /** Erstellt Schalter, Tür und Zielzone für Level 01. */
+  /** Erstellt Schalter und Tür für Level 01. */
   _spawnInteractables() {
     const TS   = TILE_SIZE;
-    // Tür steht auf dem Boden bei col 20 – y so dass Unterkante auf row 8 liegt
+    // Tür steht auf dem Boden bei col 20 – Unterkante auf row 8
     const door   = new Door(20 * TS, 8 * TS - 96);
     // Schalter liegt auf dem Boden beim Spielerpfad, col 12
     const sw     = new Switch(12 * TS + 8, 8 * TS - 24, door);
-    // Zielzone ganz rechts nach der Tür, col 23
-    const goal   = new GoalZone(23 * TS, 8 * TS - 96);
-    return [door, sw, goal];
+    return [door, sw];
   }
 
   _setState(next) {
     this.state = next;
+    if (next === GAME_STATES.PLAYING) {
+      audioManager.playMusic(
+        'assets/audio/music/level01.ogg',
+        'assets/audio/music/level01.mp3'
+      );
+    }
+    if (next === GAME_STATES.VICTORY) {
+      audioManager.stopMusic();
+    }
   }
 
   _loop(timestamp) {
@@ -193,6 +201,15 @@ export class GameManager {
         this._startScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PLAYING:
+        // Sieges-Pose läuft: nur Timer herunterzählen, Welt eingefroren
+        if (this._victoryPoseTimer > 0) {
+          this._victoryPoseTimer -= dt;
+          if (this._victoryPoseTimer <= 0) {
+            this._setState(GAME_STATES.VICTORY);
+          }
+          break;
+        }
+
         this._player.update(dt, inputManager, this._level.tileMap);
 
         // Gegner updaten
@@ -344,34 +361,41 @@ export class GameManager {
       if (!pickup.active) continue;
       if (p.intersects(pickup)) {
         pickup.collect(p, this.gameState);
+        if (pickup instanceof StarCoin) {
+          audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3');
+        }
       }
     }
   }
 
-  /** Schalter automatisch bei Berührung aktivieren; Tür-Blocking; Zielzone. */
+  /** Schalter automatisch bei Berührung aktivieren; Tür-Blocking und Sieges-Auslöser. */
   _checkInteractables() {
     const p = this._player;
     for (const obj of this._interactables) {
       if (obj instanceof Switch) {
         if (p.intersects(obj)) obj.activate();
       } else if (obj instanceof Door) {
-        if (obj.blocks(p)) {
-          // Spieler horizontal zurückdrängen
-          const pushRight = p.x + p.w / 2 < obj.x + obj.w / 2;
-          if (pushRight) {
-            p.x    = obj.x - p.w;
-          } else {
-            p.x    = obj.x + obj.w;
+        if (obj.open) {
+          // Offene Tür: Spieler betritt sie → Sieges-Sequenz starten
+          if (p.intersects(obj) && this._victoryPoseTimer <= 0) {
+            this._startVictorySequence();
           }
-          p.velX = 0;
-        }
-      } else if (obj instanceof GoalZone) {
-        if (!obj.reached && p.intersects(obj)) {
-          obj.reached = true;
-          this._setState(GAME_STATES.VICTORY);
+        } else {
+          // Geschlossene Tür: Spieler zurückdrängen
+          if (obj.blocks(p)) {
+            const pushRight = p.x + p.w / 2 < obj.x + obj.w / 2;
+            p.x    = pushRight ? obj.x - p.w : obj.x + obj.w;
+            p.velX = 0;
+          }
         }
       }
     }
+  }
+
+  /** Spieler in Sieges-Pose einfrieren; nach kurzer Verzögerung zu VICTORY wechseln. */
+  _startVictorySequence() {
+    this._player.startVictoryPose();
+    this._victoryPoseTimer = 0.9;   // Sekunden Sieges-Pose sichtbar
   }
 
   /**

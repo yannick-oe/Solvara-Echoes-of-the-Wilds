@@ -32,6 +32,7 @@ const ANIM = {
   lookUp: { prefix: 'PLAYER_LOOK_UP', frames: 1, fps: 0  },
   hurt:   { prefix: 'PLAYER_HURT',    frames: 2, fps: 8  },
   hurt2:  { prefix: 'PLAYER_HURT2',   frames: 1, fps: 0  },  // Tod-Pose
+  victory:{ prefix: 'PLAYER_VICTORY', frames: 1, fps: 0  },  // Sieges-Pose
 };
 
 // Fester Frame-Index für die Fall-Pose
@@ -143,6 +144,17 @@ export class Player extends Entity {
     this._invulTimer = 0;   // Blinken stoppen
     this.velX        = 0;
     this.velY        = -200;
+  }
+
+  /**
+   * Friert den Spieler ein und spielt die Sieges-Pose.
+   * Wird vom GameManager aufgerufen; keine Physik/Input danach mehr.
+   */
+  startVictoryPose() {
+    this.state      = 'victory';
+    this.frameIndex = 0;
+    this.velX       = 0;
+    this.velY       = 0;
   }
 
   /**
