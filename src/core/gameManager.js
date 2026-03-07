@@ -69,7 +69,11 @@ export class GameManager {
     this._startScreen   = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
     this._gameOverScreen = new GameOverScreen(() => this.restart());
     this._victoryScreen  = new VictoryScreen(() => this.restart());
-    this._pauseScreen    = new PauseScreen();
+    this._pauseScreen    = new PauseScreen({
+      onResume:      () => { this.state = GAME_STATES.PLAYING; },
+      onRestart:     () => this.restart(),
+      onBackToStart: () => { audioManager.stopMusic(); this.state = GAME_STATES.START; },
+    });
 
     this._loop = this._loop.bind(this);
   }
@@ -225,6 +229,7 @@ export class GameManager {
       case GAME_STATES.PLAYING:
         // Pause-Toggle: ESC während PLAYING
         if (inputManager.escPressed) {
+          this._pauseScreen.reset();
           this.state = GAME_STATES.PAUSED;
           break;
         }
@@ -298,10 +303,7 @@ export class GameManager {
         this._victoryScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PAUSED:
-        // Pause aufheben: ESC erneut drücken
-        if (inputManager.escPressed) {
-          this.state = GAME_STATES.PLAYING;
-        }
+        this._pauseScreen.handleInput(inputManager);
         break;
     }
   }
