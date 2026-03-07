@@ -1,7 +1,8 @@
 import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT, CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from './constants.js';
 import { imageCache } from './imageCache.js';
-import { Player }     from '../entities/player.js';
-import { AntEnemy }   from '../entities/enemies/ant.js';
+import { Player }      from '../entities/player.js';
+import { AntEnemy }    from '../entities/enemies/ant.js';
+import { FrogEnemy }   from '../entities/enemies/frog.js';
 import { DeathEffect } from '../entities/effects/deathEffect.js';
 import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
@@ -93,7 +94,10 @@ export class GameManager {
   /** Erstellt die Test-Gegner für Level 01. */
   _spawnEnemies() {
     return [
+      // Ameise auf dem Boden rechts vom Spieler-Spawn
       new AntEnemy(8 * TILE_SIZE, 9 * TILE_SIZE),
+      // Frosch auf der unteren Plattform (row 7, col 13)
+      new FrogEnemy(13 * TILE_SIZE, 7 * TILE_SIZE - 32),
     ];
   }
 

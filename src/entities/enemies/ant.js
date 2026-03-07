@@ -70,7 +70,9 @@ export class AntEnemy extends Enemy {
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
 
-    if (this.facingRight) {
+    // Die Quell-Sprites zeigen die Ameise nach LINKS – daher kein Flip wenn links,
+    // Flip wenn rechts.
+    if (!this.facingRight) {
       ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
     } else {
       ctx.save();

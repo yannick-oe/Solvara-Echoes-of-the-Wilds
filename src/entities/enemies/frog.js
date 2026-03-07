@@ -1,17 +1,179 @@
 import { Enemy } from './enemy.js';
+import { TILE_SIZE, GRAVITY, MAX_FALL_SPEED } from '../../core/constants.js';
+
+// Hitbox
+const FROG_W = 32;
+const FROG_H = 32;
+
+// Sprite-Zeichengröße (zentriert über Hitbox)
+const DRAW_W  = 52;
+const DRAW_H  = 52;
+const DRAW_OX = (FROG_W - DRAW_W) / 2;
+const DRAW_OY = FROG_H - DRAW_H;
+
+// Animation
+const IDLE_FRAMES = 4;
+const IDLE_FPS    = 6;
+
+// Frog-Verhalten
+const IDLE_DURATION  = 1.8;  // Sekunden zwischen Sprüngen
+const JUMP_VEL_Y     = -650; // px/s nach oben
+const JUMP_SPEED_X   = 50;   // px/s horizontal (zufällige Richtung)
 
 export class FrogEnemy extends Enemy {
+  /**
+   * @param {number} x  Spawn-X
+   * @param {number} y  Spawn-Y
+   */
   constructor(x, y) {
-    super(x, y, 32, 32);
-    this.isJumping = false;
-    this.idleTime  = 0;
+    super(x, y, FROG_W, FROG_H);
+
+    // Zustand: 'idle' | 'jumping'
+    this._state      = 'idle';
+    this._idleTimer  = IDLE_DURATION;
+    this._onGround   = false;
+    this._frameIndex = 0;
+    this._frameTimer = 0;
+
+    // Zufällige Startrichtung, damit Frösche nicht alle gleich aussehen
+    this.facingRight = Math.random() < 0.5;
   }
 
+  /**
+   * @param {number}                                    dt
+   * @param {import('../../world/tileMap.js').TileMap}  tileMap
+   */
   update(dt, tileMap) {
-    // TODO: Idle-Pause über IntervalManager, dann Sprungzyklus
+    if (this.dead) return;
+
+    // --- Schwerkraft immer aktiv ---
+    this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+
+    if (this._state === 'idle') {
+      this.velX = 0;
+
+      // Idle-Timer herunterzählen → Sprung auslösen
+      this._idleTimer -= dt;
+      if (this._idleTimer <= 0) {
+        this._beginJump();
+      }
+
+      // Idle-Animation loopen
+      this._frameTimer += dt;
+      if (this._frameTimer >= 1 / IDLE_FPS) {
+        this._frameTimer -= 1 / IDLE_FPS;
+        this._frameIndex  = (this._frameIndex + 1) % IDLE_FRAMES;
+      }
+    }
+
+    // --- Horizontale Bewegung nur im Sprung ---
+    if (this._state === 'jumping') {
+      this.x += this.velX * dt;
+      this._resolveWall(tileMap);
+    }
+
+    // --- Vertikale Bewegung ---
+    this._onGround = false;
+    this.y += this.velY * dt;
+    this._resolveFloor(tileMap);
+
+    // --- Landung: zurück zu idle ---
+    if (this._state === 'jumping' && this._onGround) {
+      this._state      = 'idle';
+      this._idleTimer  = IDLE_DURATION;
+      this.velX        = 0;
+      this._frameIndex = 0;
+      this._frameTimer = 0;
+    }
   }
 
-  draw(ctx, cam, imageCache) {
-    // TODO: Frog idle / jump Sprite zeichnen
+  /**
+   * @param {CanvasRenderingContext2D}                      ctx
+   * @param {*}                                            _cam
+   * @param {import('../../core/imageCache.js').ImageCache} imageCache
+   */
+  draw(ctx, _cam, imageCache) {
+    if (this.dead) return;
+
+    let img;
+    if (this._state === 'idle') {
+      img = imageCache.get(`FROG_IDLE_${this._frameIndex}`);
+    } else {
+      // Frame 0 = Aufstieg (velY < 0), Frame 1 = Abstieg
+      const fi = this.velY < 0 ? 0 : 1;
+      img = imageCache.get(`FROG_JUMP_${fi}`);
+    }
+    if (!img) return;
+
+    const dx = this.x + DRAW_OX;
+    const dy = this.y + DRAW_OY;
+
+    // Quell-Sprites zeigen den Frosch nach LINKS → Flip wenn rechts schauend
+    if (!this.facingRight) {
+      ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
+    } else {
+      ctx.save();
+      ctx.translate(dx + DRAW_W, dy);
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
+      ctx.restore();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private Hilfsmethoden
+  // ---------------------------------------------------------------------------
+
+  _beginJump() {
+    this._state = 'jumping';
+    this.velY   = JUMP_VEL_Y;
+
+    // Zufällige horizontale Richtung beim Sprung
+    const dir        = Math.random() < 0.5 ? 1 : -1;
+    this.velX        = dir * JUMP_SPEED_X;
+    this.facingRight = dir > 0;
+
+    this._frameIndex = 0;
+    this._frameTimer = 0;
+  }
+
+  /** Bodenkollision – setzt _onGround=true beim Aufkommen. */
+  _resolveFloor(tileMap) {
+    if (this.velY < 0) return;
+    const ts       = TILE_SIZE;
+    const leftCol  = Math.floor(this.x / ts);
+    const rightCol = Math.floor((this.x + this.w - 1) / ts);
+    const botRow   = Math.floor((this.y + this.h - 1) / ts);
+
+    for (let col = leftCol; col <= rightCol; col++) {
+      if (tileMap.isSolid(col, botRow)) {
+        this.y         = botRow * ts - this.h;
+        this.velY      = 0;
+        this._onGround = true;
+        return;
+      }
+    }
+  }
+
+  /** Wandkollision im Sprung – stoppt horizontale Bewegung. */
+  _resolveWall(tileMap) {
+    if (this.velX === 0) return;
+    const ts       = TILE_SIZE;
+    const topRow   = Math.floor(this.y / ts);
+    const botRow   = Math.floor((this.y + this.h - 1) / ts);
+    const checkCol = this.velX > 0
+      ? Math.floor((this.x + this.w - 1) / ts)
+      : Math.floor(this.x / ts);
+
+    for (let row = topRow; row <= botRow; row++) {
+      if (tileMap.isSolid(checkCol, row)) {
+        this.x    = this.velX > 0
+          ? checkCol * ts - this.w
+          : (checkCol + 1) * ts;
+        this.velX = 0;
+        break;
+      }
+    }
   }
 }
+
