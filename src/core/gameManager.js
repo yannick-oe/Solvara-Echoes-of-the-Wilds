@@ -2,7 +2,10 @@ import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT, CANVAS_WIDTH, CANVAS
 import { imageCache }      from './imageCache.js';
 import { inputManager }    from './input.js';
 import { intervalManager } from './intervalManager.js';
+import { Camera }          from './camera.js';
 import { ASSET_ENTRIES }   from '../config/assetPaths.js';
+import { Level }           from '../world/level.js';
+import { Parallax }        from '../world/parallax.js';
 import { StartScreen }    from '../ui/screens/startScreen.js';
 import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
 import { VictoryScreen }  from '../ui/screens/victoryScreen.js';
@@ -25,9 +28,13 @@ export class GameManager {
     this.state     = GAME_STATES.LOADING;
     this.gameState = createGameState();
 
-    this._rafId    = null;
-    this._lastTime = 0;
+    this._rafId       = null;
+    this._lastTime    = 0;
     this._loopStarted = false;
+
+    this._level    = new Level();
+    this._camera   = new Camera();
+    this._parallax = null;   // nach preload initialisiert
 
     this._startScreen    = new StartScreen(() => this._setState(GAME_STATES.PLAYING));
     this._gameOverScreen = new GameOverScreen(() => this.restart());
@@ -39,6 +46,13 @@ export class GameManager {
   async start() {
     this._drawLoadingScreen();
     await imageCache.preload(ASSET_ENTRIES);
+    await this._level.load('assets/data/levels/level_01.json');
+
+    this._parallax = new Parallax([
+      { img: imageCache.get('BG_FOREST_BACK'),   speed: 0.15 },
+      { img: imageCache.get('BG_FOREST_MIDDLE'), speed: 0.4  },
+    ]);
+
     inputManager.init();
     this.state = GAME_STATES.START;
     this._rafId = requestAnimationFrame(this._loop);
@@ -46,7 +60,9 @@ export class GameManager {
 
   restart() {
     intervalManager.stopAll();
-    this.gameState = createGameState();
+    this.gameState   = createGameState();
+    this._camera.x   = 0;
+    this._camera.y   = 0;
     this._setState(GAME_STATES.PLAYING);
   }
 
@@ -79,7 +95,7 @@ export class GameManager {
         this._startScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PLAYING:
-        // TODO: Level, Player, Entities updaten
+        // TODO: Player, Entities updaten
         break;
       case GAME_STATES.GAMEOVER:
         this._gameOverScreen.handleInput(inputManager);
@@ -98,8 +114,7 @@ export class GameManager {
         this._startScreen.draw(this.ctx);
         break;
       case GAME_STATES.PLAYING:
-        // TODO: Parallax, TileMap, Entities, HUD
-        this._drawPlaceholderBg();
+        this._drawWorld();
         break;
       case GAME_STATES.GAMEOVER:
         this._gameOverScreen.draw(this.ctx);
@@ -110,21 +125,32 @@ export class GameManager {
     }
   }
 
+  /** Parallax + TileMap für den PLAYING State. */
+  _drawWorld() {
+    // 1. Hintergrund-Ebenen im Screen-Space
+    this._parallax?.draw(this.ctx, this._camera.x);
+
+    // 2. Kamera-Transform für Weltgegenstände
+    this.ctx.save();
+    this._camera.applyTransform(this.ctx);
+
+    this._level.tileMap?.draw(this.ctx, this._camera);
+    // TODO: Props, Entities hier einfügen
+
+    this.ctx.restore();
+
+    // 3. HUD im Screen-Space (TODO)
+  }
+
   _drawLoadingScreen() {
     const { ctx } = this;
-    ctx.fillStyle = '#0a0a1a';
+    ctx.fillStyle    = '#0a0a1a';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.fillStyle    = '#ffffff';
     ctx.font         = 'bold 22px monospace';
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Loading…', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-  }
-
-  /** Temporärer Platzhalter bis Parallax/TileMap fertig sind. */
-  _drawPlaceholderBg() {
-    this.ctx.fillStyle = '#1a2a1a';
-    this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 }
 

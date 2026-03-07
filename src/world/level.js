@@ -1,4 +1,6 @@
-import { TileMap } from './tileMap.js';
+import { TileMap }   from './tileMap.js';
+import { TILE_SIZE } from '../core/constants.js';
+import { imageCache } from '../core/imageCache.js';
 
 export class Level {
   constructor() {
@@ -9,17 +11,20 @@ export class Level {
     this._data    = null;
   }
 
-  /** @param {string} jsonPath */
+  /**
+   * Lädt die Level-JSON-Datei und erstellt die TileMap.
+   * Muss nach imageCache.preload() aufgerufen werden.
+   * @param {string} jsonPath
+   */
   async load(jsonPath) {
     const response = await fetch(jsonPath);
     this._data     = await response.json();
-    this.tileMap   = new TileMap(this._data);
+    this.tileMap   = new TileMap(this._data, imageCache.get('TILESET'));
   }
 
-  getEntities() {
-    return this.entities;
-  }
+  /** Weltbreite in Pixeln (TILE_SIZE-basiert). */
+  get width()  { return this._data ? this._data.meta.columns * TILE_SIZE : 0; }
 
-  get width()  { return this._data ? this._data.meta.columns * this._data.meta.tileSize : 0; }
-  get height() { return this._data ? this._data.meta.rows    * this._data.meta.tileSize : 0; }
+  /** Welthöhe in Pixeln (TILE_SIZE-basiert). */
+  get height() { return this._data ? this._data.meta.rows    * TILE_SIZE : 0; }
 }

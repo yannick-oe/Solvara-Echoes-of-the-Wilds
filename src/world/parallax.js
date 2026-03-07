@@ -1,27 +1,36 @@
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
+
 export class Parallax {
   /**
-   * @param {{ key: string, speedX: number, speedY?: number }[]} layers
+   * @param {{ img: HTMLImageElement, speed: number }[]} layers
+   *   img   – vorgeladenes Bild (aus imageCache)
+   *   speed – Scrollfaktor (0 = fixiert, 1 = kamerasynchron)
+   *           Reihenfolge: hinterster Layer zuerst
    */
   constructor(layers) {
     this._layers = layers;
   }
 
   /**
+   * Zeichnet alle Ebenen im Screen-Space (vor camera.applyTransform aufrufen).
    * @param {CanvasRenderingContext2D} ctx
-   * @param {number} camX
-   * @param {import('../core/imageCache.js').ImageCache} imageCache
+   * @param {number} camX  Aktuelle Kamera-X-Position in Weltkoordinaten
    */
-  draw(ctx, camX, imageCache) {
+  draw(ctx, camX) {
     for (const layer of this._layers) {
-      const img = imageCache.get(layer.key);
+      const { img, speed } = layer;
       if (!img) continue;
 
-      const offsetX = -(camX * layer.speedX) % img.width;
+      // Bild auf Canvas-Höhe skalieren, Seitenverhältnis beibehalten
+      const scale = CANVAS_HEIGHT / img.naturalHeight;
+      const drawW = Math.ceil(img.naturalWidth * scale);
 
-      // Nahtloser Wrap: Bild wird ggf. zweimal gezeichnet
-      ctx.drawImage(img, offsetX, 0);
-      if (offsetX < 0) {
-        ctx.drawImage(img, offsetX + img.width, 0);
+      // Immer-positiver Offset für nahtloses horizontales Tiling
+      const rawOff = (-camX * speed) % drawW;
+      const startX = ((rawOff % drawW) + drawW) % drawW - drawW;
+
+      for (let x = startX; x < CANVAS_WIDTH; x += drawW) {
+        ctx.drawImage(img, x, 0, drawW, CANVAS_HEIGHT);
       }
     }
   }
