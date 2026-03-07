@@ -1,0 +1,62 @@
+/** Unterstützte Sprachen (Reihenfolge bestimmt Toggle-Richtung). */
+export const LANGS = ['en', 'de'];
+
+export const TEXT = {
+  en: {
+    // Hauptmenü
+    start:        'Start Game',
+    language:     'Language',
+    controls:     'Controls',
+    credits:      'Credits',
+    pressEnter:   'Press Enter to Select',
+
+    // Steuerungsscreen
+    move:         'Move',
+    jump:         'Jump',
+    crouch:       'Crouch',
+    lookUp:       'Look Up',
+    pause:        'Pause',
+
+    // Credits
+    creditsDev:    'Game Design & Programming',
+    creditsAssets: 'Pixel Assets',
+
+    // Allgemein
+    returnHint:   'Enter or ESC to return',
+  },
+  de: {
+    // Hauptmenü
+    start:        'Spiel starten',
+    language:     'Sprache',
+    controls:     'Steuerung',
+    credits:      'Credits',
+    pressEnter:   'Drücke Enter zum Auswählen',
+
+    // Steuerungsscreen
+    move:         'Bewegen',
+    jump:         'Springen',
+    crouch:       'Ducken',
+    lookUp:       'Hochschauen',
+    pause:        'Pause',
+
+    // Credits
+    creditsDev:    'Spieldesign & Programmierung',
+    creditsAssets: 'Pixel-Assets',
+
+    // Allgemein
+    returnHint:   'Enter oder ESC → Zurück',
+  },
+};
+
+/** Aktuell gewählte Sprache. */
+export let currentLang = 'en';
+
+/** Sprache wechseln. */
+export function setLang(lang) {
+  if (LANGS.includes(lang)) currentLang = lang;
+}
+
+/** Lokalisierter Text für einen Schlüssel. Fällt auf Englisch zurück. */
+export function t(key) {
+  return TEXT[currentLang]?.[key] ?? TEXT.en[key] ?? key;
+}
