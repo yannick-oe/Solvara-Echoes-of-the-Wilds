@@ -52,10 +52,12 @@ class InputManager {
       case 'ArrowRight': case 'KeyD':
         this.right = value;
         break;
-      case 'ArrowUp': case 'KeyW': case 'Space':
+      case 'Space':
         if (value && !this.jump) this.jumpPressed = true;
-        this.jump  = value;
-        this.up    = value;
+        this.jump = value;
+        break;
+      case 'ArrowUp': case 'KeyW':
+        this.up = value;
         break;
       case 'ArrowDown': case 'KeyS':
         this.down  = value;

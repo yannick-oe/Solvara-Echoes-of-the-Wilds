@@ -1,42 +1,246 @@
 import { Entity } from './entity.js';
+import {
+  TILE_SIZE,
+  GRAVITY,
+  MAX_FALL_SPEED,
+  JUMP_FORCE,
+  PLAYER_SPEED,
+} from '../core/constants.js';
 
-export const PLAYER_STATE = Object.freeze({
-  IDLE:      'idle',
-  RUN:       'run',
-  JUMP:      'jump',
-  CROUCH:    'crouch',
-  LOOK_UP:   'lookUp',
-  HURT:      'hurt',
-  DIZZY:     'dizzy',
-  ROLL:      'roll',
-  WALL_GRAB: 'wallGrab',
-  CLIMB:     'climb',
-  VICTORY:   'victory',
-});
+// Kollisions-Hitbox in Weltpixeln
+const PLAYER_W = 32;
+const PLAYER_H = 48;
+
+// Sprite-Zeichengröße (größer als Hitbox für angenehme Optik)
+const DRAW_W = 72;
+const DRAW_H = 72;
+
+// Offset vom Hitbox-Ursprung zum Sprite-Ursprung:
+//   X: zentriert horizontal  → (32 − 72) / 2 = −20
+//   Y: Füße bündig unten     → 48 − 72       = −24
+const DRAW_OX = (PLAYER_W - DRAW_W) / 2;
+const DRAW_OY = PLAYER_H - DRAW_H;
+
+// Animation-Konfiguration: Cache-Präfix, Frameanzahl, FPS (0 = statisch)
+const ANIM = {
+  idle:   { prefix: 'PLAYER_IDLE',    frames: 4, fps: 6  },
+  run:    { prefix: 'PLAYER_RUN',     frames: 6, fps: 10 },
+  jump:   { prefix: 'PLAYER_JUMP',    frames: 1, fps: 0  },  // Frame 0: Aufstieg
+  fall:   { prefix: 'PLAYER_JUMP',    frames: 1, fps: 0  },  // Frame 1: Abstieg
+  crouch: { prefix: 'PLAYER_CROUCH',  frames: 2, fps: 6  },
+  lookUp: { prefix: 'PLAYER_LOOK_UP', frames: 1, fps: 0  },
+};
+
+// Fester Frame-Index für die Fall-Pose
+const FALL_FRAME = 1;
 
 export class Player extends Entity {
+  /** @param {number} x  Spawn-X  @param {number} y  Spawn-Y */
   constructor(x, y) {
-    super(x, y, 32, 48);
-
-    this.state       = PLAYER_STATE.IDLE;
+    super(x, y, PLAYER_W, PLAYER_H);
     this.facingRight = true;
-    this.onGround    = false;
-    this.hearts      = 3;
+    this.onGround = false;
 
-    this._frameIndex  = 0;
-    this._frameTick   = 0;
+    this.state = 'idle';
+    this.frameIndex = 0;
+    this.frameTimer = 0;
   }
 
   /**
-   * @param {number} dt
+   * @param {number}                                  dt
    * @param {import('../core/input.js').InputManager} input
    * @param {import('../world/tileMap.js').TileMap}   tileMap
    */
   update(dt, input, tileMap) {
-    // TODO: State Machine, Physik, Tile-Kollision
+    // --- Horizontale Geschwindigkeit ---
+    if (input.left) {
+      this.velX = -PLAYER_SPEED;
+      this.facingRight = false;
+    } else if (input.right) {
+      this.velX = PLAYER_SPEED;
+      this.facingRight = true;
+    } else {
+      this.velX = 0;
+    }
+
+    // Crouch und LookUp unterdrücken horizontale Bewegung
+    if (this.onGround && (input.down || input.up)) {
+      this.velX = 0;
+    }
+
+    // --- Sprung (nur wenn Boden berührt, einmaliger Tastendruck) ---
+    if (input.jumpPressed && this.onGround) {
+      this.velY = JUMP_FORCE;
+      this.onGround = false;
+    }
+
+    // --- Schwerkraft ---
+    this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+
+    // --- X bewegen → X-Kollision auflösen ---
+    this.x += this.velX * dt;
+    this._resolveX(tileMap);
+
+    // --- Y bewegen → Y-Kollision auflösen ---
+    this.onGround = false;
+    this.y += this.velY * dt;
+    this._resolveY(tileMap);
+
+    // --- Animation ---
+    this._updateAnim(dt, input);
   }
 
-  draw(ctx, cam, imageCache) {
-    // TODO: Sprite je nach state + facingRight zeichnen
+  /**
+   * Zeichnet den aktuellen Animations-Frame; spiegelt wenn links schauend.
+   * @param {CanvasRenderingContext2D}                    ctx
+   * @param {*}                                          _cam  (unused)
+   * @param {import('../core/imageCache.js').ImageCache} imageCache
+   */
+  draw(ctx, _cam, imageCache) {
+    const anim  = ANIM[this.state];
+    const fi    = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
+    const img   = imageCache.get(`${anim.prefix}_${fi}`);
+    if (!img) return;
+
+    // Sprite-Position: Hitbox-Ursprung + Zeichenoffset
+    const dx = this.x + DRAW_OX;
+    const dy = this.y + DRAW_OY;
+
+    if (this.facingRight) {
+      ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
+    } else {
+      ctx.save();
+      ctx.translate(dx + DRAW_W, dy);
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
+      ctx.restore();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Animations-Hilfsmethode
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Wählt den richtigen State und schaltet Frames weiter.
+   *
+   * Priorität (absteigend):
+   *   1. Airborne  → jump (velY < 0) | fall (velY > FALL_THRESHOLD)
+   *   2. Ducken    → crouch  (input.down, am Boden)
+   *   3. Hochschau → lookUp  (input.up,   am Boden)
+   *   4. Bewegt    → run
+   *   5. Stehen    → idle
+   *
+   * Crouch/LookUp haben Vorrang vor run, weil velX bereits auf 0
+   * gesetzt wird wenn down oder up gehalten wird (siehe update()).
+   *
+   * @param {number} dt
+   * @param {import('../core/input.js').InputManager} input
+   */
+  _updateAnim(dt, input) {
+    let next;
+
+    const FALL_THRESHOLD = 60;
+
+    if (!this.onGround) {
+      next = this.velY < 0 || this.velY <= FALL_THRESHOLD ? 'jump' : 'fall';
+    } else if (input.down) {
+      next = 'crouch';
+    } else if (input.up) {
+      next = 'lookUp';
+    } else if (this.velX !== 0) {
+      next = 'run';
+    } else {
+      next = 'idle';
+    }
+
+    // State-Wechsel: Frame zurücksetzen
+    if (next !== this.state) {
+      this.state = next;
+      this.frameIndex = 0;
+      this.frameTimer = 0;
+      return;
+    }
+
+    const anim = ANIM[this.state];
+    if (anim.fps === 0) return;   // statischer Frame
+
+    this.frameTimer += dt;
+    const frameDuration = 1 / anim.fps;
+    if (this.frameTimer >= frameDuration) {
+      this.frameTimer -= frameDuration;
+      this.frameIndex = (this.frameIndex + 1) % anim.frames;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Interne Kollisions-Hilfsmethoden (AABB, Tile-basiert)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Löst horizontale Tile-Kollision auf.
+   * Prüft nur die führende Kante in Bewegungsrichtung.
+   * @param {import('../world/tileMap.js').TileMap} tileMap
+   */
+  _resolveX(tileMap) {
+    if (this.velX === 0) return;
+
+    const ts = TILE_SIZE;
+    // Führende Spalte: rechts wenn velX>0, links wenn velX<0
+    // -1 vermeidet False-Positive bei exakter Kachelgrenze
+    const checkCol = this.velX > 0
+      ? Math.floor((this.x + this.w - 1) / ts)
+      : Math.floor(this.x / ts);
+    const topRow = Math.floor(this.y / ts);
+    const bottomRow = Math.floor((this.y + this.h - 1) / ts);
+
+    for (let row = topRow; row <= bottomRow; row++) {
+      if (tileMap.isSolid(checkCol, row)) {
+        this.x = this.velX > 0
+          ? checkCol * ts - this.w       // rechts stoppen
+          : (checkCol + 1) * ts;         // links stoppen
+        this.velX = 0;
+        break;
+      }
+    }
+  }
+
+  /**
+   * Löst vertikale Tile-Kollision auf.
+   * Bei velY≥0 Boden/Plattform prüfen, bei velY<0 Decke prüfen.
+   * Setzt this.onGround=true wenn auf einer Kachel gelandet.
+   * @param {import('../world/tileMap.js').TileMap} tileMap
+   */
+  _resolveY(tileMap) {
+    const ts = TILE_SIZE;
+    const leftCol = Math.floor(this.x / ts);
+    const rightCol = Math.floor((this.x + this.w - 1) / ts);
+
+    if (this.velY >= 0) {
+      // WICHTIG:
+      // Beim Fallen / Stehen prüfen wir leicht UNTER den Füßen,
+      // damit Bodenkontakt auch bei Mini-Bewegungen stabil erkannt wird.
+      const probeY = this.y + this.h;
+      const bottomRow = Math.floor(probeY / ts);
+
+      for (let col = leftCol; col <= rightCol; col++) {
+        if (tileMap.isSolid(col, bottomRow)) {
+          this.y = bottomRow * ts - this.h;
+          this.velY = 0;
+          this.onGround = true;
+          return;
+        }
+      }
+    } else {
+      const topRow = Math.floor(this.y / ts);
+
+      for (let col = leftCol; col <= rightCol; col++) {
+        if (tileMap.isSolid(col, topRow)) {
+          this.y = (topRow + 1) * ts;
+          this.velY = 0;
+          return;
+        }
+      }
+    }
   }
 }
