@@ -368,6 +368,15 @@ export class GameManager {
 
     this.ctx.restore();
 
+    // Beleuchtungs-Overlay (Screen-Space): wärmt Farben auf, fügt vertikalen Lichtfall hinzu
+    const lightGrd = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    lightGrd.addColorStop(0, 'rgba(255,240,180,0.08)');
+    lightGrd.addColorStop(1, 'rgba(0,0,0,0.08)');
+    this.ctx.fillStyle = lightGrd;
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    this.ctx.fillStyle = 'rgba(255,230,150,0.03)';
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
     // 3. HUD im Screen-Space
     this._hud.draw(this.ctx, this.gameState);
   }

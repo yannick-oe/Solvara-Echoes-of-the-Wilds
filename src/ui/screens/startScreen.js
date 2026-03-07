@@ -191,29 +191,32 @@ export class StartScreen {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
+    // Holzplakette hinter dem Titel
+    this._drawTitleBanner(ctx);
+
     // Haupttitel mit pulsierendem Leuchteffekt
     const blur = 12 + Math.sin(now * 2.0) * 4;
     ctx.save();
-    ctx.shadowColor   = 'rgba(240, 192, 0, 0.80)';
+    ctx.shadowColor   = 'rgba(240, 192, 0, 0.85)';
     ctx.shadowBlur    = blur;
     ctx.fillStyle     = '#f0c040';
     ctx.font          = 'bold 46px serif';
     ctx.fillText('Solvara', CX, TITLE_Y);
     ctx.restore();
 
-    // Untertitel mit Lesbarkeits-Schatten
+    // Untertitel
     ctx.save();
     ctx.shadowColor   = 'rgba(0, 0, 0, 0.90)';
-    ctx.shadowBlur    = 6;
-    ctx.fillStyle     = '#d4f0d4';
+    ctx.shadowBlur    = 4;
+    ctx.fillStyle     = '#a8d8a8';
     ctx.font          = '19px serif';
     ctx.fillText('Echoes of the Wilds', CX, SUBTITLE_Y);
     ctx.restore();
   }
 
   _drawMenu(ctx, now) {
-    // Schwebendes Panel: sanfte Auf-/Abbewegung
-    const floatY     = Math.round(Math.sin(now * 0.6) * 3);
+    // Schwebendes Panel: sehr sanfte Auf-/Abbewegung (±2px)
+    const floatY     = Math.round(Math.sin(now * 0.6) * 2);
     const woodY      = WOOD_Y + floatY;
     const menuStartY = woodY + 40;
     const footerY    = woodY + WOOD_H + 22;
@@ -356,6 +359,73 @@ export class StartScreen {
     });
   }
 
+  /** Dekorative Holzplakette hinter dem Titeltext. */
+  _drawTitleBanner(ctx) {
+    const bw = 380;
+    const bh = 82;
+    const bx = CX - bw / 2;
+    const by = TITLE_Y - 34;
+    const r  = 6;
+
+    // Schatten
+    ctx.save();
+    ctx.shadowColor   = 'rgba(0,0,0,0.75)';
+    ctx.shadowBlur    = 18;
+    ctx.shadowOffsetY = 4;
+    ctx.fillStyle = '#4a2f1a';
+    this._rrect(ctx, bx, by, bw, bh, r);
+    ctx.fill();
+    ctx.restore();
+
+    // Basis-Holz (dunkel)
+    ctx.fillStyle = '#4a2f1a';
+    this._rrect(ctx, bx, by, bw, bh, r);
+    ctx.fill();
+
+    // Gradient: leicht helleres Zentrum
+    const g = ctx.createLinearGradient(bx, by, bx, by + bh);
+    g.addColorStop(0,    'rgba(22, 10, 3, 0.50)');
+    g.addColorStop(0.30, 'rgba(100, 60, 22, 0.38)');
+    g.addColorStop(0.70, 'rgba(100, 60, 22, 0.38)');
+    g.addColorStop(1,    'rgba(18, 7, 2, 0.58)');
+    this._rrect(ctx, bx, by, bw, bh, r);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    // Äußerer Rahmen
+    ctx.strokeStyle = '#3b2615';
+    ctx.lineWidth   = 3;
+    this._rrect(ctx, bx, by, bw, bh, r);
+    ctx.stroke();
+
+    // Innere Lichtkante
+    ctx.strokeStyle = 'rgba(195, 148, 78, 0.28)';
+    ctx.lineWidth   = 1;
+    this._rrect(ctx, bx + 4, by + 4, bw - 8, bh - 8, Math.max(r - 2, 2));
+    ctx.stroke();
+
+    // Eckverzierungen
+    const corners = [
+      [bx + 7,      by + 7     ],
+      [bx + bw - 7, by + 7     ],
+      [bx + 7,      by + bh - 7],
+      [bx + bw - 7, by + bh - 7],
+    ];
+    ctx.fillStyle   = '#3b2615';
+    ctx.strokeStyle = 'rgba(195, 148, 78, 0.38)';
+    ctx.lineWidth   = 1;
+    for (const [ox, oy] of corners) {
+      ctx.beginPath();
+      ctx.moveTo(ox,     oy - 4);
+      ctx.lineTo(ox + 4, oy);
+      ctx.lineTo(ox,     oy + 4);
+      ctx.lineTo(ox - 4, oy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
   // ─── Hilfs-Zeichner ────────────────────────────────────────────────────────
 
   /**
@@ -365,12 +435,12 @@ export class StartScreen {
   _drawWoodPanel(ctx, x, y, w, h) {
     const r = 8;
 
-    // Schlagschatten
+    // Schlagschatten (flacher Offset vermeidet Perspektiv-Effekt)
     ctx.save();
-    ctx.shadowColor   = 'rgba(0, 0, 0, 0.72)';
-    ctx.shadowBlur    = 26;
+    ctx.shadowColor   = 'rgba(0, 0, 0, 0.70)';
+    ctx.shadowBlur    = 14;
     ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 10;
+    ctx.shadowOffsetY = 4;
     ctx.fillStyle = '#7a5433';
     this._rrect(ctx, x, y, w, h, r);
     ctx.fill();
