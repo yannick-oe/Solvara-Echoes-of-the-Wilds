@@ -117,6 +117,9 @@ export class Player extends Entity {
     this._coyoteTimer = 0;
     this._jumpBuffer  = 0;
 
+    // Wall-Abstoß-Timer (zeigt kurz die Push-off-Pose)
+    this._wallPushOffTimer = 0;
+
     // Staub-Partikel
     this._dustPool = makeDustPool();
   }
@@ -141,6 +144,7 @@ export class Player extends Entity {
     if (this._invulTimer  > 0) this._invulTimer  = Math.max(0, this._invulTimer  - dt);
     if (this._hurtTimer   > 0) this._hurtTimer   = Math.max(0, this._hurtTimer   - dt);
     if (this._wallLockout > 0) this._wallLockout  = Math.max(0, this._wallLockout - dt);
+    if (this._wallPushOffTimer > 0) this._wallPushOffTimer = Math.max(0, this._wallPushOffTimer - dt);
 
     // Sprungpuffer: Merkt einen zu frühen Sprungdruck
     if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
@@ -202,7 +206,7 @@ export class Player extends Entity {
         }
 
         // Crouch / LookUp unterdrücken horizontale Bewegung
-        if (this.onGround && (input.down || input.up)) {
+        if (this.onGround && (input.down || input.lookUp)) {
           this.velX = 0;
         }
 
@@ -296,6 +300,10 @@ export class Player extends Entity {
 
     const anim = ANIM[this.state];
     let fi = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
+    // Wall-Grab: Frame 0 = Hängen, Frame 1 = Abstoß-Moment
+    if (this.state === 'wallGrab') {
+      fi = this._wallPushOffTimer > 0 ? 1 : 0;
+    }
 
     // Wandgriff: Sprite schaut immer ZUR Wand hin
     let flipX = !this.facingRight;
@@ -442,6 +450,8 @@ export class Player extends Entity {
 
   _handleWallGrab(dt, input) {
     this.velX = 0;
+    // Aufwärts-Impuls beim Wandgriff sofort stoppen – verhindert Aufwärtsgleiten
+    if (this.velY < 0) this.velY = 0;
     this.velY = Math.min(this.velY + WALL_SLIDE_GRAVITY * dt, WALL_SLIDE_MAX_SPEED);
     this.y   += this.velY * dt;
 
@@ -452,6 +462,7 @@ export class Player extends Entity {
       this.facingRight     = jumpDir > 0;
       this._wallLockSide   = this._wallGrabSide;
       this._wallLockout    = WALL_JUMP_LOCKOUT;
+      this._wallPushOffTimer = 0.10;  // Abstoß-Pose kurz einblenden
       this._wallGrabSide   = 0;
       this._jumpBuffer     = 0;
       spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h / 2, 4);
@@ -477,6 +488,16 @@ export class Player extends Entity {
     let next;
     const FALL_THRESHOLD = 60;
 
+    // Wall-Abstoß-Pose für kurzen Moment erzwingen
+    if (this._wallPushOffTimer > 0 && this._wallGrabSide === 0) {
+      if (this.state !== 'wallGrab') {
+        this.state      = 'wallGrab';
+        this.frameIndex = 1;
+        this.frameTimer = 0;
+      }
+      return;
+    }
+
     if (this._hurtTimer > 0) {
       next = 'hurt';
     } else if (this._wallGrabSide !== 0) {
@@ -487,7 +508,7 @@ export class Player extends Entity {
       next = this.velY < FALL_THRESHOLD ? 'jump' : 'fall';
     } else if (input.down) {
       next = 'crouch';
-    } else if (input.up) {
+    } else if (input.lookUp) {
       next = 'lookUp';
     } else if (this.velX !== 0) {
       next = 'run';

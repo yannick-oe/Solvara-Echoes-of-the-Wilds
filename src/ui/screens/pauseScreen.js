@@ -406,7 +406,7 @@ export class PauseScreen {
     const b2Start = SUB_Y + 210;
     const b2Step  = 28;
     const b2Rows  = [
-      [t('lookUp'), 'W / ↑'],
+      [t('lookUp'), 'E'],
       [t('pause'),  'ESC'],
     ];
 

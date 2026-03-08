@@ -497,7 +497,7 @@ export class StartScreen {
     const b2Start = PANEL_Y + 210;   // = 300
     const b2Step  = 28;
     const b2Rows  = [
-      [t('lookUp'), 'W / ↑'],
+      [t('lookUp'), 'E'],
       [t('pause'),  'ESC'],
     ];
 

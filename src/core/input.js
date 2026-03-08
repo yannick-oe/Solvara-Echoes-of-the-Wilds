@@ -7,6 +7,7 @@ class InputManager {
     this.enterPressed  = false;  // nur im Frame des Enter-Tastendrucks true
     this.down          = false;
     this.up            = false;
+    this.lookUp        = false;
     this.escPressed    = false;  // nur im Frame des ersten ESC-Tastendrucks true
 
     this._onKeyDown = this._onKeyDown.bind(this);
@@ -62,6 +63,9 @@ class InputManager {
         break;
       case 'ArrowUp': case 'KeyW':
         this.up = value;
+        break;
+      case 'KeyE':
+        this.lookUp = value;
         break;
       case 'ArrowDown': case 'KeyS':
         this.down  = value;
