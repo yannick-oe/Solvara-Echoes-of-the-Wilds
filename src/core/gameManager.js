@@ -124,8 +124,10 @@ export class GameManager {
       this._victoryTransitionId = null;
     }
     intervalManager.stopAll();
-    this._levelTimer    = 0;
-    this.gameState      = createGameState();
+    this._levelTimer       = 0;
+    this._victoryPoseTimer = 0;   // Sieg-Pose-Timer zwingend zurücksetzen
+    this._finalLevelTime   = 0;
+    this.gameState         = createGameState();
     this._player        = this._createPlayer();
     this._enemies       = this._spawnEnemies();
     this._pickups       = this._spawnPickups();
@@ -241,25 +243,25 @@ export class GameManager {
         this._startScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PLAYING:
-        // Pause-Toggle: ESC während PLAYING
-        if (inputManager.escPressed) {
-          this._pauseScreen.reset();
-          this.state = GAME_STATES.PAUSED;
-          break;
-        }
-        // Sieges-Pose läuft: nur Timer herunterzählen, Welt eingefroren
+        // Sieges-Pose hat Vorrang: ESC und alle anderen Eingaben ignorieren
         if (this._victoryPoseTimer > 0) {
           this._victoryPoseTimer -= dt;
           if (this._victoryPoseTimer <= 0) {
             this._victoryPoseTimer = 0;
-            audioManager.fadeOutMusic(250);
+            audioManager.fadeOutMusic(220);
             this._victoryTransitionId = setTimeout(() => {
               this._victoryTransitionId = null;
               audioManager.playSting('assets/audio/music/victory.mp3');
               this._victoryScreen.show(this.gameState, this._finalLevelTime);
               this.state = GAME_STATES.VICTORY;
-            }, 380);
+            }, 280);
           }
+          break;
+        }
+        // Pause-Toggle: ESC während PLAYING (nur wenn keine Sieges-Pose)
+        if (inputManager.escPressed) {
+          this._pauseScreen.reset();
+          this.state = GAME_STATES.PAUSED;
           break;
         }
         // Level-Timer: läuft nur während aktivem Spiel (nicht während Sieges-Pose)
@@ -493,7 +495,7 @@ export class GameManager {
   /** Spieler in Sieges-Pose einfrieren; nach kurzer Verzögerung zu VICTORY wechseln. */
   _startVictorySequence() {
     this._player.startVictoryPose();
-    this._victoryPoseTimer = 0.9;   // Sekunden Sieges-Pose sichtbar
+    this._victoryPoseTimer = 0.65;  // Sekunden Sieges-Pose sichtbar
     this._finalLevelTime   = this._levelTimer;
   }
 
