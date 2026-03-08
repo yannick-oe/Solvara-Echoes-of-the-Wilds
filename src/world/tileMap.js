@@ -26,6 +26,37 @@ export class TileMap {
   }
 
   /**
+   * Gibt true zurück wenn die Gitterzelle eine Leiter ist.
+   * Leitern sind passierbar (pass: true) aber kletterbar (ladder: true).
+   */
+  isLadder(col, row) {
+    if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return false;
+    const key = this._map[row]?.[col];
+    if (!key) return false;
+    return this._tiles[key]?.ladder === true;
+  }
+
+  /**
+   * Gibt true zurück wenn der Spieler (AABB) eine Leiter berührt.
+   * Überprüft die vier Ecken der Hitbox.
+   * @param {number} x  Hitbox-Ursprung X (Weltpixel)
+   * @param {number} y  Hitbox-Ursprung Y (Weltpixel)
+   * @param {number} w  Hitbox-Breite
+   * @param {number} h  Hitbox-Höhe
+   */
+  isOnLadder(x, y, w, h) {
+    const ts = TILE_SIZE;
+    // Mittelpunkt horizontal (Leiter muss in der Mitte der Hitbox sein)
+    const midCol = Math.floor((x + w / 2) / ts);
+    const topRow    = Math.floor(y / ts);
+    const bottomRow = Math.floor((y + h - 1) / ts);
+    for (let row = topRow; row <= bottomRow; row++) {
+      if (this.isLadder(midCol, row)) return true;
+    }
+    return false;
+  }
+
+  /**
    * Gibt das Tile-Definitionsobjekt an einer Weltkoordinate zurück.
    * @returns {{ pass: boolean, txCol: number, txRow: number }|null}
    */
