@@ -10,6 +10,11 @@ export const TEXT = {
     credits:      'Credits',
     pressEnter:   'Press Enter to Select',
 
+    // Pause-Menü
+    continue:     'Continue',
+    restartLevel: 'Restart Level',
+    mainMenu:     'Main Menu',
+
     // Options-Screen
     musicVolume:  'Music Volume',
     sfxVolume:    'SFX Volume',
@@ -36,6 +41,11 @@ export const TEXT = {
     controls:     'Steuerung',
     credits:      'Credits',
     pressEnter:   'Drücke Enter zum Auswählen',
+
+    // Pause-Menü
+    continue:     'Weiter spielen',
+    restartLevel: 'Level neustarten',
+    mainMenu:     'Hauptmenü',
 
     // Options-Screen
     musicVolume:  'Musik-Lautstärke',
