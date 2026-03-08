@@ -9,6 +9,8 @@ class AudioManager {
     this._musicEl  = null;
     /** Aktuell geladene Quelle, um unnötige Neustarts zu vermeiden. */
     this._musicSrc = null;
+    /** Aktives Fade-Intervall (null = kein Fade läuft). */
+    this._fadeInterval = null;
 
     /** Lautstärke für Musik (0.0–1.0). */
     this.musicVolume = 0.8;
@@ -31,6 +33,42 @@ class AudioManager {
       this._musicEl?.pause();
     } else if (this._musicEl) {
       this._musicEl.play().catch(() => {});
+    }
+  }
+
+  /**
+   * Sanft auf Lautstärke 0 ausblenden und Musik dann stoppen.
+   * Wird beim Spielertod aufgerufen (200–400 ms).
+   * @param {number} durationMs
+   */
+  fadeOutMusic(durationMs) {
+    this._cancelFade();
+    if (!this._musicEl) return;
+    const steps    = 16;
+    const stepMs   = Math.max(10, Math.round(durationMs / steps));
+    const startVol = this._musicEl.volume;
+    let   step     = 0;
+    this._fadeInterval = setInterval(() => {
+      step++;
+      if (!this._musicEl) { this._cancelFade(); return; }
+      this._musicEl.volume = Math.max(0, startVol * (1 - step / steps));
+      if (step >= steps) {
+        clearInterval(this._fadeInterval);
+        this._fadeInterval = null;
+        this.stopMusic();
+      }
+    }, stepMs);
+  }
+
+  /**
+   * Laufendes Fade abbrechen und Lautstärke wiederherstellen.
+   * Wird automatisch von playMusic() aufgerufen.
+   */
+  _cancelFade() {
+    if (this._fadeInterval !== null) {
+      clearInterval(this._fadeInterval);
+      this._fadeInterval = null;
+      if (this._musicEl) this._musicEl.volume = this.musicVolume;
     }
   }
 
@@ -59,6 +97,7 @@ class AudioManager {
    * @param {string} oggSrc
    */
   playMusic(oggSrc) {
+    this._cancelFade();  // laufendes Fade sofort abbrechen
     if (!this.musicEnabled) return;
 
     // Selbe Quelle läuft bereits → nichts tun
@@ -103,6 +142,10 @@ class AudioManager {
 
   /** Stoppt die laufende Musik sofort und verwirft das Element. */
   stopMusic() {
+    if (this._fadeInterval !== null) {
+      clearInterval(this._fadeInterval);
+      this._fadeInterval = null;
+    }
     if (!this._musicEl) return;
     this._musicEl.pause();
     this._musicEl.src = '';

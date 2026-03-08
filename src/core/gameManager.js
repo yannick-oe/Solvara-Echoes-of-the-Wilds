@@ -277,11 +277,6 @@ export class GameManager {
           this._checkHazards();
         }
 
-        // Spieler hat den Bildschirm unten verlassen → Level neu starten
-        if (this._player.dying && this._player.y > this._level.height + CANVAS_HEIGHT) {
-          this._resetLevelState();
-        }
-
         // Effekte updaten; inaktive entfernen
         for (const fx of this._effects) fx.update(dt);
         this._effects = this._effects.filter(fx => fx.active);
@@ -297,6 +292,7 @@ export class GameManager {
         }
         break;
       case GAME_STATES.GAMEOVER:
+        this._gameOverScreen.update(dt);
         this._gameOverScreen.handleInput(inputManager);
         break;
       case GAME_STATES.VICTORY:
@@ -506,9 +502,17 @@ export class GameManager {
     }
   }
 
-  /** Setzt den Spieler in den Sterbe-Zustand. Der Reset erfolgt wenn er vom Screen fällt. */
+  /** Setzt den Spieler in den Sterbe-Zustand und leitet die Game-Over-Sequenz ein. */
   _handlePlayerDeath() {
     this._player.startDying();
+    // Musik schnell ausblenden
+    audioManager.fadeOutMusic(300);
+    // Nach kurzem Delay in den GAMEOVER-State wechseln
+    this._deathTimeoutId = setTimeout(() => {
+      this._deathTimeoutId = null;
+      this._gameOverScreen.show();
+      this._setState(GAME_STATES.GAMEOVER);
+    }, 400);
   }
 
   /**

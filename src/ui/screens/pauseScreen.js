@@ -235,7 +235,7 @@ export class PauseScreen {
       ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
       ctx.font      = selected ? 'bold 16px monospace' : '14px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(t(id), CX + 8, y);
+      ctx.fillText(t(id), CX, y);
     });
   }
 

@@ -32,7 +32,8 @@ export const TEXT = {
     creditsAssets: 'Pixel Assets',
 
     // Allgemein
-    returnHint:   'Enter or ESC to return',
+    returnHint:  'Enter or ESC to return',
+    retryHint:   'Press any key to retry',
   },
   de: {
     // Hauptmenü
@@ -64,7 +65,8 @@ export const TEXT = {
     creditsAssets: 'Pixel-Assets',
 
     // Allgemein
-    returnHint:   'Enter oder ESC → Zurück',
+    returnHint:  'Enter oder ESC → Zurück',
+    retryHint:   'Beliebige Taste zum Neustarten',
   },
 };
 
