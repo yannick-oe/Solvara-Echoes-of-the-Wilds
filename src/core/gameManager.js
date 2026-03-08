@@ -431,7 +431,7 @@ export class GameManager {
 
       if (pickup instanceof StarCoin) {
         audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3');
-        this._hud.notify('starCoin', sx, sy);
+        this._hud.notify('starCoin', sx, sy, pickup.slotIndex);
       } else if (pickup instanceof Gem) {
         audioManager.playSfx('assets/audio/sfx/pickupGem.mp3');
         this._hud.notify('gem', sx, sy);
