@@ -288,6 +288,9 @@ export class GameManager {
         // Stomp-Kollision
         this._checkStomp();
 
+        // Roll-Kill: rollender Spieler tötet berührte Gegner
+        this._checkRollKill();
+
         // Gegner-Körperkontakt (Schaden) – nur wenn nicht sterbend
         if (!this._player.dying) {
           this._checkEnemyDamage();
@@ -442,6 +445,22 @@ export class GameManager {
     }
   }
 
+  /**
+   * Roll-Kill: rollender Spieler tötet jeden Gegner den er berührt.
+   * Gegner stirbt sofort; Roll-Geschwindigkeit wird leicht reduziert.
+   */
+  _checkRollKill() {
+    if (!this._player.isRolling()) return;
+    const p = this._player;
+    for (const enemy of this._enemies) {
+      if (!enemy.active || enemy.dead) continue;
+      if (!p.intersects(enemy)) continue;
+      enemy.stompDie();
+      this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
+      p.rollHit();  // Geschwindigkeit leicht reduzieren + Staub-Burst
+    }
+  }
+
   /** AABB-Überlappung Spieler ↔ Pickup; bei Treffer collect() aufrufen. */
   _checkPickups() {
     const p = this._player;
@@ -525,6 +544,7 @@ export class GameManager {
    */
   _checkEnemyDamage() {
     if (this._player.dying) return;
+    if (this._player.isRolling()) return;  // rollender Spieler tötet statt Schaden zu nehmen
     const p = this._player;
     for (const enemy of this._enemies) {
       if (!enemy.active || enemy.dead) continue;

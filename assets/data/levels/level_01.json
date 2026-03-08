@@ -9,15 +9,15 @@
     "g": { "pass": false, "txCol": 1, "txRow": 1 },
     "d": { "pass": false, "txCol": 7, "txRow": 1 },
     "p": { "pass": false, "txCol": 8, "txRow": 5 },
-    "l": { "pass": true,  "ladder": true, "txCol": 6, "txRow": 9 }
+    "l": { "pass": true,  "ladder": true, "txCol": 7, "txRow": 10 }
   },
   "map": [
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p",null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null],
+    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p",null,null,null,null],
+    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,"p","p","p","l",null,null,null,null,null,null,null,null,null,null,null,null],
     ["g","g","g","g","g","g",null,null,"g","g","g","g","l","g","g","g","g","g","g","g","g","g","g","g","g"],

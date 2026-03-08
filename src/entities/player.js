@@ -35,6 +35,7 @@ const ANIM = {
   victory:  { prefix: 'PLAYER_VICTORY',  frames: 1, fps: 0  },
   wallGrab: { prefix: 'PLAYER_WALL_GRAB',frames: 2, fps: 4  },
   climb:    { prefix: 'PLAYER_CLIMB',    frames: 3, fps: 8  },
+  roll:     { prefix: 'PLAYER_ROLL',     frames: 4, fps: 16 },
 };
 
 const FALL_FRAME = 1;
@@ -51,7 +52,12 @@ const WALL_SLIDE_GRAVITY   = 180;   // px/s² — reduzierte Schwerkraft am Wand
 const WALL_SLIDE_MAX_SPEED = 90;    // px/s — maximale Gleitgeschwindigkeit
 const WALL_JUMP_X          = 380;   // px/s — horizontales Abstoßen
 const WALL_JUMP_Y          = -680;  // px/s — vertikale Wandsprung-Kraft
-const WALL_JUMP_LOCKOUT    = 0.20;  // Sekunden kein Re-Grab derselben Seite
+
+// ─── Roll ─────────────────────────────────────────────────────────────────────
+const ROLL_CHARGE_TIME = 0.22;  // s – down + Richtung halten bis Roll startet
+const ROLL_SPEED_INIT  = 350;   // px/s – Startgeschwindigkeit
+const ROLL_FRICTION    = 280;   // px/s² – Abbremsung
+const ROLL_MIN_SPEED   = 80;    // px/s – Untergrenze; darunter Roll-Ende
 
 // ─── Leiter ───────────────────────────────────────────────────────────────────
 const CLIMB_SPEED = 120;   // px/s — Klettergeschwindigkeit
@@ -106,8 +112,7 @@ export class Player extends Entity {
 
     // Wall Grab
     this._wallGrabSide = 0;      // -1 = links, 1 = rechts, 0 = keiner
-    this._wallLockout  = 0;      // Timer: verhindert sofortiges Re-Grab
-    this._wallLockSide = 0;      // Seite des letzten Wandsprungs
+    this._wallLockSide = 0;      // gesperrte Seite – bis Gegenseite berührt wird
 
     // Klettern
     this._onLadder    = false;
@@ -119,6 +124,12 @@ export class Player extends Entity {
 
     // Wall-Abstoß-Timer (zeigt kurz die Push-off-Pose)
     this._wallPushOffTimer = 0;
+
+    // Roll
+    this._rollChargeTimer = 0;
+    this._rolling         = false;
+    this._rollDir         = 0;
+    this._rollSpeed       = 0;
 
     // Staub-Partikel
     this._dustPool = makeDustPool();
@@ -143,7 +154,6 @@ export class Player extends Entity {
     // Timer herunterzählen
     if (this._invulTimer  > 0) this._invulTimer  = Math.max(0, this._invulTimer  - dt);
     if (this._hurtTimer   > 0) this._hurtTimer   = Math.max(0, this._hurtTimer   - dt);
-    if (this._wallLockout > 0) this._wallLockout  = Math.max(0, this._wallLockout - dt);
     if (this._wallPushOffTimer > 0) this._wallPushOffTimer = Math.max(0, this._wallPushOffTimer - dt);
 
     // Sprungpuffer: Merkt einen zu frühen Sprungdruck
@@ -177,6 +187,27 @@ export class Player extends Entity {
       return;
     }
 
+    // ── Roll-Aufladung (nur auf Boden, kein Schaden) ──────────────────────────
+    if (this.onGround && !this._rolling && this._hurtTimer <= 0) {
+      const holdDir = input.left ? -1 : (input.right ? 1 : 0);
+      if (input.down && holdDir !== 0) {
+        this._rollChargeTimer = Math.min(this._rollChargeTimer + dt, ROLL_CHARGE_TIME);
+        if (this._rollChargeTimer >= ROLL_CHARGE_TIME) {
+          this._startRoll(holdDir);
+        }
+      } else {
+        this._rollChargeTimer = 0;
+      }
+    }
+
+    // ── Roll-Modus: eigene Physik, danach fertig ──────────────────────────
+    if (this._rolling) {
+      this._handleRoll(dt, input, tileMap);
+      this._updateAnim(dt, input);
+      this._updateDust(dt);
+      return;
+    }
+
     // ── Coyote-Timer ──────────────────────────────────────────────────────
     if (this.onGround) {
       this._coyoteTimer = COYOTE_TIME;
@@ -191,7 +222,7 @@ export class Player extends Entity {
 
     if (this._wallGrabSide !== 0) {
       // ── Wall-Grab-Physik ────────────────────────────────────────────────
-      this._handleWallGrab(dt, input);
+      this._handleWallGrab(dt, input, tileMap);
     } else {
       // ── Normale Eingabe ─────────────────────────────────────────────────
       if (this._hurtTimer <= 0) {
@@ -257,9 +288,10 @@ export class Player extends Entity {
     this.velY        = KNOCKBACK_Y;
     this._hurtTimer  = HURT_DURATION;
     this._invulTimer = INVUL_DURATION;
-    // Wandgriff + Leiter sofort abbrechen
+    // Wandgriff + Leiter + Roll sofort abbrechen
     this._wallGrabSide = 0;
     this._exitLadder();
+    this._exitRoll();
     return true;
   }
 
@@ -273,6 +305,7 @@ export class Player extends Entity {
     this.velY        = -200;
     this._wallGrabSide = 0;
     this._exitLadder();
+    this._exitRoll();
   }
 
   /** Friert den Spieler ein und spielt die Sieges-Pose. */
@@ -283,6 +316,7 @@ export class Player extends Entity {
     this.velY       = 0;
     this._wallGrabSide = 0;
     this._exitLadder();
+    this._exitRoll();
   }
 
   /**
@@ -331,10 +365,11 @@ export class Player extends Entity {
   // ─── Leiter ────────────────────────────────────────────────────────────────
 
   _enterLadder() {
-    this._onLadder    = true;
+    this._onLadder     = true;
     this._wallGrabSide = 0;
-    this.velX         = 0;
-    this.velY         = 0;
+    this.velX          = 0;
+    this.velY          = 0;
+    this._exitRoll();  // Roll durch Leiter unterbrechen
   }
 
   _exitLadder() {
@@ -392,36 +427,32 @@ export class Player extends Entity {
 
     const ts = TILE_SIZE;
 
-    // Rechte Wand
-    if (input.right && this._wallGrabSide !== -1) {
-      const noLockout = !(this._wallLockout > 0 && this._wallLockSide === 1);
-      if (noLockout) {
-        const checkCol  = Math.floor((this.x + this.w) / ts);
-        const topRow    = Math.floor(this.y / ts);
-        const bottomRow = Math.floor((this.y + this.h - 1) / ts);
-        for (let row = topRow; row <= bottomRow; row++) {
-          if (tileMap.isSolid(checkCol, row)) {
-            this._wallGrabSide = 1;
-            this.facingRight   = true;
-            return;
-          }
+    // Rechte Wand – gesperrt wenn gerade davon abgesprungen
+    if (input.right && this._wallGrabSide !== -1 && this._wallLockSide !== 1) {
+      const checkCol  = Math.floor((this.x + this.w) / ts);
+      const topRow    = Math.floor(this.y / ts);
+      const bottomRow = Math.floor((this.y + this.h - 1) / ts);
+      for (let row = topRow; row <= bottomRow; row++) {
+        if (tileMap.isSolid(checkCol, row)) {
+          this._wallGrabSide = 1;
+          this._wallLockSide = 0;   // Gegenseite berührt → Sperre aufheben
+          this.facingRight   = true;
+          return;
         }
       }
     }
 
-    // Linke Wand
-    if (input.left && this._wallGrabSide !== 1) {
-      const noLockout = !(this._wallLockout > 0 && this._wallLockSide === -1);
-      if (noLockout) {
-        const checkCol  = Math.floor(this.x / ts) - 1;
-        const topRow    = Math.floor(this.y / ts);
-        const bottomRow = Math.floor((this.y + this.h - 1) / ts);
-        for (let row = topRow; row <= bottomRow; row++) {
-          if (tileMap.isSolid(checkCol, row)) {
-            this._wallGrabSide = -1;
-            this.facingRight   = false;
-            return;
-          }
+    // Linke Wand – checkCol gespiegelt zur Rechten für korrekte bündige Ausrichtung
+    if (input.left && this._wallGrabSide !== 1 && this._wallLockSide !== -1) {
+      const checkCol  = Math.floor((this.x - 1) / ts);
+      const topRow    = Math.floor(this.y / ts);
+      const bottomRow = Math.floor((this.y + this.h - 1) / ts);
+      for (let row = topRow; row <= bottomRow; row++) {
+        if (tileMap.isSolid(checkCol, row)) {
+          this._wallGrabSide = -1;
+          this._wallLockSide = 0;   // Gegenseite berührt → Sperre aufheben
+          this.facingRight   = false;
+          return;
         }
       }
     }
@@ -439,7 +470,7 @@ export class Player extends Entity {
     const ts       = TILE_SIZE;
     const checkCol = side > 0
       ? Math.floor((this.x + this.w) / ts)
-      : Math.floor(this.x / ts) - 1;
+      : Math.floor((this.x - 1) / ts);
     const topRow    = Math.floor(this.y / ts);
     const bottomRow = Math.floor((this.y + this.h - 1) / ts);
     for (let row = topRow; row <= bottomRow; row++) {
@@ -448,24 +479,118 @@ export class Player extends Entity {
     return false;
   }
 
-  _handleWallGrab(dt, input) {
+  _handleWallGrab(dt, input, tileMap) {
     this.velX = 0;
     // Aufwärts-Impuls beim Wandgriff sofort stoppen – verhindert Aufwärtsgleiten
     if (this.velY < 0) this.velY = 0;
     this.velY = Math.min(this.velY + WALL_SLIDE_GRAVITY * dt, WALL_SLIDE_MAX_SPEED);
-    this.y   += this.velY * dt;
+
+    // Y-Bewegung mit Boden-Kollision – verhindert Durchgleiten durch Böden
+    const wasGrounded = this.onGround;
+    this.onGround = false;
+    this.y += this.velY * dt;
+    this._resolveY(tileMap);
+    if (!wasGrounded && this.onGround) {
+      spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
+      this._wallLockSide = 0;
+      this._wallGrabSide = 0;  // Wandgriff bei Landung freigeben
+      return;
+    }
 
     if (this._jumpBuffer > 0) {
-      const jumpDir        = -this._wallGrabSide;
-      this.velX            = jumpDir * WALL_JUMP_X;
-      this.velY            = WALL_JUMP_Y;
-      this.facingRight     = jumpDir > 0;
-      this._wallLockSide   = this._wallGrabSide;
-      this._wallLockout    = WALL_JUMP_LOCKOUT;
-      this._wallPushOffTimer = 0.10;  // Abstoß-Pose kurz einblenden
-      this._wallGrabSide   = 0;
-      this._jumpBuffer     = 0;
+      const jumpDir          = -this._wallGrabSide;
+      this.velX              = jumpDir * WALL_JUMP_X;
+      this.velY              = WALL_JUMP_Y;
+      this.facingRight       = jumpDir > 0;
+      this._wallLockSide     = this._wallGrabSide;  // diese Seite sperren
+      this._wallPushOffTimer = 0.10;                // Abstoß-Pose kurz einblenden
+      this._wallGrabSide     = 0;
+      this._jumpBuffer       = 0;
       spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h / 2, 4);
+    }
+  }
+
+  // ─── Roll ─────────────────────────────────────────────────────────────────────
+
+  /** Gibt true zurück wenn der Spieler gerade rollt (für gameManager). */
+  isRolling() { return this._rolling; }
+
+  /** Startet die Roll-Aktion in die angegebene Richtung. @param {-1|1} dir */
+  _startRoll(dir) {
+    this._rolling         = true;
+    this._rollDir         = dir;
+    this._rollSpeed       = ROLL_SPEED_INIT;
+    this._rollChargeTimer = 0;
+    this.facingRight      = dir > 0;
+    spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
+  }
+
+  /** Beendet die Roll-Aktion und setzt Roll-Zustand zurück. */
+  _exitRoll() {
+    this._rolling         = false;
+    this._rollSpeed       = 0;
+    this._rollDir         = 0;
+    this._rollChargeTimer = 0;
+  }
+
+  /**
+   * Reduziert Roll-Geschwindigkeit nach Gegner-Treffer + Staub-Burst.
+   * Wird von gameManager._checkRollKill() aufgerufen.
+   */
+  rollHit() {
+    this._rollSpeed *= 0.75;
+    spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h / 2, 5);
+  }
+
+  /**
+   * Verarbeitet Roll-Physik: Reibung, Bewegung, Kollision.
+   * @param {number} dt
+   * @param {import('../core/input.js').InputManager} input
+   * @param {import('../world/tileMap.js').TileMap}   tileMap
+   */
+  _handleRoll(dt, input, tileMap) {
+    // ── Sprung aus Roll heraus ─────────────────────────────────────────────
+    if (this._jumpBuffer > 0 && this.onGround) {
+      this.velY        = JUMP_FORCE;
+      this.onGround    = false;
+      this._jumpBuffer = 0;
+      spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
+      this._exitRoll();
+      return;
+    }
+
+    // ── Reibung ─────────────────────────────────────────────────────────────
+    this._rollSpeed = Math.max(0, this._rollSpeed - ROLL_FRICTION * dt);
+    if (this._rollSpeed < ROLL_MIN_SPEED) {
+      this._exitRoll();
+      return;
+    }
+
+    // ── Gelegentlicher Staub beim schnellen Rollen ──────────────────────────
+    if (this.onGround && this._rollSpeed > ROLL_SPEED_INIT * 0.4) {
+      if (Math.random() < 0.25) {
+        spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 1);
+      }
+    }
+
+    // ── Horizontale Bewegung + Kollision ───────────────────────────────────
+    this.velX = this._rollDir * this._rollSpeed;
+    this.x   += this.velX * dt;
+    this._resolveX(tileMap);
+    if (this.velX === 0) {
+      this._exitRoll();  // Wand getroffen → Roll abbrechen
+      return;
+    }
+
+    // ── Schwerkraft + Vertikale Kollision ─────────────────────────────────
+    this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+    const wasGrounded = this.onGround;
+    this.onGround = false;
+    this.y += this.velY * dt;
+    this._resolveY(tileMap);
+    if (!wasGrounded && this.onGround) {
+      spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
+      this._wallLockSide = 0;
     }
   }
 
@@ -504,6 +629,8 @@ export class Player extends Entity {
       next = 'wallGrab';
     } else if (this._onLadder) {
       next = 'climb';
+    } else if (this._rolling) {
+      next = 'roll';
     } else if (!this.onGround) {
       next = this.velY < FALL_THRESHOLD ? 'jump' : 'fall';
     } else if (input.down) {
