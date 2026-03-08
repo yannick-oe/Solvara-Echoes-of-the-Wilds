@@ -72,7 +72,7 @@ export class GameManager {
     this._pauseScreen    = new PauseScreen({
       onResume:      () => { this.state = GAME_STATES.PLAYING; },
       onRestart:     () => this.restart(),
-      onBackToStart: () => { audioManager.stopMusic(); this._startScreen.reset(); this.state = GAME_STATES.START; },
+      onBackToStart: () => { audioManager.playMusic('assets/audio/music/startMenu.ogg'); this._startScreen.reset(); this.state = GAME_STATES.START; },
     });
 
     this._loop = this._loop.bind(this);
@@ -98,6 +98,7 @@ export class GameManager {
     ]);
 
     inputManager.init();
+    audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
     this.state = GAME_STATES.START;
     this._rafId = requestAnimationFrame(this._loop);
   }
@@ -193,10 +194,7 @@ export class GameManager {
   _setState(next) {
     this.state = next;
     if (next === GAME_STATES.PLAYING) {
-      audioManager.playMusic(
-        'assets/audio/music/level01.ogg',
-        'assets/audio/music/level01.mp3'
-      );
+      audioManager.playMusic('assets/audio/music/level01.ogg');
     }
     if (next === GAME_STATES.VICTORY) {
       audioManager.stopMusic();
@@ -225,6 +223,7 @@ export class GameManager {
   _update(dt) {
     switch (this.state) {
       case GAME_STATES.START:
+        audioManager.playMusic('assets/audio/music/startMenu.ogg');
         this._startScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PLAYING:

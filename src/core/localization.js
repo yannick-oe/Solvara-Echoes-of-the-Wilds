@@ -5,10 +5,15 @@ export const TEXT = {
   en: {
     // Hauptmenü
     start:        'Start Game',
-    language:     'Language',
+    options:      'Options',
     controls:     'Controls',
     credits:      'Credits',
     pressEnter:   'Press Enter to Select',
+
+    // Options-Screen
+    musicVolume:  'Music Volume',
+    sfxVolume:    'SFX Volume',
+    language:     'Language',
 
     // Steuerungsscreen
     move:         'Move',
@@ -27,10 +32,15 @@ export const TEXT = {
   de: {
     // Hauptmenü
     start:        'Spiel starten',
-    language:     'Sprache',
+    options:      'Optionen',
     controls:     'Steuerung',
     credits:      'Credits',
     pressEnter:   'Drücke Enter zum Auswählen',
+
+    // Options-Screen
+    musicVolume:  'Musik-Lautstärke',
+    sfxVolume:    'SFX-Lautstärke',
+    language:     'Sprache',
 
     // Steuerungsscreen
     move:         'Bewegen',
