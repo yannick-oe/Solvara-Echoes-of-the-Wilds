@@ -277,6 +277,9 @@ export class GameManager {
           this._checkHazards();
         }
 
+        // HUD animieren
+        this._hud.update(dt);
+
         // Effekte updaten; inaktive entfernen
         for (const fx of this._effects) fx.update(dt);
         this._effects = this._effects.filter(fx => fx.active);
@@ -418,11 +421,23 @@ export class GameManager {
     const p = this._player;
     for (const pickup of this._pickups) {
       if (!pickup.active) continue;
-      if (p.intersects(pickup)) {
-        pickup.collect(p, this.gameState);
-        if (pickup instanceof StarCoin) {
-          audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3');
-        }
+      if (!p.intersects(pickup)) continue;
+
+      pickup.collect(p, this.gameState);
+
+      // Pickup-Mittelpunkt → Bildschirmkoordinate
+      const sx = pickup.x + pickup.w / 2 - this._camera.x;
+      const sy = pickup.y + pickup.h / 2 - this._camera.y;
+
+      if (pickup instanceof StarCoin) {
+        audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3');
+        this._hud.notify('starCoin', sx, sy);
+      } else if (pickup instanceof Gem) {
+        audioManager.playSfx('assets/audio/sfx/pickupGem.mp3');
+        this._hud.notify('gem', sx, sy);
+      } else if (pickup instanceof Cherry) {
+        audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3');
+        this._hud.notify('heal', sx, sy);
       }
     }
   }
@@ -469,6 +484,7 @@ export class GameManager {
       const lethal = hz instanceof CeilingSpike ? hz.isLethal : true;
       if (lethal && p.intersects(hz)) {
         this.gameState.hearts = 0;
+        this._hud.notify('damage', p.x + p.w / 2 - this._camera.x, p.y - this._camera.y);
         this._handlePlayerDeath();
         return;   // nur ein Treffer pro Frame
       }
@@ -494,6 +510,8 @@ export class GameManager {
       if (!tookDamage) break;
 
       this.gameState.hearts--;
+      // HUD-Schadensfeedback (Herz-Schallen)
+      this._hud.notify('damage', p.x + p.w / 2 - this._camera.x, p.y - this._camera.y);
       if (this.gameState.hearts <= 0) {
         this.gameState.hearts = 0;
         this._handlePlayerDeath();
