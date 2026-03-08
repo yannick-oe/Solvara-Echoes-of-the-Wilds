@@ -154,6 +154,21 @@ class AudioManager {
   }
 
   /**
+   * Spielt einen einmaligen, nicht-loopenden Audio-Sting (z.B. Victory-Jingle).
+   * Verwendet die Musik-Lautstärke und respektiert musicEnabled.
+   * Das Element wird nicht in _musicEl/_musicSrc verfolgt.
+   * @param {string} src
+   */
+  playSting(src) {
+    if (!this.musicEnabled) return;
+    this.stopMusic();
+    const audio = new Audio(src);
+    audio.loop   = false;
+    audio.volume = this.musicVolume;
+    audio.play().catch(() => {});
+  }
+
+  /**
    * Spielt einen einmaligen SFX-Clip.
    * @param {string} src
    */

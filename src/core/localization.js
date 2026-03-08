@@ -34,6 +34,16 @@ export const TEXT = {
     // Allgemein
     returnHint:  'Enter or ESC to return',
     retryHint:   'Press any key to retry',
+
+    // Victory-Screen
+    levelComplete:   'Level Complete',
+    livesRemaining:  'Lives',
+    score:           'Score',
+    gems:            'Gems',
+    time:            'Time',
+    continueHint:    'Enter / Space  –  Continue',
+    menuHint:        'ESC  –  Main Menu',
+    nextPathAwaits:  'A new challenge lies ahead…',
   },
   de: {
     // Hauptmenü
@@ -67,6 +77,16 @@ export const TEXT = {
     // Allgemein
     returnHint:  'Enter oder ESC → Zurück',
     retryHint:   'Beliebige Taste zum Neustarten',
+
+    // Victory-Screen
+    levelComplete:   'Level abgeschlossen',
+    livesRemaining:  'Leben',
+    score:           'Punkte',
+    gems:            'Edelsteine',
+    time:            'Zeit',
+    continueHint:    'Enter / Leertaste  –  Weiter',
+    menuHint:        'ESC  –  Hauptmenü',
+    nextPathAwaits:  'Ein neues Abenteuer wartet auf dich…',
   },
 };
 

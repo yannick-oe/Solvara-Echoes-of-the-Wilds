@@ -63,12 +63,23 @@ export class GameManager {
     this._interactables = [];   // Switch, Door
     this._hazards       = [];   // FloorSpike, CeilingSpike
     this._hud           = new Hud(imageCache);
-    this._deathTimeoutId  = null;
-    this._victoryPoseTimer = 0;  // > 0 while victory pose plays before screen switch
+    this._deathTimeoutId       = null;
+    this._victoryPoseTimer     = 0;      // > 0 während Sieges-Pose
+    this._levelTimer           = 0;      // Spielzeit des aktuellen Levels (Sekunden)
+    this._finalLevelTime       = 0;      // eingefroren beim Sieg
+    this._victoryTransitionId  = null;   // setTimeout-Handle für Victory-Übergang
 
     this._startScreen   = new StartScreen(() => this.restart());
     this._gameOverScreen = new GameOverScreen(() => this.restart());
-    this._victoryScreen  = new VictoryScreen(() => this.restart());
+    this._victoryScreen = new VictoryScreen({
+      onRestart:  () => this.restart(),
+      onMainMenu: () => {
+        audioManager.stopMusic();
+        this._startScreen.reset();
+        audioManager.playMusic('assets/audio/music/startMenu.ogg');
+        this.state = GAME_STATES.START;
+      },
+    });
     this._pauseScreen    = new PauseScreen({
       onResume:      () => { this.state = GAME_STATES.PLAYING; },
       onRestart:     () => this.restart(),
@@ -108,7 +119,12 @@ export class GameManager {
       clearTimeout(this._deathTimeoutId);
       this._deathTimeoutId = null;
     }
+    if (this._victoryTransitionId !== null) {
+      clearTimeout(this._victoryTransitionId);
+      this._victoryTransitionId = null;
+    }
     intervalManager.stopAll();
+    this._levelTimer    = 0;
     this.gameState      = createGameState();
     this._player        = this._createPlayer();
     this._enemies       = this._spawnEnemies();
@@ -196,9 +212,7 @@ export class GameManager {
     if (next === GAME_STATES.PLAYING) {
       audioManager.playMusic('assets/audio/music/level01.ogg');
     }
-    if (next === GAME_STATES.VICTORY) {
-      audioManager.stopMusic();
-    }
+    // VICTORY: Audio wird separat in _startVictorySequence verwaltet
   }
 
   _loop(timestamp) {
@@ -237,10 +251,19 @@ export class GameManager {
         if (this._victoryPoseTimer > 0) {
           this._victoryPoseTimer -= dt;
           if (this._victoryPoseTimer <= 0) {
-            this._setState(GAME_STATES.VICTORY);
+            this._victoryPoseTimer = 0;
+            audioManager.fadeOutMusic(250);
+            this._victoryTransitionId = setTimeout(() => {
+              this._victoryTransitionId = null;
+              audioManager.playSting('assets/audio/music/victory.mp3');
+              this._victoryScreen.show(this.gameState, this._finalLevelTime);
+              this.state = GAME_STATES.VICTORY;
+            }, 380);
           }
           break;
         }
+        // Level-Timer: läuft nur während aktivem Spiel (nicht während Sieges-Pose)
+        this._levelTimer += dt;
 
         this._player.update(dt, inputManager, this._level.tileMap);
 
@@ -299,6 +322,7 @@ export class GameManager {
         this._gameOverScreen.handleInput(inputManager);
         break;
       case GAME_STATES.VICTORY:
+        this._victoryScreen.update(dt);
         this._victoryScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PAUSED:
@@ -326,7 +350,7 @@ export class GameManager {
         this._gameOverScreen.draw(this.ctx);
         break;
       case GAME_STATES.VICTORY:
-        this._victoryScreen.draw(this.ctx, this.gameState);
+        this._victoryScreen.draw(this.ctx);
         break;
     }
   }
@@ -470,6 +494,7 @@ export class GameManager {
   _startVictorySequence() {
     this._player.startVictoryPose();
     this._victoryPoseTimer = 0.9;   // Sekunden Sieges-Pose sichtbar
+    this._finalLevelTime   = this._levelTimer;
   }
 
   /**
