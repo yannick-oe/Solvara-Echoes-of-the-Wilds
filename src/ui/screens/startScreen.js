@@ -6,8 +6,8 @@ import { audioManager } from '../../core/audioManager.js';
 // Reihenfolge der Menüpunkte
 const MENU_IDS = ['start', 'options', 'controls', 'credits'];
 
-// Options-Screen: drei Zeilen
-const OPTIONS_IDS = ['musicVolume', 'sfxVolume', 'language'];
+// Options-Screen: vier Zeilen
+const OPTIONS_IDS = ['masterVolume', 'musicVolume', 'sfxVolumeMaster', 'language'];
 
 // Layout-Konstanten (CANVAS_HEIGHT = 480, CY = 240)
 const CX            = CANVAS_WIDTH  / 2;
@@ -28,7 +28,7 @@ const FOOTER_Y = WOOD_Y + WOOD_H + 22;           // 410
 
 // Sub-Screen-Panel (Steuerung / Credits)
 const PANEL_W = 480;
-const PANEL_H = 300;
+const PANEL_H = 380;
 const PANEL_X = (CANVAS_WIDTH  - PANEL_W) / 2;   // 120
 const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;   // 90
 
@@ -125,12 +125,15 @@ export class StartScreen {
     this._prevLeft  = leftNow;
     this._prevRight = rightNow;
 
-    if (row === 'musicVolume') {
+    if (row === 'masterVolume') {
+      if (leftEdge)  audioManager.setMasterVolume(audioManager.masterVolume - 0.1);
+      if (rightEdge) audioManager.setMasterVolume(audioManager.masterVolume + 0.1);
+    } else if (row === 'musicVolume') {
       if (leftEdge)  audioManager.setMusicVolume(audioManager.musicVolume - 0.1);
       if (rightEdge) audioManager.setMusicVolume(audioManager.musicVolume + 0.1);
-    } else if (row === 'sfxVolume') {
-      if (leftEdge)  audioManager.setSfxVolume(audioManager.sfxVolume - 0.1);
-      if (rightEdge) audioManager.setSfxVolume(audioManager.sfxVolume + 0.1);
+    } else if (row === 'sfxVolumeMaster') {
+      if (leftEdge)  audioManager.setSfxVolumeMaster(audioManager.sfxVolumeMaster - 0.1);
+      if (rightEdge) audioManager.setSfxVolumeMaster(audioManager.sfxVolumeMaster + 0.1);
     } else if (row === 'language') {
       if (leftEdge || rightEdge || input.enterPressed || input.jumpPressed) {
         this._toggleLang();
@@ -378,8 +381,10 @@ export class StartScreen {
       ctx.textBaseline = 'middle';
       ctx.fillText(t(id), PANEL_X + 28, y - 10);
 
-      if (id === 'musicVolume' || id === 'sfxVolume') {
-        const vol   = id === 'musicVolume' ? audioManager.musicVolume : audioManager.sfxVolume;
+      if (id === 'masterVolume' || id === 'musicVolume' || id === 'sfxVolumeMaster') {
+        const vol = id === 'masterVolume'    ? audioManager.masterVolume
+                  : id === 'musicVolume'     ? audioManager.musicVolume
+                  :                           audioManager.sfxVolumeMaster;
         const steps = 10;
         const barX  = PANEL_X + 28;
         const barW  = PANEL_W - 56;

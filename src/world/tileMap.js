@@ -1,5 +1,18 @@
 import { TILE_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
 
+// Kachel-zu-Landegeräusch-Mapping.   key = Tile-Schlüssel im Level-JSON
+// Weitere Biome können hier einfach ergänzt werden.
+const LANDING_SOUND_BY_TILE = {
+  g: 'assets/audio/sfx/grassLanding.mp3',
+  d: 'assets/audio/sfx/grassLanding.mp3',
+};
+
+// Kachel-zu-Schrittgeräusch-Mapping.  Gleiche Biom-Logik wie Landing.
+const FOOTSTEP_SOUND_BY_TILE = {
+  g: 'assets/audio/sfx/grassLanding.mp3',
+  d: 'assets/audio/sfx/grassLanding.mp3',
+};
+
 export class TileMap {
   /**
    * @param {object}           data          Geparster JSON-Inhalt von level_XX.json
@@ -67,6 +80,36 @@ export class TileMap {
       if (this.isLadder(midCol, row)) return true;
     }
     return false;
+  }
+
+  /**
+   * Gibt den SFX-Pfad für das Landegeräusch zurück, das dem Tile unter den
+   * Spielerfüßen entspricht, oder null wenn kein Mapping existiert.
+   * @param {number} worldX  Mittelpunkt der Spielerhitbox (X)
+   * @param {number} feetY   Unterkante der Spielerhitbox (Y)
+   * @returns {string|null}
+   */
+  getLandingSound(worldX, feetY) {
+    const col = Math.floor(worldX / TILE_SIZE);
+    const row = Math.floor(feetY  / TILE_SIZE);
+    const key = this._map[row]?.[col];
+    return key ? (LANDING_SOUND_BY_TILE[key] ?? null) : null;
+  }
+
+  /**
+   * Gibt den SFX-Pfad für das Schrittgeräusch zurück, das dem Tile unter den
+   * Spielerfüßen entspricht, oder null wenn kein Mapping existiert.
+   * Das Mapping ist separat von getLandingSound, damit Biome unterschiedliche
+   * Schritt- und Lande-Sounds haben können.
+   * @param {number} worldX  Mittelpunkt der Spielerhitbox (X)
+   * @param {number} feetY   Unterkante der Spielerhitbox (Y)
+   * @returns {string|null}
+   */
+  getFootstepSound(worldX, feetY) {
+    const col = Math.floor(worldX / TILE_SIZE);
+    const row = Math.floor(feetY  / TILE_SIZE);
+    const key = this._map[row]?.[col];
+    return key ? (FOOTSTEP_SOUND_BY_TILE[key] ?? null) : null;
   }
 
   /**

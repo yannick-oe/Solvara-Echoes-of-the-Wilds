@@ -16,8 +16,10 @@ export const TEXT = {
     mainMenu:     'Main Menu',
 
     // Options-Screen
-    musicVolume:  'Music Volume',
-    sfxVolume:    'SFX Volume',
+    masterVolume:    'Master Volume',
+    musicVolume:     'Music Volume',
+    sfxVolumeMaster: 'SFX Volume',
+    sfxVolume:       'SFX Volume',
     language:     'Language',
 
     // Steuerungsscreen
@@ -59,8 +61,10 @@ export const TEXT = {
     mainMenu:     'Hauptmenü',
 
     // Options-Screen
-    musicVolume:  'Musik-Lautstärke',
-    sfxVolume:    'SFX-Lautstärke',
+    masterVolume:    'Master-Lautstärke',
+    musicVolume:     'Musik-Lautstärke',
+    sfxVolumeMaster: 'SFX-Lautstärke',
+    sfxVolume:       'SFX-Lautstärke',
     language:     'Sprache',
 
     // Steuerungsscreen

@@ -12,15 +12,23 @@ class AudioManager {
     /** Aktives Fade-Intervall (null = kein Fade läuft). */
     this._fadeInterval = null;
 
-    /** Lautstärke für Musik (0.0–1.0). */
-    this.musicVolume = 0.8;
-    /** Lautstärke für SFX (0.0–1.0). */
-    this.sfxVolume   = 1.0;
+    /** Master-Lautstärke (0.0–1.0) – übergeordneter Regler für alles. */
+    this.masterVolume    = 1.0;
+    /** Musik-Kanal-Lautstärke (0.0–1.0). */
+    this.musicVolume     = 0.8;
+    /** SFX-Kanal-Lautstärke (0.0–1.0). */
+    this.sfxVolumeMaster = 0.6;
 
     /** Ob Musik generell aktiviert ist. */
     this.musicEnabled = true;
     /** Ob SFX generell aktiviert sind. */
     this.sfxEnabled   = true;
+
+    /** Laufende Loop-SFX nach Key. @type {Map<string, HTMLAudioElement>} */
+    this._loopedSfx = new Map();
+
+    // Gespeicherte Einstellungen laden (überschreibt ggf. die Defaults)
+    this._loadSettings();
   }
 
   /**
@@ -68,25 +76,77 @@ class AudioManager {
     if (this._fadeInterval !== null) {
       clearInterval(this._fadeInterval);
       this._fadeInterval = null;
-      if (this._musicEl) this._musicEl.volume = this.musicVolume;
+      if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
     }
   }
 
   /**
-   * Musik-Lautstärke ändern (0.0–1.0).
+   * Berechnete Endlautstärke für Musik: masterVolume × musicVolume, max 1.0.
+   * @returns {number}
+   */
+  get _musicFinalVol() {
+    return Math.min(1.0, this.masterVolume * this.musicVolume);
+  }
+
+  /**
+   * Master-Lautstärke ändern (0.0–1.0). Betrifft sofort Musik und künftige SFX.
+   * @param {number} value
+   */
+  setMasterVolume(value) {
+    this.masterVolume = Math.max(0, Math.min(1, value));
+    if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
+    this._saveSettings();
+  }
+
+  /**
+   * Musik-Kanal-Lautstärke ändern (0.0–1.0).
    * @param {number} value
    */
   setMusicVolume(value) {
     this.musicVolume = Math.max(0, Math.min(1, value));
-    if (this._musicEl) this._musicEl.volume = this.musicVolume;
+    if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
+    this._saveSettings();
   }
 
   /**
-   * SFX-Lautstärke ändern (0.0–1.0).
+   * SFX-Kanal-Lautstärke ändern (0.0–1.0).
    * @param {number} value
    */
-  setSfxVolume(value) {
-    this.sfxVolume = Math.max(0, Math.min(1, value));
+  setSfxVolumeMaster(value) {
+    this.sfxVolumeMaster = Math.max(0, Math.min(1, value));
+    this._saveSettings();
+  }
+
+  /**
+   * Lautstärke-Einstellungen aus localStorage laden.
+   * Existierende Werte überschreiben die Defaults; fehlende Werte bleiben beim Default.
+   */
+  _loadSettings() {
+    try {
+      const raw = localStorage.getItem('solvaraAudioSettings');
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (typeof s.masterVolume    === 'number')  this.masterVolume    = Math.max(0, Math.min(1, s.masterVolume));
+      if (typeof s.musicVolume     === 'number')  this.musicVolume     = Math.max(0, Math.min(1, s.musicVolume));
+      if (typeof s.sfxVolumeMaster === 'number')  this.sfxVolumeMaster = Math.max(0, Math.min(1, s.sfxVolumeMaster));
+      if (typeof s.musicEnabled    === 'boolean') this.musicEnabled    = s.musicEnabled;
+      if (typeof s.sfxEnabled      === 'boolean') this.sfxEnabled      = s.sfxEnabled;
+    } catch {}
+  }
+
+  /**
+   * Aktuelle Lautstärke-Einstellungen in localStorage sichern.
+   */
+  _saveSettings() {
+    try {
+      localStorage.setItem('solvaraAudioSettings', JSON.stringify({
+        masterVolume:    this.masterVolume,
+        musicVolume:     this.musicVolume,
+        sfxVolumeMaster: this.sfxVolumeMaster,
+        musicEnabled:    this.musicEnabled,
+        sfxEnabled:      this.sfxEnabled,
+      }));
+    } catch {}
   }
 
   /**
@@ -119,7 +179,7 @@ class AudioManager {
     this._musicSrc = oggSrc;
     const audio    = new Audio(oggSrc);
     audio.loop     = true;
-    audio.volume   = this.musicVolume;
+    audio.volume   = this._musicFinalVol;
     this._musicEl  = audio;
     audio.play().catch(() => {});
   }
@@ -135,7 +195,7 @@ class AudioManager {
     const audio   = new Audio(src);
     audio.preload = 'auto';
     audio.loop    = true;
-    audio.volume  = this.musicVolume;
+    audio.volume  = this._musicFinalVol;
     this._musicSrc = src;
     this._musicEl  = audio;
   }
@@ -164,19 +224,53 @@ class AudioManager {
     this.stopMusic();
     const audio = new Audio(src);
     audio.loop   = false;
-    audio.volume = this.musicVolume;
+    audio.volume = this._musicFinalVol;
     audio.play().catch(() => {});
   }
 
   /**
    * Spielt einen einmaligen SFX-Clip.
+   * Lautstärke-Hierarchie: MASTER × SFX-KANAL × individuelle Balance (aus SFX_VOLUME).
    * @param {string} src
+   * @param {{ volume?: number }} [options]  Individuelle SFX-Balance aus SFX_VOLUME (0.0–1.5)
    */
-  playSfx(src) {
+  playSfx(src, options) {
     if (!this.sfxEnabled) return;
-    const audio = new Audio(src);
-    audio.volume = this.sfxVolume;
+    const audio  = new Audio(src);
+    const sfxBal = options?.volume !== undefined
+      ? Math.min(1.5, Math.max(0, options.volume))
+      : 1.0;
+    audio.volume = Math.min(1.0, this.masterVolume * this.sfxVolumeMaster * sfxBal);
     audio.play().catch(() => {});
+  }
+
+  /**
+   * Startet einen dauerhaft loopenden SFX-Clip unter einem frei wählbaren Key.
+   * Ein vorher laufender Clip mit demselben Key wird automatisch gestoppt.
+   * @param {string} key  Eindeutiger Bezeichner (z. B. 'roll')
+   * @param {string} src  Pfad zur Audio-Datei
+   */
+  playLoopedSfx(key, src) {
+    this.stopLoopedSfx(key);
+    if (!this.sfxEnabled) return;
+    const audio   = new Audio(src);
+    audio.loop    = true;
+    audio.volume  = Math.min(1.0, this.masterVolume * this.sfxVolumeMaster);
+    audio.play().catch(() => {});
+    this._loopedSfx.set(key, audio);
+  }
+
+  /**
+   * Stoppt und entfernt einen loopenden SFX-Clip.
+   * @param {string} key
+   */
+  stopLoopedSfx(key) {
+    const audio = this._loopedSfx.get(key);
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      this._loopedSfx.delete(key);
+    }
   }
 }
 

@@ -1,4 +1,24 @@
 import { Entity } from './entity.js';
+import { audioManager } from '../core/audioManager.js';
+import { SFX_VOLUME }   from '../config/audioConfig.js';
+import {
+  ROLL_CHARGE_TIME,
+  ROLL_SPEED_INIT,
+  ROLL_FRICTION,
+  ROLL_MIN_SPEED,
+  INVUL_DURATION,
+  HURT_DURATION,
+  BLINK_INTERVAL,
+  KNOCKBACK_X,
+  KNOCKBACK_Y,
+  WALL_SLIDE_GRAVITY,
+  WALL_SLIDE_MAX_SPEED,
+  WALL_JUMP_X,
+  WALL_JUMP_Y,
+  CLIMB_SPEED,
+  COYOTE_TIME,
+  JUMP_BUFFER,
+} from '../config/playerConfig.js';
 import {
   TILE_SIZE,
   GRAVITY,
@@ -40,31 +60,7 @@ const ANIM = {
 
 const FALL_FRAME = 1;
 
-// ─── Schaden / Unverwundbarkeit ───────────────────────────────────────────────
-const INVUL_DURATION = 1.1;
-const HURT_DURATION  = 0.35;
-const BLINK_INTERVAL = 0.09;
-const KNOCKBACK_X    = 280;
-const KNOCKBACK_Y    = -340;
-
-// ─── Wall Grab / Jump ─────────────────────────────────────────────────────────
-const WALL_SLIDE_GRAVITY   = 180;   // px/s² — reduzierte Schwerkraft am Wandgriff
-const WALL_SLIDE_MAX_SPEED = 90;    // px/s — maximale Gleitgeschwindigkeit
-const WALL_JUMP_X          = 380;   // px/s — horizontales Abstoßen
-const WALL_JUMP_Y          = -680;  // px/s — vertikale Wandsprung-Kraft
-
-// ─── Roll ─────────────────────────────────────────────────────────────────────
-const ROLL_CHARGE_TIME = 0.22;  // s – down + Richtung halten bis Roll startet
-const ROLL_SPEED_INIT  = 350;   // px/s – Startgeschwindigkeit
-const ROLL_FRICTION    = 280;   // px/s² – Abbremsung
-const ROLL_MIN_SPEED   = 80;    // px/s – Untergrenze; darunter Roll-Ende
-
-// ─── Leiter ───────────────────────────────────────────────────────────────────
-const CLIMB_SPEED = 120;   // px/s — Klettergeschwindigkeit
-
-// ─── Coyote-Time / Sprungpuffer ───────────────────────────────────────────────
-const COYOTE_TIME = 0.10;  // Sekunden nach Plattformverlassen
-const JUMP_BUFFER = 0.12;  // Sekunden Voraus-Sprungpuffer
+// ─── Spieler-Tuning (alle Werte in src/config/playerConfig.js) ───────────────
 
 // ─── Staub-Partikel ───────────────────────────────────────────────────────────
 const DUST_POOL_SIZE = 24;
@@ -138,6 +134,13 @@ export class Player extends Entity {
     // Drop-Through-Timer: > 0 → One-Way-Plattformen kurz ignorieren (durchfallen)
     this._dropThroughTimer = 0;
 
+    // Lande-Squash-Effekt: scaleY kurz unter 1 nach Landung
+    this._squashTimer = 0;      // > 0 → Squash aktiv
+    this._squashScale = 1.0;    // aktueller Y-Skalierungsfaktor
+
+    // Schritt-SFX-Cadence: Zeit bis zum nächsten Schrittgeräusch
+    this._stepTimer = 0;
+
     // Staub-Partikel
     this._dustPool = makeDustPool();
   }
@@ -164,6 +167,14 @@ export class Player extends Entity {
     if (this._wallPushOffTimer > 0) this._wallPushOffTimer = Math.max(0, this._wallPushOffTimer - dt);
     if (this._ladderExitCooldown > 0) this._ladderExitCooldown = Math.max(0, this._ladderExitCooldown - dt);
     if (this._dropThroughTimer   > 0) this._dropThroughTimer   = Math.max(0, this._dropThroughTimer   - dt);
+    if (this._stepTimer          > 0) this._stepTimer          = Math.max(0, this._stepTimer          - dt);
+    // Squash-Effekt: Scale zurück zu 1 Richtung ablaufendes Timer
+    if (this._squashTimer > 0) {
+      this._squashTimer = Math.max(0, this._squashTimer - dt);
+      this._squashScale = 0.92 + (1.0 - 0.92) * (1 - this._squashTimer / 0.10);
+    } else {
+      this._squashScale = 1.0;
+    }
 
     // Sprungpuffer: Merkt einen zu frühen Sprungdruck
     if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
@@ -309,6 +320,7 @@ export class Player extends Entity {
           this._coyoteTimer = 0;
           this._jumpBuffer  = 0;
           this._atLadderTop = false;
+          audioManager.playSfx('assets/audio/sfx/jumpSound.mp3', { volume: SFX_VOLUME.jump });
           spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
         }
       }
@@ -327,10 +339,24 @@ export class Player extends Entity {
       this.y += this.velY * dt;
       this._resolveY(tileMap);
 
-      // Landedetektion → Staub + Lockout zurücksetzen
+      // Landedetektion → Landegeräusch + Squash + Staub + Lockout zurücksetzen
       if (!wasGrounded && this.onGround) {
+        const landSfx = tileMap.getLandingSound(this.x + this.w / 2, this.y + this.h);
+        if (landSfx) audioManager.playSfx(landSfx, { volume: SFX_VOLUME.landing });
+        this._squashTimer = 0.10;
+        this._squashScale = 0.92;
+        this._stepTimer   = 0.20;  // kurze Pause nach Landung vor erstem Schritt
         spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
         this._wallLockSide = 0;
+      }
+
+      // Schrittgeräusch-Cadence (nur wenn wirklich horizontal bewegt wird)
+      if (this.onGround && this._hurtTimer <= 0 && Math.abs(this.velX) > 20) {
+        if (this._stepTimer <= 0) {
+          const stepSfx = tileMap.getFootstepSound(this.x + this.w / 2, this.y + this.h);
+          if (stepSfx) audioManager.playSfx(stepSfx, { volume: SFX_VOLUME.footstep });
+          this._stepTimer = 0.30;
+        }
       }
     }
 
@@ -416,7 +442,20 @@ export class Player extends Entity {
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
 
-    if (!flipX) {
+    // Squash-Effekt: Sprite kurz nach Landung vertikal einquetschen
+    if (this._squashScale !== 1.0) {
+      const squashH = DRAW_H * this._squashScale;
+      const squashY = dy + (DRAW_H - squashH);   // von Füßen nach oben stauchen
+      if (!flipX) {
+        ctx.drawImage(img, dx, squashY, DRAW_W, squashH);
+      } else {
+        ctx.save();
+        ctx.translate(dx + DRAW_W, squashY);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, 0, 0, DRAW_W, squashH);
+        ctx.restore();
+      }
+    } else if (!flipX) {
       ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
     } else {
       ctx.save();
@@ -600,6 +639,7 @@ export class Player extends Entity {
     this._rollSpeed       = ROLL_SPEED_INIT;
     this._rollChargeTimer = 0;
     this.facingRight      = dir > 0;
+    audioManager.playLoopedSfx('roll', 'assets/audio/sfx/rollSound.mp3');
     spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
   }
 
@@ -609,6 +649,7 @@ export class Player extends Entity {
     this._rollSpeed       = 0;
     this._rollDir         = 0;
     this._rollChargeTimer = 0;
+    audioManager.stopLoopedSfx('roll');
   }
 
   /**

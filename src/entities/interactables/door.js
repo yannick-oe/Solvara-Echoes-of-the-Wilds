@@ -10,26 +10,18 @@ export class Door extends Entity {
    * @param {number} y  Weltkoordinate oben  (Hitbox)
    */
   constructor(x, y) {
-    // Hitbox: schmaler als Sprite, aber solide wenn geschlossen
     super(x, y, 32, 96);
-    this.open = false;
+    /** Tür ist nur passierbar + aktiv wenn ein Schalter sie geöffnet hat. */
+    this.isOpen = false;
   }
 
+  /** Wird vom verknüpften Schalter aufgerufen. */
   unlock() {
-    this.open = true;
-  }
-
-  /**
-   * Gibt true zurück wenn die Tür den Spieler blockiert.
-   * Offene Türen sind passierbar.
-   * @param {import('../player.js').Player} player
-   */
-  blocks(player) {
-    return !this.open && player.intersects(this);
+    this.isOpen = true;
   }
 
   draw(ctx, _cam, imageCache) {
-    const imgKey = this.open ? 'PROP_DOOR_OPENED' : 'PROP_DOOR';
+    const imgKey = this.isOpen ? 'PROP_DOOR_OPENED' : 'PROP_DOOR';
     const img    = imageCache.get(imgKey);
     const ox     = (this.w - DRAW_W) / 2;
 
@@ -37,7 +29,7 @@ export class Door extends Entity {
       ctx.drawImage(img, this.x + ox, this.y, DRAW_W, DRAW_H);
     } else {
       // Fallback: farbiges Rechteck
-      ctx.fillStyle = this.open ? '#5a3a1a55' : '#5a3a1a';
+      ctx.fillStyle = this.isOpen ? '#5a3a1a55' : '#5a3a1a';
       ctx.fillRect(this.x, this.y, this.w, this.h);
     }
   }

@@ -18,6 +18,7 @@ import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
 import { Camera } from './camera.js';
 import { ASSET_ENTRIES } from '../config/assetPaths.js';
+import { SFX_VOLUME }   from '../config/audioConfig.js';
 import { Level } from '../world/level.js';
 import { Parallax } from '../world/parallax.js';
 import { StartScreen } from '../ui/screens/startScreen.js';
@@ -442,7 +443,7 @@ export class GameManager {
 
       // Treffer!
       enemy.stompDie();
-      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound);
+      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
       p.velY = -400;   // kleiner Bounce
     }
@@ -459,7 +460,7 @@ export class GameManager {
       if (!enemy.active || enemy.dead) continue;
       if (!p.intersects(enemy)) continue;
       enemy.stompDie();
-      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound);
+      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
       p.rollHit();  // Geschwindigkeit leicht reduzieren + Staub-Burst
     }
@@ -479,13 +480,13 @@ export class GameManager {
       const sy = pickup.y + pickup.h / 2 - this._camera.y;
 
       if (pickup instanceof StarCoin) {
-        audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3');
+        audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3', { volume: SFX_VOLUME.pickup });
         this._hud.notify('starCoin', sx, sy, pickup.slotIndex);
       } else if (pickup instanceof Gem) {
-        audioManager.playSfx('assets/audio/sfx/pickupGem.mp3');
+        audioManager.playSfx('assets/audio/sfx/pickupGem.mp3', { volume: SFX_VOLUME.pickup });
         this._hud.notify('gem', sx, sy);
       } else if (pickup instanceof Cherry) {
-        audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3');
+        audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3', { volume: SFX_VOLUME.pickup });
         this._hud.notify('heal', sx, sy);
       }
     }
@@ -496,20 +497,14 @@ export class GameManager {
     const p = this._player;
     for (const obj of this._interactables) {
       if (obj instanceof Switch) {
-        if (p.intersects(obj)) obj.activate();
+        if (p.intersects(obj) && obj.activate()) {
+          audioManager.playSfx('assets/audio/sfx/switchSound.mp3', { volume: SFX_VOLUME.switch });
+        }
       } else if (obj instanceof Door) {
-        if (obj.open) {
-          // Offene Tür: Spieler betritt sie → Sieges-Sequenz starten
-          if (p.intersects(obj) && this._victoryPoseTimer <= 0) {
-            this._startVictorySequence();
-          }
-        } else {
-          // Geschlossene Tür: Spieler zurückdrängen
-          if (obj.blocks(p)) {
-            const pushRight = p.x + p.w / 2 < obj.x + obj.w / 2;
-            p.x    = pushRight ? obj.x - p.w : obj.x + obj.w;
-            p.velX = 0;
-          }
+        // Geschlossene Tür: Spieler kann sie nicht aktivieren – kein Kollisionsblocker mehr.
+        // Offene Tür: Spieler betritt sie → Sieges-Sequenz starten.
+        if (obj.isOpen && p.intersects(obj) && this._victoryPoseTimer <= 0) {
+          this._startVictorySequence();
         }
       }
     }
@@ -566,6 +561,8 @@ export class GameManager {
       if (this.gameState.hearts <= 0) {
         this.gameState.hearts = 0;
         this._handlePlayerDeath();
+      } else {
+        audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
       }
       break;  // nur ein Treffer pro Frame
     }
@@ -574,6 +571,7 @@ export class GameManager {
   /** Setzt den Spieler in den Sterbe-Zustand und leitet die Game-Over-Sequenz ein. */
   _handlePlayerDeath() {
     this._player.startDying();
+    audioManager.playSfx('assets/audio/sfx/deathSound.mp3', { volume: SFX_VOLUME.death });
     // Musik schnell ausblenden
     audioManager.fadeOutMusic(300);
     // Nach kurzem Delay in den GAMEOVER-State wechseln
