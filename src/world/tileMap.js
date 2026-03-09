@@ -1,4 +1,5 @@
 import { TILE_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
+import { TILE_REGISTRY } from '../config/tileConfig.js';
 
 // Kachel-zu-Landegeräusch-Mapping.   key = Tile-Schlüssel im Level-JSON
 // Weitere Biome können hier einfach ergänzt werden.
@@ -20,7 +21,9 @@ export class TileMap {
    */
   constructor(data, tilesetImage) {
     this._map        = data.map;
-    this._tiles      = data.tiles;
+    // Registry liefert alle bekannten Kacheln als Fallback;
+    // level-lokale 'tiles'-Einträge überschreiben bei Bedarf einzelne Werte.
+    this._tiles      = { ...TILE_REGISTRY, ...(data.tiles ?? {}) };
     this._cols       = data.meta.columns;
     this._rows       = data.meta.rows;
     this._srcSize    = data.meta.tileSize;   // Quelltile-Größe im PNG (z. B. 16 px)
