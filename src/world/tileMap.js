@@ -15,14 +15,27 @@ export class TileMap {
   }
 
   /**
-   * Gibt true zurück wenn die Gitterzelle solid (nicht passierbar) ist.
+   * Gibt true zurück wenn die Gitterzelle vollständig solid (nicht passierbar) ist.
+   * One-Way-Plattformen (oneWay: true) gelten NICHT als solid – sie haben eigene Kollisionslogik.
    * Zellen außerhalb der Levelgrenzen gelten als solid.
    */
   isSolid(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return true;
     const key = this._map[row]?.[col];
     if (!key) return false;
-    return this._tiles[key]?.pass === false;
+    const tile = this._tiles[key];
+    return tile?.pass === false && !tile?.oneWay;
+  }
+
+  /**
+   * Gibt true zurück wenn die Gitterzelle eine One-Way-Plattform ist
+   * (nur von oben begehbar; Durchspringen von unten und seitlich möglich).
+   */
+  isOneWay(col, row) {
+    if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return false;
+    const key = this._map[row]?.[col];
+    if (!key) return false;
+    return this._tiles[key]?.oneWay === true;
   }
 
   /**
@@ -76,6 +89,9 @@ export class TileMap {
    */
   draw(ctx, camera) {
     if (!this._tilesetImg) return;
+
+    // Pixel-Art: Interpolation beim Atlas-Sampling abschalten
+    ctx.imageSmoothingEnabled = false;
 
     const ts  = TILE_SIZE;
     const src = this._srcSize;

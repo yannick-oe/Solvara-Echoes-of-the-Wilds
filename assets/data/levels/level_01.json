@@ -8,7 +8,7 @@
   "tiles": {
     "g": { "pass": false, "txCol": 1, "txRow": 1 },
     "d": { "pass": false, "txCol": 7, "txRow": 1 },
-    "p": { "pass": false, "txCol": 8, "txRow": 5 },
+    "p": { "pass": false, "oneWay": true, "txCol": 8, "txRow": 5 },
     "l": { "pass": true,  "ladder": true, "txCol": 7, "txRow": 10 }
   },
   "map": [

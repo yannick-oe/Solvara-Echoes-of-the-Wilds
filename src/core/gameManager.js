@@ -338,6 +338,8 @@ export class GameManager {
 
   _draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // Pixel-Art: Interpolation deaktivieren – verhindert Atlas-Bleeding beim Upscaling
+    this.ctx.imageSmoothingEnabled = false;
 
     switch (this.state) {
       case GAME_STATES.START:

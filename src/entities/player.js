@@ -133,6 +133,11 @@ export class Player extends Entity {
     this._rollDir         = 0;
     this._rollSpeed       = 0;
 
+    // One-Way-Plattform: Y-Position der vorherigen Spielerfüße (für Top-Surface-Check)
+    this._prevFeetY = y + PLAYER_H;
+    // Drop-Through-Timer: > 0 → One-Way-Plattformen kurz ignorieren (durchfallen)
+    this._dropThroughTimer = 0;
+
     // Staub-Partikel
     this._dustPool = makeDustPool();
   }
@@ -158,6 +163,7 @@ export class Player extends Entity {
     if (this._hurtTimer   > 0) this._hurtTimer   = Math.max(0, this._hurtTimer   - dt);
     if (this._wallPushOffTimer > 0) this._wallPushOffTimer = Math.max(0, this._wallPushOffTimer - dt);
     if (this._ladderExitCooldown > 0) this._ladderExitCooldown = Math.max(0, this._ladderExitCooldown - dt);
+    if (this._dropThroughTimer   > 0) this._dropThroughTimer   = Math.max(0, this._dropThroughTimer   - dt);
 
     // Sprungpuffer: Merkt einen zu frühen Sprungdruck
     if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
@@ -279,6 +285,24 @@ export class Player extends Entity {
 
         // Sprung mit Coyote-Time + Sprungpuffer
         const canJump = this.onGround || this._coyoteTimer > 0;
+
+        // Drop-Through: DOWN + Sprung auf One-Way-Plattform → durchfallen statt springen
+        if (this.onGround && input.down && this._jumpBuffer > 0 && this._dropThroughTimer <= 0) {
+          const _ts = TILE_SIZE;
+          const _fRow = Math.floor((this.y + this.h) / _ts);
+          const _lCol = Math.floor(this.x / _ts);
+          const _rCol = Math.floor((this.x + this.w - 1) / _ts);
+          for (let _c = _lCol; _c <= _rCol; _c++) {
+            if (tileMap.isOneWay(_c, _fRow)) {
+              this._dropThroughTimer = 0.18;
+              this._jumpBuffer       = 0;
+              this.onGround          = false;
+              this._coyoteTimer      = 0;
+              break;
+            }
+          }
+        }
+
         if (this._jumpBuffer > 0 && canJump) {
           this.velY         = JUMP_FORCE;
           this.onGround     = false;
@@ -299,6 +323,7 @@ export class Player extends Entity {
       // Y bewegen + Kollision
       const wasGrounded = this.onGround;
       this.onGround = false;
+      this._prevFeetY = this.y + this.h;
       this.y += this.velY * dt;
       this._resolveY(tileMap);
 
@@ -540,6 +565,7 @@ export class Player extends Entity {
     // Y-Bewegung mit Boden-Kollision – verhindert Durchgleiten durch Böden
     const wasGrounded = this.onGround;
     this.onGround = false;
+    this._prevFeetY = this.y + this.h;
     this.y += this.velY * dt;
     this._resolveY(tileMap);
     if (!wasGrounded && this.onGround) {
@@ -638,6 +664,7 @@ export class Player extends Entity {
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
     const wasGrounded = this.onGround;
     this.onGround = false;
+    this._prevFeetY = this.y + this.h;
     this.y += this.velY * dt;
     this._resolveY(tileMap);
     if (!wasGrounded && this.onGround) {
@@ -794,11 +821,22 @@ export class Player extends Entity {
       const bottomRow = Math.floor(probeY / ts);
 
       for (let col = leftCol; col <= rightCol; col++) {
+        // Vollständig solide Kachel: immer blockieren
         if (tileMap.isSolid(col, bottomRow)) {
           this.y        = bottomRow * ts - this.h;
           this.velY     = 0;
           this.onGround = true;
           return;
+        }
+        // One-Way-Plattform: nur landen wenn Spieler von oben kommt und nicht durchfällt
+        if (this._dropThroughTimer <= 0 && tileMap.isOneWay(col, bottomRow)) {
+          const platformTop = bottomRow * ts;
+          if (this._prevFeetY <= platformTop) {
+            this.y        = platformTop - this.h;
+            this.velY     = 0;
+            this.onGround = true;
+            return;
+          }
         }
       }
     } else {
