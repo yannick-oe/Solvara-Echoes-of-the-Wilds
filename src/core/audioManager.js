@@ -249,13 +249,17 @@ class AudioManager {
    * Ein vorher laufender Clip mit demselben Key wird automatisch gestoppt.
    * @param {string} key  Eindeutiger Bezeichner (z. B. 'roll')
    * @param {string} src  Pfad zur Audio-Datei
+   * @param {{ volume?: number }} [options]  Individuelle SFX-Balance aus SFX_VOLUME (0.0–1.5)
    */
-  playLoopedSfx(key, src) {
+  playLoopedSfx(key, src, options) {
     this.stopLoopedSfx(key);
     if (!this.sfxEnabled) return;
+    const sfxBal = options?.volume !== undefined
+      ? Math.min(1.5, Math.max(0, options.volume))
+      : 1.0;
     const audio   = new Audio(src);
     audio.loop    = true;
-    audio.volume  = Math.min(1.0, this.masterVolume * this.sfxVolumeMaster);
+    audio.volume  = Math.min(1.0, this.masterVolume * this.sfxVolumeMaster * sfxBal);
     audio.play().catch(() => {});
     this._loopedSfx.set(key, audio);
   }

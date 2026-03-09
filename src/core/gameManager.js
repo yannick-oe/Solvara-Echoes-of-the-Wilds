@@ -19,6 +19,7 @@ import { intervalManager } from './intervalManager.js';
 import { Camera } from './camera.js';
 import { ASSET_ENTRIES } from '../config/assetPaths.js';
 import { SFX_VOLUME }   from '../config/audioConfig.js';
+import { PROP_REGISTRY, PROP_ASSET_ENTRIES } from '../config/propConfig.js';
 import { Level } from '../world/level.js';
 import { Parallax } from '../world/parallax.js';
 import { StartScreen } from '../ui/screens/startScreen.js';
@@ -63,6 +64,7 @@ export class GameManager {
     this._pickups       = [];
     this._interactables = [];   // Switch, Door
     this._hazards       = [];   // FloorSpike, CeilingSpike
+    this._props         = [];   // Dekorative Weltprop-Objekte (JSON-driven)
     this._hud           = new Hud(imageCache);
     this._deathTimeoutId       = null;
     this._victoryPoseTimer     = 0;      // > 0 während Sieges-Pose
@@ -93,6 +95,7 @@ export class GameManager {
   async start() {
     this._drawLoadingScreen();
     await imageCache.preload(ASSET_ENTRIES);
+    await imageCache.preload(PROP_ASSET_ENTRIES);
     await this._level.load('assets/data/levels/level_01.json');
 
     this._player  = this._createPlayer();
@@ -100,6 +103,7 @@ export class GameManager {
     this._pickups  = this._spawnPickups();
     this._interactables = this._spawnInteractables();
     this._hazards       = this._spawnHazards();
+    this._props         = this._spawnProps();
     this._effects  = [];
     this._camera.y = 0;
 
@@ -134,6 +138,7 @@ export class GameManager {
     this._pickups       = this._spawnPickups();
     this._interactables = this._spawnInteractables();
     this._hazards       = this._spawnHazards();
+    this._props         = this._spawnProps();
     this._effects       = [];
     this._camera.x      = 0;
     this._camera.y      = 0;
@@ -207,6 +212,32 @@ export class GameManager {
         default:
           return null;
       }
+    }).filter(Boolean);
+  }
+
+  /**
+   * Erstellt die Liste der dekorativen Props aus content.props im Level-JSON.
+   * Jeder Eintrag wird zu einem leichtgewichtigen Datenobjekt normalisiert.
+   * Kein Gameplay-Einfluss – rein visuell.
+   */
+  _spawnProps() {
+    const defs = this._level.content?.props ?? [];
+    return defs.map(def => {
+      const entry = PROP_REGISTRY[def.asset];
+      if (!entry) {
+        console.warn(`[Props] Unbekanntes Prop-Asset: '${def.asset}' – wird übersprungen.`);
+        return null;
+      }
+      return {
+        key:   entry.key,
+        x:     def.x ?? 0,
+        y:     def.y ?? 0,
+        layer: def.layer  ?? 'back',
+        scale: def.scale  ?? 1,
+        flipX: def.flipX  ?? false,
+        flipY: def.flipY  ?? false,
+        alpha: def.alpha  ?? 1,
+      };
     }).filter(Boolean);
   }
 
@@ -374,6 +405,9 @@ export class GameManager {
 
     this._level.tileMap?.draw(this.ctx, this._camera);
 
+    // Dekorative Props – Ebene "back" (hinter Spielfiguren)
+    this._drawProps('back');
+
     // Gefahren hinter dem Spieler zeichnen
     for (const hz of this._hazards) {
       hz.draw(this.ctx, this._camera, imageCache);
@@ -396,6 +430,9 @@ export class GameManager {
       if (pickup.active) pickup.draw(this.ctx, this._camera, imageCache);
     }
 
+    // Dekorative Props – Ebene "front" (vor Spielfiguren)
+    this._drawProps('front');
+
     this.ctx.restore();
 
     // Beleuchtungs-Overlay (Screen-Space): wärmt Farben auf, fügt vertikalen Lichtfall hinzu
@@ -409,6 +446,41 @@ export class GameManager {
 
     // 3. HUD im Screen-Space
     this._hud.draw(this.ctx, this.gameState);
+  }
+
+  /**
+   * Zeichnet alle Props der angegebenen Ebene.
+   * Wird innerhalb des Kamera-Transforms aufgerufen (Weltkoordinaten).
+   * @param {'back'|'front'} layer
+   */
+  _drawProps(layer) {
+    const ctx = this.ctx;
+    for (const prop of this._props) {
+      if (prop.layer !== layer) continue;
+      const img = imageCache.get(prop.key);
+      if (!img) continue;
+
+      const w = img.naturalWidth  * prop.scale;
+      const h = img.naturalHeight * prop.scale;
+
+      ctx.save();
+      if (prop.alpha !== 1) ctx.globalAlpha = prop.alpha;
+
+      if (prop.flipX || prop.flipY) {
+        const sx = prop.flipX ? -1 : 1;
+        const sy = prop.flipY ? -1 : 1;
+        ctx.translate(
+          prop.x + (prop.flipX ? w : 0),
+          prop.y + (prop.flipY ? h : 0)
+        );
+        ctx.scale(sx, sy);
+        ctx.drawImage(img, 0, 0, w, h);
+      } else {
+        ctx.drawImage(img, prop.x, prop.y, w, h);
+      }
+
+      ctx.restore();
+    }
   }
 
   /**

@@ -53,6 +53,16 @@
     "interactables": [
       { "type": "door",   "id": 0, "x": 1008, "y": 288 },
       { "type": "switch",         "x": 824,  "y": 360, "linkedDoor": 0 }
+    ],
+    "props": [
+      { "asset": "pine",   "x": 24,   "y": 288, "layer": "back"  },
+      { "asset": "bush",   "x": 96,   "y": 358, "layer": "back"  },
+      { "asset": "rock",   "x": 330,  "y": 364, "layer": "back"  },
+      { "asset": "crate",  "x": 384,  "y": 350, "layer": "front" },
+      { "asset": "shrooms","x": 576,  "y": 362, "layer": "back"  },
+      { "asset": "sign",   "x": 48,   "y": 348, "layer": "front" },
+      { "asset": "pine",   "x": 850,  "y": 264, "layer": "back"  },
+      { "asset": "rock-2", "x": 960,  "y": 364, "layer": "back"  }
     ]
   }
 }

@@ -639,7 +639,7 @@ export class Player extends Entity {
     this._rollSpeed       = ROLL_SPEED_INIT;
     this._rollChargeTimer = 0;
     this.facingRight      = dir > 0;
-    audioManager.playLoopedSfx('roll', 'assets/audio/sfx/rollSound.mp3');
+    audioManager.playLoopedSfx('roll', 'assets/audio/sfx/rollSound.mp3', { volume: SFX_VOLUME.roll });
     spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
   }
 

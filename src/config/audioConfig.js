@@ -14,4 +14,5 @@ export const SFX_VOLUME = {
   hurt:      0.6,
   death:     1.0,
   switch:    0.5,
+  roll:      0.4,
 };
