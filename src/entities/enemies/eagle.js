@@ -28,6 +28,7 @@ export class EagleEnemy extends Enemy {
 
     this._minY = minY;
     this._maxY = maxY;
+    this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
 
     // Startet nach unten fliegend
     this.velY        = PATROL_SPEED;

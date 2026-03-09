@@ -440,6 +440,7 @@ export class GameManager {
 
       // Treffer!
       enemy.stompDie();
+      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound);
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
       p.velY = -400;   // kleiner Bounce
     }
@@ -456,6 +457,7 @@ export class GameManager {
       if (!enemy.active || enemy.dead) continue;
       if (!p.intersects(enemy)) continue;
       enemy.stompDie();
+      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound);
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
       p.rollHit();  // Geschwindigkeit leicht reduzieren + Staub-Burst
     }

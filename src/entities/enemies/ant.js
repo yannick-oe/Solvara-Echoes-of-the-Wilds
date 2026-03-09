@@ -20,6 +20,7 @@ export class AntEnemy extends Enemy {
     super(x, y, 32, 32);
     this.speed       = 60;
     this.facingRight = true;
+    this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
 
     this._frameIndex = 0;
     this._frameTimer = 0;

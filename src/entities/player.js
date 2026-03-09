@@ -115,8 +115,10 @@ export class Player extends Entity {
     this._wallLockSide = 0;      // gesperrte Seite – bis Gegenseite berührt wird
 
     // Klettern
-    this._onLadder    = false;
-    this._climbMoving = false;
+    this._onLadder           = false;
+    this._climbMoving        = false;
+    this._atLadderTop        = false;  // steht an Leiteroberkante – DOWN erlaubt Wiedereinsteigen
+    this._ladderExitCooldown = 0;      // verhindert sofortiges Wiedereinsteigen nach Oberkante
 
     // Coyote-Time / Sprungpuffer
     this._coyoteTimer = 0;
@@ -155,22 +157,56 @@ export class Player extends Entity {
     if (this._invulTimer  > 0) this._invulTimer  = Math.max(0, this._invulTimer  - dt);
     if (this._hurtTimer   > 0) this._hurtTimer   = Math.max(0, this._hurtTimer   - dt);
     if (this._wallPushOffTimer > 0) this._wallPushOffTimer = Math.max(0, this._wallPushOffTimer - dt);
+    if (this._ladderExitCooldown > 0) this._ladderExitCooldown = Math.max(0, this._ladderExitCooldown - dt);
 
     // Sprungpuffer: Merkt einen zu frühen Sprungdruck
     if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
     else if (this._jumpBuffer > 0) this._jumpBuffer = Math.max(0, this._jumpBuffer - dt);
 
-    // ── Leiter-Overlap prüfen ──────────────────────────────────────────────
-    const canLadder    = this._hurtTimer <= 0;
+    // ── Leiter-Einstieg von Leiteroberkante (μuss VOR overlapLadder-Check stehen!) ────
+    // Spieler steht auf solidem Boden direkt über einem Leitertile und drückt DOWN.
+    if (!this._onLadder && this._atLadderTop && this._hurtTimer <= 0 &&
+        input.down && !this._rolling) {
+      const _ts  = TILE_SIZE;
+      const _col = Math.floor((this.x + this.w / 2) / _ts);
+      const _fr  = Math.floor((this.y + this.h) / _ts);
+      if (tileMap.isLadder(_col, _fr + 1)) {
+        // Spieler minimal in das Leitertile versetzen, damit isOnLadder sofort true wird
+        this.y = (_fr + 1) * _ts - this.h + 1;
+        this._atLadderTop = false;
+        this._enterLadder();
+      } else {
+        this._atLadderTop = false;  // Leiter nicht mehr darunter
+      }
+    }
+
+    // ── Leiter-Overlap prüfen ──────────────────────────────────────────────────────
+    const canLadder     = this._hurtTimer <= 0;
     const overlapLadder = canLadder && tileMap.isOnLadder(this.x, this.y, this.w, this.h);
 
-    // Leiter-Einstieg
-    if (!this._onLadder && overlapLadder && (input.up || input.down)) {
+    // atLadderTop beräinigen wenn Spieler sich vom Leiterkanal wegbewegt hat
+    if (this._atLadderTop && !this._onLadder) {
+      const _ts  = TILE_SIZE;
+      const _col = Math.floor((this.x + this.w / 2) / _ts);
+      const _fr  = Math.floor((this.y + this.h) / _ts);
+      if (!tileMap.isLadder(_col, _fr + 1)) this._atLadderTop = false;
+    }
+
+    // Leiter-Einstieg (normaler Overlap-Pfad)
+    if (!this._onLadder && overlapLadder && this._ladderExitCooldown <= 0 && (input.up || input.down)) {
+      this._atLadderTop = false;
       this._enterLadder();
     }
     // Leiter-Ausstieg
     if (this._onLadder) {
       if (!overlapLadder) {
+        // Verlässt der Spieler die Leiter nach oben (velY ≤ 0), Cooldown + Flag setzen,
+        // damit er nicht sofort wieder einsteigt und normal auf dem Boden landet.
+        if (this.velY <= 0) {
+          this.velY = 0;
+          this._atLadderTop = true;
+          this._ladderExitCooldown = 0.2;
+        }
         this._exitLadder();
       } else if (input.jumpPressed) {
         this._exitLadder();
@@ -248,6 +284,7 @@ export class Player extends Entity {
           this.onGround     = false;
           this._coyoteTimer = 0;
           this._jumpBuffer  = 0;
+          this._atLadderTop = false;
           spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
         }
       }
@@ -290,6 +327,7 @@ export class Player extends Entity {
     this._invulTimer = INVUL_DURATION;
     // Wandgriff + Leiter + Roll sofort abbrechen
     this._wallGrabSide = 0;
+    this._atLadderTop  = false;
     this._exitLadder();
     this._exitRoll();
     return true;
@@ -304,6 +342,7 @@ export class Player extends Entity {
     this.velX        = 0;
     this.velY        = -200;
     this._wallGrabSide = 0;
+    this._atLadderTop  = false;
     this._exitLadder();
     this._exitRoll();
   }
@@ -315,6 +354,7 @@ export class Player extends Entity {
     this.velX       = 0;
     this.velY       = 0;
     this._wallGrabSide = 0;
+    this._atLadderTop  = false;
     this._exitLadder();
     this._exitRoll();
   }
@@ -366,6 +406,7 @@ export class Player extends Entity {
 
   _enterLadder() {
     this._onLadder     = true;
+    this._atLadderTop  = false;
     this._wallGrabSide = 0;
     this.velX          = 0;
     this.velY          = 0;
@@ -410,9 +451,20 @@ export class Player extends Entity {
       return;
     }
 
-    // Obere Kante: kein Leitertile mehr → aussteigen (nach oben rausklimmen)
+    // Obere Kante: kein Leitertile mehr → auf Oberseite der Leiter einrasten
     const topRow = Math.floor(this.y / ts);
     if (this.velY < 0 && !tileMap.isLadder(col, topRow)) {
+      // Füße bündig auf der Oberkante der obersten Leitertile platzieren
+      // (topRow + 1) ist die letzte Leitertile; ihre Oberkante liegt bei (topRow+1)*ts
+      this.y    = (topRow + 1) * ts - this.h;
+      this.velY = 0;
+      // Wenn direkt über der Leiter eine solide Plattform liegt, darauf einrasten
+      if (tileMap.isSolid(col, topRow)) {
+        this.y        = topRow * ts - this.h;
+        this.onGround = true;
+      }
+      this._atLadderTop        = true;   // Leiteroberkante: DOWN-Taste erlaubt Wiedereinsteigen
+      this._ladderExitCooldown  = 0.15;  // Flicker-Sperre: sofortiges Wiedereinsteigen verhindern
       this._exitLadder();
     }
   }

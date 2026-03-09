@@ -1,7 +1,10 @@
 import { Entity } from '../entity.js';
 
 const FRAME_COUNT = 4;
-const ANIM_FPS    = 8;   // Effekt dauert ~0,5 s
+const ANIM_FPS    = 6;   // 4 Frames × 1/6 s ≈ 0,67 s sichtbar
+
+// Skalierung pro Frame: Frame 0 ploppt auf, dann blendet der Effekt aus
+const FRAME_SCALE = [1.35, 1.0, 0.88, 0.78];
 
 /** Einmaliger Tod-Effekt – Entity wird nach dem letzten Frame inaktiv. */
 export class DeathEffect extends Entity {
@@ -10,8 +13,9 @@ export class DeathEffect extends Entity {
    * @param {number} y  Weltkoordinate oben des gestorbenen Gegners
    */
   constructor(x, y) {
-    // Effekt zentriert über der Spawn-Position
-    super(x - 16, y, 32, 32);
+    // Effekt zentriert über der Spawn-Position, etwas größer und leicht nach oben versetzt
+    const W = 56, H = 56;
+    super(x - W / 2, y - 10, W, H);
     this._frameIndex = 0;
     this._frameTimer = 0;
     this.done        = false;
@@ -41,6 +45,14 @@ export class DeathEffect extends Entity {
     if (this.done) return;
     const img = imageCache.get(`DEATH_EFFECT_${this._frameIndex}`);
     if (!img) return;
-    ctx.drawImage(img, this.x, this.y, this.w, this.h);
+
+    const scale = FRAME_SCALE[this._frameIndex] ?? 1;
+    const drawW = this.w * scale;
+    const drawH = this.h * scale;
+    const drawX = this.x + (this.w - drawW) / 2;
+    const drawY = this.y + (this.h - drawH) / 2;
+
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
   }
 }
+

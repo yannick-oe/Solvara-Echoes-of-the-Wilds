@@ -7,6 +7,7 @@ export class Enemy extends Entity {
     this.facingRight = true;
     this.dead        = false;
     this.speed       = 60;
+    this.deathSound  = null;
   }
 
   /** Wird aufgerufen wenn der Player den Gegner von oben trifft. */

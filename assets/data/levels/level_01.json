@@ -19,9 +19,9 @@
     ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,"p","p","p","l",null,null,null,null,null,null,null,null,null,null,null,null],
-    ["g","g","g","g","g","g",null,null,"g","g","g","g","l","g","g","g","g","g","g","g","g","g","g","g","g"],
-    ["d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,"p","p","p","p",null,null,null,null,null,null,null,null,null,null,null,null],
+    ["g","g","g","g","g","g",null,"l","g","g","g","g","l","g","g","g","g","g","g","g","g","g","g","g","g"],
+    ["d","d","d","d","d","d",null,"l","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
   ],

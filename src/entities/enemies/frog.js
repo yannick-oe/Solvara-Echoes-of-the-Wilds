@@ -28,6 +28,8 @@ export class FrogEnemy extends Enemy {
   constructor(x, y) {
     super(x, y, FROG_W, FROG_H);
 
+    this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
+
     // Zustand: 'idle' | 'jumping'
     this._state      = 'idle';
     this._idleTimer  = IDLE_DURATION;
