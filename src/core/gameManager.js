@@ -228,15 +228,23 @@ export class GameManager {
         console.warn(`[Props] Unbekanntes Prop-Asset: '${def.asset}' – wird übersprungen.`);
         return null;
       }
+      // Endgültige Skalierung: defaultScale (Registry) × Instanz-Skale (Level-JSON).
+      // scaleX / scaleY überschreiben den einheitlichen scale-Wert achsenweise.
+      const base     = entry.defaultScale ?? 1;
+      const instU    = def.scale  ?? 1;   // uniformer Fallback
+      const scaleX   = base * (def.scaleX ?? instU);
+      const scaleY   = base * (def.scaleY ?? instU);
+
       return {
-        key:   entry.key,
-        x:     def.x ?? 0,
-        y:     def.y ?? 0,
-        layer: def.layer  ?? 'back',
-        scale: def.scale  ?? 1,
-        flipX: def.flipX  ?? false,
-        flipY: def.flipY  ?? false,
-        alpha: def.alpha  ?? 1,
+        key:    entry.key,
+        x:      def.x     ?? 0,
+        y:      def.y     ?? 0,
+        layer:  def.layer ?? 'back',
+        scaleX,
+        scaleY,
+        flipX:  def.flipX ?? false,
+        flipY:  def.flipY ?? false,
+        alpha:  def.alpha ?? 1,
       };
     }).filter(Boolean);
   }
@@ -460,8 +468,8 @@ export class GameManager {
       const img = imageCache.get(prop.key);
       if (!img) continue;
 
-      const w = img.naturalWidth  * prop.scale;
-      const h = img.naturalHeight * prop.scale;
+      const w = img.naturalWidth  * prop.scaleX;
+      const h = img.naturalHeight * prop.scaleY;
 
       ctx.save();
       if (prop.alpha !== 1) ctx.globalAlpha = prop.alpha;
