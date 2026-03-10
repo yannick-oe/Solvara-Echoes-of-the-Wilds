@@ -2,67 +2,98 @@
   "level": "level_01",
   "meta": {
     "tileSize": 16,
-    "columns": 25,
-    "rows": 12
+    "columns": 50,
+    "rows": 18
   },
-  "tiles": {
-    "g": { "pass": false, "txCol": 1, "txRow": 1 },
-    "d": { "pass": false, "txCol": 7, "txRow": 1 },
-    "p": { "pass": false, "oneWay": true, "txCol": 8, "txRow": 5 },
-    "l": { "pass": true,  "ladder": true, "txCol": 7, "txRow": 10 }
-  },
+  "tiles": {},
   "map": [
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"p","p",null,null,null,null],
-    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    ["d",null,null,"d",null,null,null,null,null,null,null,null,null,null,null,"p","p","p",null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,"p","p","p","p",null,null,null,null,null,null,null,null,null,null,null,null],
-    ["g","g","g","g","g","g",null,"l","g","g","g","g","l","g","g","g","g","g","g","g","g","g","g","g","g"],
-    ["d","d","d","d","d","d",null,"l","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","d","d","d","d","d","d","d","d","d","d",null,null,null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"g","g","g",null,null,null,null,null,"d","d","d","d","d","d","d","d","d","d","d","d",null,null,null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g"],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","l","d","d","g","g","g","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","g","g","g","g","g"],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["g","dg","dg","dv","g","dg","dv","dv","g",null,null,"g","dg","dg","dv","g","dg","dv","dv","dv","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
   ],
   "content": {
-    "playerSpawn": { "x": 96, "y": 336 },
+    "playerSpawn": { "x": 72, "y": 372 },
+
     "enemies": [
-      { "type": "ant",   "x": 240, "y": 352 },
-      { "type": "frog",  "x": 480, "y": 304 },
-      { "type": "eagle", "x": 768, "minY": 48, "maxY": 192 }
+      { "type": "ant",   "x": 240,  "y": 372 },
+      { "type": "frog",  "x": 624,  "y": 180 },
+      { "type": "eagle", "x": 1008, "minY": 96, "maxY": 180 },
+      { "type": "frog",  "x": 1392, "y": 72 },
+      { "type": "ant",   "x": 1872, "y": 372 }
     ],
+
     "pickups": [
-      { "type": "gem", "x": 144,  "y": 360 },
-      { "type": "gem", "x": 192,  "y": 360 },
-      { "type": "gem", "x": 528,  "y": 360 },
-      { "type": "gem", "x": 576,  "y": 360 },
-      { "type": "gem", "x": 672,  "y": 360 },
-      { "type": "gem", "x": 720,  "y": 360 },
-      { "type": "starCoin", "x": 486, "y": 306, "slotIndex": 0 },
-      { "type": "starCoin", "x": 774, "y": 210, "slotIndex": 1 },
-      { "type": "starCoin", "x": 918, "y": 114, "slotIndex": 2 },
-      { "type": "cherry",   "x": 1056, "y": 220 }
+      { "type": "gem", "x": 144,  "y": 648 },
+      { "type": "gem", "x": 192,  "y": 648 },
+      { "type": "gem", "x": 264,  "y": 648 },
+
+      { "type": "starCoin", "x": 336, "y": 552, "slotIndex": 0 },
+
+      { "type": "gem", "x": 480,  "y": 504 },
+      { "type": "gem", "x": 528,  "y": 504 },
+      { "type": "gem", "x": 624,  "y": 504 },
+      { "type": "gem", "x": 720,  "y": 504 },
+      { "type": "gem", "x": 816,  "y": 504 },
+
+      { "type": "gem", "x": 1008, "y": 312 },
+      { "type": "gem", "x": 1056, "y": 264 },
+      { "type": "gem", "x": 1104, "y": 216 },
+
+      { "type": "starCoin", "x": 1152, "y": 192, "slotIndex": 1 },
+
+      { "type": "gem", "x": 1296, "y": 216 },
+      { "type": "gem", "x": 1344, "y": 168 },
+      { "type": "gem", "x": 1392, "y": 120 },
+
+      { "type": "gem", "x": 1632, "y": 168 },
+      { "type": "gem", "x": 1680, "y": 168 },
+      { "type": "gem", "x": 1728, "y": 168 },
+
+      { "type": "starCoin", "x": 1728, "y": 96, "slotIndex": 2 },
+
+      { "type": "cherry",   "x": 1776, "y": 384 },
+
+      { "type": "gem", "x": 1968, "y": 648 },
+      { "type": "gem", "x": 2064, "y": 648 },
+      { "type": "gem", "x": 2160, "y": 648 },
+      { "type": "gem", "x": 2256, "y": 648 }
     ],
+
     "hazards": [
-      { "type": "floorSpike",   "x": 434, "y": 354 },
-      { "type": "floorSpike",   "x": 479, "y": 354 },
-      { "type": "ceilingSpike", "x": 624, "y": 2, "triggers": false },
-      { "type": "ceilingSpike", "x": 718, "y": 2, "triggers": true, "triggerRange": 88 }
+      { "type": "floorSpike", "x": 528,  "y": 704 },
+      { "type": "floorSpike", "x": 573,  "y": 704 },
+      { "type": "floorSpike", "x": 1920, "y": 704 },
+      { "type": "floorSpike", "x": 1965, "y": 704 }
     ],
+
     "interactables": [
-      { "type": "door",   "id": 0, "x": 1008, "y": 288 },
-      { "type": "switch",         "x": 824,  "y": 360, "linkedDoor": 0 }
+      { "type": "door",   "id": 0, "x": 2256, "y": 528 },
+      { "type": "switch",           "x": 1992, "y": 672, "linkedDoor": 0 }
     ],
+
     "props": [
-      { "asset": "pine",   "x": 27,   "y": 253, "layer": "back"  },
-      { "asset": "bush",   "x": 96,   "y": 355, "layer": "back"  },
-      { "asset": "rock",   "x": 330,  "y": 364, "layer": "back"  },
-      { "asset": "crate",  "x": 384,  "y": 350, "layer": "front" },
-      { "asset": "shrooms","x": 576,  "y": 362, "layer": "back"  },
-      { "asset": "sign",   "x": 48,   "y": 320, "layer": "front" },
-      { "asset": "pine",   "x": 850,  "y": 264, "layer": "back"  },
-      { "asset": "rock-2", "x": 960,  "y": 364, "layer": "back"  }
+      { "asset": "pine",    "x": -10,  "y": 555, "layer": "back"  },
+      { "asset": "bush",    "x": 80,   "y": 662, "layer": "back"  },
+      { "asset": "pine",    "x": 300,  "y": 555, "layer": "back"  },
+      { "asset": "sign",    "x": 65,   "y": 622, "layer": "front" },
+      { "asset": "bush",    "x": 430,  "y": 662, "layer": "back"  },
+      { "asset": "rock",    "x": 490,  "y": 695, "layer": "back"  },
+      { "asset": "shrooms", "x": 660,  "y": 695, "layer": "back"  },
+      { "asset": "pine",    "x": 870,  "y": 555, "layer": "back"  },
+      { "asset": "rock-2",  "x": 1200, "y": 695, "layer": "back"  },
+      { "asset": "rock",    "x": 1560, "y": 695, "layer": "back"  },
+      { "asset": "shrooms", "x": 1640, "y": 358, "layer": "back"  },
+      { "asset": "skulls",  "x": 1900, "y": 670, "layer": "back"  },
+      { "asset": "rock-1",  "x": 2150, "y": 695, "layer": "back"  }
     ]
   }
 }

@@ -1,15 +1,18 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
 
+// Spieler erscheint im unteren Drittel – mehr Sicht nach oben (Platformer-typisch)
+const PLAYER_SCREEN_Y = CANVAS_HEIGHT * 0.66;
+
 export class Camera {
   constructor() {
     this.x = 0;
     this.y = 0;
   }
 
-  /** Zentriert die Kamera auf ein Entity. */
+  /** Folgt einem Entity: horizontal zentriert, vertikal im unteren Drittel. */
   follow(target) {
     this.x = target.x + target.w / 2 - CANVAS_WIDTH  / 2;
-    this.y = target.y + target.h / 2 - CANVAS_HEIGHT / 2;
+    this.y = target.y + target.h / 2 - PLAYER_SCREEN_Y;
   }
 
   /** Klemmt die Kamera an die Levelgrenzen – nach follow() aufrufen. */

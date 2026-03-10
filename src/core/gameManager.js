@@ -352,15 +352,15 @@ export class GameManager {
         for (const fx of this._effects) fx.update(dt);
         this._effects = this._effects.filter(fx => fx.active);
 
-        // Kamera X: Spieler zentriert, an Levelbreite geclampt
-        this._camera.x = this._player.x + this._player.w / 2 - CANVAS_WIDTH / 2;
-        this._camera.x = Math.max(0, Math.min(this._camera.x, this._level.width - CANVAS_WIDTH));
-        // Kamera Y: weich nach oben verschieben wenn Spieler hochschaut
+        // Kamera folgt Spieler auf beiden Achsen, dann an Levelgrenzen klemmen
+        this._camera.follow(this._player);
+        // Look-Up-Offset additiv aufaddieren (weiche Interpolation)
         {
           const target = this._player.state === 'lookUp' ? -CAM_LOOKUP_OFFSET : 0;
           this._camLookOffset += (target - this._camLookOffset) * Math.min(CAM_LERP_SPEED * dt, 1);
-          this._camera.y = Math.round(this._camLookOffset);
+          this._camera.y += this._camLookOffset;
         }
+        this._camera.clamp(this._level.width, this._level.height);
         break;
       case GAME_STATES.GAMEOVER:
         this._gameOverScreen.update(dt);
