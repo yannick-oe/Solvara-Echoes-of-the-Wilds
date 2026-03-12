@@ -11,14 +11,21 @@
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"g","g","g",null,null,null,null,null,"d","d","d","d","d","d","d","d","d","d","d","d",null,null,null,null,null,null,null,null,null,null],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g"],
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","l","d","d","g","g","g","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","g","g","g","g","g"],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["g","dg","dg","dv","g","dg","dv","dv","g",null,null,"g","dg","dg","dv","g","dg","dv","dv","dv","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
+    [null,null,null,null,null,null,null,null,null,null,null,"g",null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,"d","d","l","d","d",null,null,null,"d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,"srr","src","sc",null,null,null,null,null,null,null,null,"d","l","d","d","g","g","g","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","g","g","g","g","g"],
+    [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    ["g","dg","dg","dv","dg","g","l","g","dv","dv","dg","d","dd","dg","dv","g","dg","dv","dv","dv","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["di","di","lr2","di","ll2","dv2","l","g2","di","di","di","di","di","di","di","di","di","di","di","di","di","di","l","di","di","di","di","di","di","di",null,null,"di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di"],
+    ["ll2","di","di","lr2","di","dv2","l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["gf","df","df","gf","df","dv2","l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["d","d","d","d","d","dv2","l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
+    
   ],
   "content": {
     "playerSpawn": { "x": 72, "y": 372 },
@@ -81,7 +88,7 @@
     ],
 
     "props": [
-      { "asset": "pine",    "x": -10,  "y": 555, "layer": "back"  },
+      { "asset": "wooden-house",    "x": 32,  "y": 275, "layer": "back"  },
       { "asset": "bush",    "x": 80,   "y": 662, "layer": "back"  },
       { "asset": "pine",    "x": 300,  "y": 555, "layer": "back"  },
       { "asset": "sign",    "x": 65,   "y": 622, "layer": "front" },
