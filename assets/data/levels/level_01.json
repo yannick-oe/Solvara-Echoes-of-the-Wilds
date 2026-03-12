@@ -16,16 +16,16 @@
     [null,null,null,null,null,null,null,null,null,"srr","src","sc",null,null,null,null,null,null,null,null,"d","l","d","d","g","g","g","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","g","g","g","g","g"],
     [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
     [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-    ["g","dg","dg","dv","dg","g","l","g","dv","dv","dg","d","dd","dg","dv","g","dg","dv","dv","dv","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["di","di","lr2","di","ll2","dv2","l","g2","di","di","lr2","di","ll2","di","di","di","di","di","di","di","di","di","l","di","di","di","di","di","di","di",null,null,"di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di"],
-    ["ll2","di","di","lr2","di","dv2","l","g2","di","di","lr2","di","ll2","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["di","lr2","df","gf","df","dv2","l","g2","gf","gf","df","df","df","gf","df","gf","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["di","atr","ate","ts3","ts4","ts5","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["df","abr","ts3","ts4","ts5","ts3","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["dv2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
+    ["g","dg","dg","dg","dg","dv","l","g","dg","dg","dg","d","dd","dg","dv","g","dg","dv","dv","dv","d","dv2","l","g2","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["lr2","di","lr2","di","ll2","dv2","l","g2","di","lr2","di","di","ll2","di","di","di","di","di","di","dv2","l","di","d","di","di","di","di","di","di","di",null,null,"di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di"],
+    ["di","ll2","di","lr2","di","dv2","l","g2","di","di","lr2","di","ll2","di","di","di","di","di","di","di","di","dv2","l","g2","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["di","di","lr2","df","df","dvf","l","gf","df","df","df","df","df","df","df","df","di","di","di","di","di","dv2","l","g2","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["ll2","atr","ate","ts3","ts4","ts5","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","di","di","dv2","l","g2","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["df","abr","ts3","ts4","ts5","ts3","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","atl","df","dvf","l","gf","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","l","ts3","atl","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","g2","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","atl","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
     
   ],
   "content": {
@@ -40,47 +40,18 @@
     ],
 
     "pickups": [
-      { "type": "gem", "x": 144,  "y": 648 },
-      { "type": "gem", "x": 192,  "y": 648 },
-      { "type": "gem", "x": 264,  "y": 648 },
+      { "type": "gem", "x": 260,  "y": 330 },
+      { "type": "gem", "x": 360,  "y": 280 },
+      { "type": "gem", "x": 460,  "y": 230 },
 
-      { "type": "starCoin", "x": 336, "y": 552, "slotIndex": 0 },
-
-      { "type": "gem", "x": 480,  "y": 504 },
-      { "type": "gem", "x": 528,  "y": 504 },
-      { "type": "gem", "x": 624,  "y": 504 },
-      { "type": "gem", "x": 720,  "y": 504 },
-      { "type": "gem", "x": 816,  "y": 504 },
-
-      { "type": "gem", "x": 1008, "y": 312 },
-      { "type": "gem", "x": 1056, "y": 264 },
-      { "type": "gem", "x": 1104, "y": 216 },
-
+      { "type": "starCoin", "x": 90, "y": 810, "slotIndex": 0 },
       { "type": "starCoin", "x": 1152, "y": 192, "slotIndex": 1 },
-
-      { "type": "gem", "x": 1296, "y": 216 },
-      { "type": "gem", "x": 1344, "y": 168 },
-      { "type": "gem", "x": 1392, "y": 120 },
-
-      { "type": "gem", "x": 1632, "y": 168 },
-      { "type": "gem", "x": 1680, "y": 168 },
-      { "type": "gem", "x": 1728, "y": 168 },
-
       { "type": "starCoin", "x": 1728, "y": 96, "slotIndex": 2 },
 
-      { "type": "cherry",   "x": 1776, "y": 384 },
-
-      { "type": "gem", "x": 1968, "y": 648 },
-      { "type": "gem", "x": 2064, "y": 648 },
-      { "type": "gem", "x": 2160, "y": 648 },
-      { "type": "gem", "x": 2256, "y": 648 }
+      { "type": "cherry",   "x": 1776, "y": 384 }
     ],
 
     "hazards": [
-      { "type": "floorSpike", "x": 528,  "y": 704 },
-      { "type": "floorSpike", "x": 573,  "y": 704 },
-      { "type": "floorSpike", "x": 1920, "y": 704 },
-      { "type": "floorSpike", "x": 1965, "y": 704 }
     ],
 
     "interactables": [
@@ -91,17 +62,7 @@
     "props": [
       { "asset": "wooden-house",    "x": 32,  "y": 275, "layer": "back"  },
       { "asset": "bush",    "x": 380,   "y": 376, "layer": "back"  },
-      { "asset": "pine",    "x": 170,  "y": 224, "layer": "back"  },
-      { "asset": "sign",    "x": 65,   "y": 622, "layer": "front" },
-      { "asset": "bush",    "x": 430,  "y": 662, "layer": "back"  },
-      { "asset": "rock",    "x": 490,  "y": 695, "layer": "back"  },
-      { "asset": "shrooms", "x": 660,  "y": 695, "layer": "back"  },
-      { "asset": "pine",    "x": 870,  "y": 555, "layer": "back"  },
-      { "asset": "rock-2",  "x": 1200, "y": 695, "layer": "back"  },
-      { "asset": "rock",    "x": 1560, "y": 695, "layer": "back"  },
-      { "asset": "shrooms", "x": 1640, "y": 358, "layer": "back"  },
-      { "asset": "skulls",  "x": 1900, "y": 670, "layer": "back"  },
-      { "asset": "rock-1",  "x": 2150, "y": 695, "layer": "back"  }
+      { "asset": "pine",    "x": 170,  "y": 224, "layer": "back"  }
     ]
   }
 }
