@@ -50,9 +50,9 @@ export const TILE_REGISTRY = {
   d:    { txCol:  7, txRow:  1, pass: false, category: 'ground',   label: 'Dunkle Erde'            },
 
   /** Schräge rechts – Spitze (visuell, kein Solid-Collider) */
-  srr:  { txCol:  9, txRow:  1, pass: true,  category: 'slope',    label: 'Schräge R Anstieg'      },
+  srr:  { txCol:  9, txRow:  1, pass: false,  category: 'slope',    label: 'Schräge R Anstieg'      },
   /** Schräge rechts – innere Kurve */
-  src:  { txCol: 10, txRow:  1, pass: true,  category: 'slope',    label: 'Schräge R Kurve'        },
+  src:  { txCol: 10, txRow:  1, pass: false,  category: 'slope',    label: 'Schräge R Kurve'        },
   /** Boden-Mittelblock */
   sc:   { txCol: 11, txRow:  1, pass: false, category: 'ground',   label: 'Boden Mitte'            },
 
@@ -180,7 +180,7 @@ export const TILE_REGISTRY = {
   // --- Bogen + Leiter + Spezial  Zeile 10  (txRow = 10) ------------------
 
   /** Bogen – obere linke Zwickel (halbtransparent) */
-  atl:  { txCol:  1, txRow: 10, pass: true,  category: 'arch',     label: 'Bogen oben L'           },
+  atl:  { txCol:  1, txRow: 10, pass: false,  category: 'arch',     label: 'Bogen oben L'           },
   /** Bogen – oberer Mittelbogen links */
   atm:  { txCol:  2, txRow: 10, pass: false, category: 'arch',     label: 'Bogen oben Mitte L'     },
   /** Bogen – oberer Mittelbogen rechts */
@@ -199,15 +199,15 @@ export const TILE_REGISTRY = {
   // --- Bogen-Unterzeile 11  (txRow = 11) ----------------------------------
 
   /** Bogen – untere linke Zwickel */
-  abl:  { txCol:  2, txRow: 11, pass: true,  category: 'arch',     label: 'Bogen unten L'          },
+  abl:  { txCol:  2, txRow: 11, pass: false,  category: 'arch',     label: 'Bogen unten L'          },
   /** Bogen – untere rechte Zwickel */
   abr:  { txCol:  4, txRow: 11, pass: false,  category: 'arch',     label: 'Bogen unten R'          },
   /** Tempel-Block 1 */
-  tb:   { txCol: 15, txRow: 11, pass: false, category: 'arch',     label: 'Tempel-Block 1'         },
+  tb:   { txCol: 15, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block 1'         },
   /** Tempel-Block 2 */
-  tba:  { txCol: 17, txRow: 11, pass: false, category: 'arch',     label: 'Tempel-Block 2'         },
+  tba:  { txCol: 17, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block 2'         },
   /** Tempel-Block dunkel */
-  tbd:  { txCol: 19, txRow: 11, pass: false, category: 'arch',     label: 'Tempel-Block dunkel'    },
+  tbd:  { txCol: 19, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block dunkel'    },
 
   // =========================================================================
   // HÖHLEN-BIOM   (Atlas-Zeilen 13 – 21)
@@ -215,40 +215,40 @@ export const TILE_REGISTRY = {
 
   // --- Höhlen-Blöcke  Zeile 13  (txRow = 13) ------------------------------
 
-  cb1:  { txCol:  7, txRow: 13, pass: false, category: 'cave',     label: 'Höhlenblock 1'          },
-  cb2:  { txCol:  9, txRow: 13, pass: false, category: 'cave',     label: 'Höhlenblock 2'          },
-  cb3:  { txCol: 11, txRow: 13, pass: false, category: 'cave',     label: 'Höhlenblock 3'          },
-  cb4:  { txCol: 13, txRow: 13, pass: false, category: 'cave',     label: 'Höhlenblock 4'          },
+  cb1:  { txCol:  7, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 1'          },
+  cb2:  { txCol:  9, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 2'          },
+  cb3:  { txCol: 11, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 3'          },
+  cb4:  { txCol: 13, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 4'          },
 
   // --- Höhlen-Wände + Tempel  Zeile 14  (txRow = 14) ---------------------
 
-  cw1:  { txCol:  7, txRow: 14, pass: false, category: 'cave',     label: 'Höhlenwand 1'           },
-  cw2:  { txCol:  9, txRow: 14, pass: false, category: 'cave',     label: 'Höhlenwand 2'           },
-  cw3:  { txCol: 11, txRow: 14, pass: false, category: 'cave',     label: 'Höhlenwand 3'           },
+  cw1:  { txCol:  7, txRow: 14, pass: true, category: 'cave',     label: 'Höhlenwand 1'           },
+  cw2:  { txCol:  9, txRow: 14, pass: true, category: 'cave',     label: 'Höhlenwand 2'           },
+  cw3:  { txCol: 11, txRow: 14, pass: true, category: 'cave',     label: 'Höhlenwand 3'           },
   /** Tempel-Kachel linke Hälfte */
-  tbt:  { txCol: 15, txRow: 14, pass: false, category: 'temple',   label: 'Tempel-Kachel L'        },
+  tbt:  { txCol: 15, txRow: 14, pass: true, category: 'temple',   label: 'Tempel-Kachel L'        },
   /** Tempel-Kachel Mitte */
-  tbm:  { txCol: 17, txRow: 14, pass: false, category: 'temple',   label: 'Tempel-Kachel Mitte'    },
+  tbm:  { txCol: 17, txRow: 14, pass: true, category: 'temple',   label: 'Tempel-Kachel Mitte'    },
   /** Tempel-Kachel rechte Hälfte */
-  tbe:  { txCol: 19, txRow: 14, pass: false, category: 'temple',   label: 'Tempel-Kachel R'        },
+  tbe:  { txCol: 19, txRow: 14, pass: true, category: 'temple',   label: 'Tempel-Kachel R'        },
 
   // --- Höhlen-Bogenbau  Zeile 15  (txRow = 15) ----------------------------
 
   cl1:  { txCol:  1, txRow: 15, pass: true,  category: 'cave',     label: 'Höhlenbogen oben L'     },
-  cl2:  { txCol:  2, txRow: 15, pass: false, category: 'cave',     label: 'Höhlenbogen oben M-L'   },
-  cl3:  { txCol:  4, txRow: 15, pass: false, category: 'cave',     label: 'Höhlenbogen oben M-R'   },
+  cl2:  { txCol:  2, txRow: 15, pass: true, category: 'cave',     label: 'Höhlenbogen oben M-L'   },
+  cl3:  { txCol:  4, txRow: 15, pass: true, category: 'cave',     label: 'Höhlenbogen oben M-R'   },
   cl4:  { txCol:  5, txRow: 15, pass: true,  category: 'cave',     label: 'Höhlenbogen oben R'     },
   /** Höhlen-Plattform (solid) */
-  cp:   { txCol:  9, txRow: 15, pass: false, category: 'cave',     label: 'Höhlen-Plattform'       },
+  cp:   { txCol:  9, txRow: 15, pass: true, category: 'cave',     label: 'Höhlen-Plattform'       },
 
   // --- Höhlen-Bogen Mitte  Zeile 16  (txRow = 16) -------------------------
 
   cm1:  { txCol:  2, txRow: 16, pass: false, category: 'cave',     label: 'Höhlenbogen Mitte L'    },
   cm2:  { txCol:  4, txRow: 16, pass: false, category: 'cave',     label: 'Höhlenbogen Mitte R'    },
   /** Höhlen-Ranken-Wand */
-  cv1:  { txCol: 11, txRow: 16, pass: false, category: 'cave',     label: 'Höhle Ranken-Wand'      },
-  ts1:  { txCol: 14, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 1'         },
-  ts2:  { txCol: 15, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 2'         },
+  cv1:  { txCol: 11, txRow: 16, pass: true, category: 'cave',     label: 'Höhle Ranken-Wand'      },
+  ts1:  { txCol: 14, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 1'         },
+  ts2:  { txCol: 15, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 2'         },
   ts3:  { txCol: 17, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 3'         },
   ts4:  { txCol: 18, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 4'         },
   ts5:  { txCol: 19, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 5'         },
@@ -256,24 +256,24 @@ export const TILE_REGISTRY = {
   // --- Höhlen-Bogen unten  Zeile 17  (txRow = 17) -------------------------
 
   cb5:  { txCol:  1, txRow: 17, pass: true,  category: 'cave',     label: 'Höhlenbogen unten L'    },
-  cb6:  { txCol:  2, txRow: 17, pass: false, category: 'cave',     label: 'Höhlenbogen unten M-L'  },
-  cb7:  { txCol:  4, txRow: 17, pass: false, category: 'cave',     label: 'Höhlenbogen unten M-R'  },
+  cb6:  { txCol:  2, txRow: 17, pass: true, category: 'cave',     label: 'Höhlenbogen unten M-L'  },
+  cb7:  { txCol:  4, txRow: 17, pass: true, category: 'cave',     label: 'Höhlenbogen unten M-R'  },
   cb8:  { txCol:  5, txRow: 17, pass: true,  category: 'cave',     label: 'Höhlenbogen unten R'    },
-  cv2:  { txCol: 11, txRow: 17, pass: false, category: 'cave',     label: 'Höhle Ranken-Wand 2'    },
-  ts6:  { txCol: 14, txRow: 17, pass: false, category: 'temple',   label: 'Tempel-Stein 6'         },
-  ts7:  { txCol: 15, txRow: 17, pass: false, category: 'temple',   label: 'Tempel-Stein 7'         },
+  cv2:  { txCol: 11, txRow: 17, pass: true, category: 'cave',     label: 'Höhle Ranken-Wand 2'    },
+  ts6:  { txCol: 14, txRow: 17, pass: true, category: 'temple',   label: 'Tempel-Stein 6'         },
+  ts7:  { txCol: 15, txRow: 17, pass: true, category: 'temple',   label: 'Tempel-Stein 7'         },
 
   // --- Höhlen-Boden + Deko  Zeile 18  (txRow = 18) -----------------------
 
-  cfl:  { txCol:  1, txRow: 18, pass: false, category: 'cave',     label: 'Höhlenboden L'          },
-  cfc:  { txCol:  2, txRow: 18, pass: false, category: 'cave',     label: 'Höhlenboden Mitte'      },
-  cfr:  { txCol:  4, txRow: 18, pass: false, category: 'cave',     label: 'Höhlenboden Mitte R'    },
-  cfre: { txCol:  5, txRow: 18, pass: false, category: 'cave',     label: 'Höhlenboden R'          },
+  cfl:  { txCol:  1, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden L'          },
+  cfc:  { txCol:  2, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden Mitte'      },
+  cfr:  { txCol:  4, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden Mitte R'    },
+  cfre: { txCol:  5, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden R'          },
   cvd:  { txCol: 10, txRow: 18, pass: true,  category: 'deco',     label: 'Höhlen-Deko Overlay'    },
-  cvs:  { txCol: 11, txRow: 18, pass: false, category: 'cave',     label: 'Höhle Ranken-Ecke'      },
-  cvc:  { txCol: 12, txRow: 18, pass: false, category: 'cave',     label: 'Höhle Ranken-Winkel'    },
-  ta1:  { txCol: 14, txRow: 18, pass: false, category: 'temple',   label: 'Tempel-Wand 1'          },
-  ta2:  { txCol: 15, txRow: 18, pass: false, category: 'temple',   label: 'Tempel-Wand 2'          },
+  cvs:  { txCol: 11, txRow: 18, pass: true, category: 'cave',     label: 'Höhle Ranken-Ecke'      },
+  cvc:  { txCol: 12, txRow: 18, pass: true, category: 'cave',     label: 'Höhle Ranken-Winkel'    },
+  ta1:  { txCol: 14, txRow: 18, pass: true, category: 'temple',   label: 'Tempel-Wand 1'          },
+  ta2:  { txCol: 15, txRow: 18, pass: true, category: 'temple',   label: 'Tempel-Wand 2'          },
   /** Tempel-Deko (Fackel/Ranke-Overlay, pass:true) */
   tv1:  { txCol: 17, txRow: 18, pass: true,  category: 'deco',     label: 'Tempel-Deko 1'          },
   tv2:  { txCol: 19, txRow: 18, pass: true,  category: 'deco',     label: 'Tempel-Deko 2'          },
@@ -282,19 +282,19 @@ export const TILE_REGISTRY = {
   // --- Tempel-Säule + Dunkle Höhle + Lila Blöcke  Zeile 20  (txRow = 20) -
 
   /** Tempel-Säule oben */
-  ctp1: { txCol:  1, txRow: 20, pass: false, category: 'temple',   label: 'Tempel-Säule oben'      },
+  ctp1: { txCol:  1, txRow: 20, pass: true, category: 'temple',   label: 'Tempel-Säule oben'      },
   /** Tempel-Bogen – linker Bogen */
-  ctp2: { txCol:  3, txRow: 20, pass: false, category: 'temple',   label: 'Tempel-Bogen L'         },
+  ctp2: { txCol:  3, txRow: 20, pass: true, category: 'temple',   label: 'Tempel-Bogen L'         },
   /** Tempel-Bogen – rechter Bogen */
-  ctp3: { txCol:  4, txRow: 20, pass: false, category: 'temple',   label: 'Tempel-Bogen R'         },
-  cbd1: { txCol:  9, txRow: 20, pass: false, category: 'cave',     label: 'Höhle dunkel 1'         },
-  cbd2: { txCol: 10, txRow: 20, pass: false, category: 'cave',     label: 'Höhle dunkel 2'         },
-  cbd3: { txCol: 11, txRow: 20, pass: false, category: 'cave',     label: 'Höhle dunkel 3'         },
+  ctp3: { txCol:  4, txRow: 20, pass: true, category: 'temple',   label: 'Tempel-Bogen R'         },
+  cbd1: { txCol:  9, txRow: 20, pass: true, category: 'cave',     label: 'Höhle dunkel 1'         },
+  cbd2: { txCol: 10, txRow: 20, pass: true, category: 'cave',     label: 'Höhle dunkel 2'         },
+  cbd3: { txCol: 11, txRow: 20, pass: true, category: 'cave',     label: 'Höhle dunkel 3'         },
   /** Lila Deko-Overlay (pass:true) */
   pvd:  { txCol: 13, txRow: 20, pass: true,  category: 'deco',     label: 'Lila Deko'              },
-  pvb1: { txCol: 14, txRow: 20, pass: false, category: 'cave',     label: 'Lila Block 1'           },
-  pvb2: { txCol: 15, txRow: 20, pass: false, category: 'cave',     label: 'Lila Block 2'           },
-  pvb3: { txCol: 17, txRow: 20, pass: false, category: 'cave',     label: 'Lila Block 3'           },
+  pvb1: { txCol: 14, txRow: 20, pass: true, category: 'cave',     label: 'Lila Block 1'           },
+  pvb2: { txCol: 15, txRow: 20, pass: true, category: 'cave',     label: 'Lila Block 2'           },
+  pvb3: { txCol: 17, txRow: 20, pass: true, category: 'cave',     label: 'Lila Block 3'           },
 
   // --- Tempel-Bogen Boden + Höhlen-Boden  Zeile 21  (txRow = 21) ---------
 
