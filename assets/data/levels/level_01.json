@@ -3,7 +3,7 @@
   "meta": {
     "tileSize": 16,
     "columns": 50,
-    "rows": 18
+    "rows": 19
   },
   "tiles": {},
   "map": [
@@ -17,21 +17,22 @@
     [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,"d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
     [null,null,null,null,null,null,null,null,null,null,null,"d",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
     ["g","dg","dg","dv","dg","g","l","g","dv","dv","dg","d","dd","dg","dv","g","dg","dv","dv","dv","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["di","di","lr2","di","ll2","dv2","l","g2","di","di","di","di","di","di","di","di","di","di","di","di","di","di","l","di","di","di","di","di","di","di",null,null,"di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di"],
-    ["ll2","di","di","lr2","di","dv2","l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["gf","df","df","gf","df","dv2","l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d",null,null,null,null,null,"l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
-    ["d","d","d","d","d","dv2","l","g2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
+    ["di","di","lr2","di","ll2","dv2","l","g2","di","di","lr2","di","ll2","di","di","di","di","di","di","di","di","di","l","di","di","di","di","di","di","di",null,null,"di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di","di"],
+    ["ll2","di","di","lr2","di","dv2","l","g2","di","di","lr2","di","ll2","d","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["di","lr2","df","gf","df","dv2","l","g2","gf","gf","df","df","df","gf","df","gf","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["di","atr","ate","ts3","ts4","ts5","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["df","abr","ts3","ts4","ts5","ts3","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","l","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","ts3","ts4","ts5","ts3","ts4","l","ts3","ts4","ts5","ts3","ts4","ts5","ts3","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"],
+    ["dv2","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d",null,null,"d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d","d"]
     
   ],
   "content": {
     "playerSpawn": { "x": 72, "y": 372 },
 
     "enemies": [
-      { "type": "ant",   "x": 240,  "y": 372 },
+      { "type": "ant",   "x": 400,  "y": 372 },
       { "type": "frog",  "x": 624,  "y": 180 },
       { "type": "eagle", "x": 1008, "minY": 96, "maxY": 180 },
       { "type": "frog",  "x": 1392, "y": 72 },
@@ -89,8 +90,8 @@
 
     "props": [
       { "asset": "wooden-house",    "x": 32,  "y": 275, "layer": "back"  },
-      { "asset": "bush",    "x": 80,   "y": 662, "layer": "back"  },
-      { "asset": "pine",    "x": 300,  "y": 555, "layer": "back"  },
+      { "asset": "bush",    "x": 380,   "y": 376, "layer": "back"  },
+      { "asset": "pine",    "x": 170,  "y": 224, "layer": "back"  },
       { "asset": "sign",    "x": 65,   "y": 622, "layer": "front" },
       { "asset": "bush",    "x": 430,  "y": 662, "layer": "back"  },
       { "asset": "rock",    "x": 490,  "y": 695, "layer": "back"  },

@@ -186,7 +186,7 @@ export const TILE_REGISTRY = {
   /** Bogen – oberer Mittelbogen rechts */
   atr:  { txCol:  4, txRow: 10, pass: false, category: 'arch',     label: 'Bogen oben Mitte R'     },
   /** Bogen – obere rechte Zwickel */
-  ate:  { txCol:  5, txRow: 10, pass: true,  category: 'arch',     label: 'Bogen oben R'           },
+  ate:  { txCol:  5, txRow: 10, pass: false,  category: 'arch',     label: 'Bogen oben R'           },
 
   /** Leiter  ★ Pflicht-Kürzel */
   l:    { txCol:  7, txRow: 10, pass: true,  ladder: true, category: 'ladder', label: 'Leiter' },
@@ -201,7 +201,7 @@ export const TILE_REGISTRY = {
   /** Bogen – untere linke Zwickel */
   abl:  { txCol:  2, txRow: 11, pass: true,  category: 'arch',     label: 'Bogen unten L'          },
   /** Bogen – untere rechte Zwickel */
-  abr:  { txCol:  4, txRow: 11, pass: true,  category: 'arch',     label: 'Bogen unten R'          },
+  abr:  { txCol:  4, txRow: 11, pass: false,  category: 'arch',     label: 'Bogen unten R'          },
   /** Tempel-Block 1 */
   tb:   { txCol: 15, txRow: 11, pass: false, category: 'arch',     label: 'Tempel-Block 1'         },
   /** Tempel-Block 2 */
@@ -249,9 +249,9 @@ export const TILE_REGISTRY = {
   cv1:  { txCol: 11, txRow: 16, pass: false, category: 'cave',     label: 'Höhle Ranken-Wand'      },
   ts1:  { txCol: 14, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 1'         },
   ts2:  { txCol: 15, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 2'         },
-  ts3:  { txCol: 17, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 3'         },
-  ts4:  { txCol: 18, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 4'         },
-  ts5:  { txCol: 19, txRow: 16, pass: false, category: 'temple',   label: 'Tempel-Stein 5'         },
+  ts3:  { txCol: 17, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 3'         },
+  ts4:  { txCol: 18, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 4'         },
+  ts5:  { txCol: 19, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 5'         },
 
   // --- Höhlen-Bogen unten  Zeile 17  (txRow = 17) -------------------------
 
