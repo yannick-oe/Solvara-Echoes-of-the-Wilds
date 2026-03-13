@@ -64,11 +64,12 @@
     ],
 
     "hazards": [
-        { "type": "CeilingSpike", "x": 200, "y": 968 },
-        { "type": "spike", "x": 432, "y": 768 },
-        { "type": "spike", "x": 464, "y": 768 },
-        { "type": "spike", "x": 496, "y": 768 },
-        { "type": "spike", "x": 528, "y": 768 }
+        { "type": "floorSpike",    "x": 480,  "y": 1320 },
+        { "type": "floorSpike",    "x": 530,  "y": 1320 },
+        { "type": "ceilingSpike",  "x": 400,  "y": 1000 },
+        { "type": "ceilingSpike",  "x": 450,  "y": 1000 },
+        { "type": "ceilingSpike",  "x": 500,  "y": 1000 },
+        { "type": "ceilingSpike",  "x": 550, "y": 1000, "triggers": true, "triggerRange": 96 }
     ],
 
     "interactables": [
