@@ -67,14 +67,16 @@
     ],
 
     "interactables": [
-      { "type": "door",   "id": 0, "x": 1550, "y": 528 },
+      { "type": "door",   "id": 0, "x": 1525, "y": 528 },
       { "type": "switch",           "x": 1430, "y": 788, "linkedDoor": 0 }
     ],
 
     "props": [
       { "asset": "wooden-house",    "x": 32,  "y": 659, "layer": "back"  },
       { "asset": "bush",    "x": 400,   "y": 760, "layer": "back"  },
-      { "asset": "pine",    "x": 170,  "y": 608, "layer": "back"  }
+      { "asset": "pine",    "x": 170,  "y": 608, "layer": "back"  },
+      { "asset": "tree",    "x": 725,  "y": 650, "layer": "back"  },
+      { "asset": "house",    "x": 1463,  "y": 376, "layer": "back"  }
     ]
   }
 }

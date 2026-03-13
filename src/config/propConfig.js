@@ -20,7 +20,7 @@ export const PROP_REGISTRY = {
   // Fehlt defaultScale, wird automatisch 1 verwendet.
 
   // --- Natur / Bäume ---
-  'tree':            { key: 'PROP_TREE',              src: `${PROPS_PATH}/tree.png`,            defaultScale: 1.6 },
+  'tree':            { key: 'PROP_TREE',              src: `${PROPS_PATH}/tree.png`,            defaultScale: 1.5 },
   'pine':            { key: 'PROP_PINE',              src: `${PROPS_PATH}/pine.png`,            defaultScale: 1.6 },
   'palm':            { key: 'PROP_PALM',              src: `${PROPS_PATH}/palm.png`,            defaultScale: 1.6 },
   'bush':            { key: 'PROP_BUSH',              src: `${PROPS_PATH}/bush.png`,            defaultScale: 2 },
@@ -42,7 +42,7 @@ export const PROP_REGISTRY = {
   'platform-long':   { key: 'PROP_PLATFORM_LONG',     src: `${PROPS_PATH}/platform-long.png`,   defaultScale: 2 },
 
   // --- Gebäude ---
-  'house':           { key: 'PROP_HOUSE',             src: `${PROPS_PATH}/house.png`,           defaultScale: 1.6 },
+  'house':           { key: 'PROP_HOUSE',             src: `${PROPS_PATH}/house.png`,           defaultScale: 2.3 },
   'straw-house':     { key: 'PROP_STRAW_HOUSE',       src: `${PROPS_PATH}/straw-house.png`,     defaultScale: 1.6 },
   'wooden-house':    { key: 'PROP_WOODEN_HOUSE',      src: `${PROPS_PATH}/wooden-house.png`,    defaultScale: 1.6 },
   'tree-house':      { key: 'PROP_TREE_HOUSE',        src: `${PROPS_PATH}/tree-house.png`,      defaultScale: 1.6 },
