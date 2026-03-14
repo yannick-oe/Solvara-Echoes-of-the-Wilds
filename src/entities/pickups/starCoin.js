@@ -2,7 +2,7 @@ import { Pickup } from './pickup.js';
 
 const FRAME_COUNT = 4;
 const FRAME_SEC   = 0.1;  // 100 ms pro Frame
-const SIZE        = 30;   // Zeichengröße in Weltpixeln
+const SIZE        = 45;   // Zeichengröße in Weltpixeln (1,5× für bessere Sichtbarkeit)
 
 export class StarCoin extends Pickup {
   /**

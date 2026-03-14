@@ -4,9 +4,9 @@ import { Enemy } from './enemy.js';
 const EAGLE_W = 48;
 const EAGLE_H = 32;
 
-// Sprite-Zeichengröße (zentriert über Hitbox)
-const DRAW_W  = 64;
-const DRAW_H  = 44;
+// Sprite-Zeichengröße (zentriert über Hitbox) – 1,5× für mehr Bedrohungsgefühl
+const DRAW_W  = 86;
+const DRAW_H  = 56;
 const DRAW_OX = (EAGLE_W - DRAW_W) / 2;
 const DRAW_OY = (EAGLE_H - DRAW_H) / 2;
 

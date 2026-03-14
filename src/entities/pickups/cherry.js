@@ -2,7 +2,7 @@ import { Pickup } from './pickup.js';
 
 const FRAME_COUNT = 7;
 const FRAME_SEC   = 0.1;  // 100 ms pro Frame
-const SIZE        = 24;   // Zeichengröße in Weltpixeln
+const SIZE        = 34;   // Zeichengröße in Weltpixeln (1,4× für bessere Sichtbarkeit)
 
 /** Heilt +1 Herz. Überschreitet niemals heartsMax. */
 export class Cherry extends Pickup {

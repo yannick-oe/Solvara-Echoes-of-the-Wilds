@@ -59,12 +59,9 @@ export class CeilingSpike extends Entity {
       this._drawY += dy;
       this.y      += dy;   // Hitbox mitbewegen
 
-      // Am Boden landen
+      // Boden erreicht: Spike fällt aus der Welt und verschwindet
       if (this._drawY + DRAW_H >= groundY) {
-        this._drawY = groundY - DRAW_H;
-        this.y      = this._drawY + HIT_OY;
-        this.velY   = 0;
-        this._state = 'landed';
+        this.active = false;
       }
     }
   }
@@ -80,6 +77,7 @@ export class CeilingSpike extends Entity {
    * @param {import('../../core/imageCache.js').ImageCache} imageCache
    */
   draw(ctx, _cam, imageCache) {
+    if (!this.active) return;
     const img = imageCache.get('PROP_SPIKES_TOP');
     if (!img) return;
     ctx.drawImage(img, this._drawX, this._drawY, DRAW_W, DRAW_H);

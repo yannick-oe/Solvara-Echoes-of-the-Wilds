@@ -27,8 +27,8 @@ export const PROP_REGISTRY = {
   'shrooms':         { key: 'PROP_SHROOMS',           src: `${PROPS_PATH}/shrooms.png`,         defaultScale: 2.5 },
 
   // --- Felsen ---
-  'rock':            { key: 'PROP_ROCK',              src: `${PROPS_PATH}/rock.png`,            defaultScale: 3 },
-  'rock-1':          { key: 'PROP_ROCK_1',            src: `${PROPS_PATH}/rock-1.png`,          defaultScale: 3 },
+  'rock':            { key: 'PROP_ROCK',              src: `${PROPS_PATH}/rock.png`,            defaultScale: 2 },
+  'rock-1':          { key: 'PROP_ROCK_1',            src: `${PROPS_PATH}/rock-1.png`,          defaultScale: 2 },
   'rock-2':          { key: 'PROP_ROCK_2',            src: `${PROPS_PATH}/rock-2.png`,          defaultScale: 3 },
 
   // --- Behälter / Kisten ---

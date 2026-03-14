@@ -56,6 +56,25 @@
       { "type": "gem", "x": 470,  "y": 600 },
       { "type": "gem", "x": 510,  "y": 550 },
 
+      { "type": "gem", "x": 120,  "y": 780 },
+      { "type": "gem", "x": 168,  "y": 780 },
+      { "type": "gem", "x": 216,  "y": 780 },
+
+      { "type": "gem", "x": 710,  "y": 250 },
+      { "type": "gem", "x": 760,  "y": 250 },
+      { "type": "gem", "x": 845,  "y": 250 },
+      { "type": "gem", "x": 895,  "y": 250 },
+
+      { "type": "gem", "x": 384,  "y": 1200 },
+      { "type": "gem", "x": 480,  "y": 1220 },
+      { "type": "gem", "x": 576,  "y": 1240 },
+
+      { "type": "gem", "x": 960,  "y": 780 },
+      { "type": "gem", "x": 1100, "y": 780 },
+      { "type": "gem", "x": 1250, "y": 780 },
+      { "type": "gem", "x": 1400, "y": 780 },
+      { "type": "gem", "x": 1480, "y": 780 },
+
       { "type": "starCoin", "x": 90, "y": 1200, "slotIndex": 0 },
       { "type": "starCoin", "x": 800, "y": 240, "slotIndex": 1 },
       { "type": "starCoin", "x": 1550, "y": 750, "slotIndex": 2 },
@@ -78,11 +97,17 @@
     ],
 
     "props": [
-      { "asset": "wooden-house",    "x": 32,  "y": 659, "layer": "back"  },
-      { "asset": "bush",    "x": 400,   "y": 760, "layer": "back"  },
-      { "asset": "pine",    "x": 170,  "y": 608, "layer": "back"  },
-      { "asset": "tree",    "x": 725,  "y": 650, "layer": "back"  },
-      { "asset": "house",    "x": 1463,  "y": 376, "layer": "back"  }
+      { "asset": "wooden-house", "x": 32,   "y": 659, "layer": "back" },
+      { "asset": "bush",         "x": 400,  "y": 760, "layer": "back" },
+      { "asset": "pine",         "x": 170,  "y": 608, "layer": "back" },
+      { "asset": "tree",         "x": 728,  "y": 650, "layer": "back" },
+      { "asset": "house",        "x": 1463, "y": 376, "layer": "back" },
+      { "asset": "sign",         "x": 350,  "y": 770, "layer": "back" },
+      { "asset": "rock",         "x": 720,  "y": 786, "layer": "back" },
+      { "asset": "shrooms",      "x": 400,  "y": 1255,"layer": "back" },
+      { "asset": "skulls",       "x": 590,  "y": 1325,"layer": "back" },
+      { "asset": "rock-1",       "x": 1100, "y": 719, "layer": "back" },
+      { "asset": "bush",         "x": 1340, "y": 760, "layer": "back" }
     ]
   }
 }
