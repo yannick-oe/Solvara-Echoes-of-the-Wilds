@@ -2,26 +2,22 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { t } from '../../core/localization.js';
 import { imageCache } from '../../core/imageCache.js';
 
-// ─── Layout (Pixel-Koordinaten, Canvas = 720×480) ─────────────────────────────
-const CX      = CANVAS_WIDTH  / 2;   // 360
-const CY      = CANVAS_HEIGHT / 2;   // 240
-const STAR_CY = 176;   // Y-Mitte der Sternreihe
-const PANEL_W = 280;   // Holzpanel-Breite
-const PANEL_H = 124;   // Holzpanel-Höhe
-const PANEL_X = CX - PANEL_W / 2;   // 220
-const PANEL_Y = 236;   // Holzpanel-Oberkante
+const CX      = CANVAS_WIDTH  / 2;
+const CY      = CANVAS_HEIGHT / 2;
+const STAR_CY = 176;
+const PANEL_W = 280;
+const PANEL_H = 124;
+const PANEL_X = CX - PANEL_W / 2;
+const PANEL_Y = 236;
 
-// Stats-Zeilen: BLOCK_Y = Y-Mitte der ersten Zeile; symmetrisch zu Trennlinien
 const BLOCK_Y = 262;
 const ROW_H   = 24;
-const DIV_Y1  = BLOCK_Y - 12;               // 250 – obere Trennlinie
-const DIV_Y2  = BLOCK_Y + 3 * ROW_H + 12;   // 346 – untere Trennlinie
+const DIV_Y1  = BLOCK_Y - 12;
+const DIV_Y2  = BLOCK_Y + 3 * ROW_H + 12;
 
-// Hinweis-Positionen
-const HINT1_Y = 392;   // primärer Hinweis
-const ATMO_Y  = 428;   // atmosphärische Zeile
+const HINT1_Y = 392;
+const ATMO_Y  = 428;
 
-// ─── Schriften ────────────────────────────────────────────────────────────────
 const FONT_TITLE = 'bold 52px serif';
 const FONT_LABEL = 'bold 12px monospace';
 const FONT_VALUE = 'bold 13px monospace';
@@ -29,7 +25,6 @@ const FONT_STAR  = '58px sans-serif';
 const FONT_HINT  = '13px monospace';
 const FONT_HINT2 = '11px monospace';
 
-// ─── Animations-Zeitstempel (Sekunden ab show()) ───────────────────────────────
 const T_TITLE_DUR = 0.55;
 const T_STAR_0    = 0.70;
 const T_STAR_GAP  = 0.22;
@@ -38,19 +33,16 @@ const T_STATS_IN  = T_STAR_0 + 3 * T_STAR_GAP + T_STAR_DUR + 0.20;
 const T_STATS_DUR = 0.35;
 const T_HINTS_IN  = T_STATS_IN + T_STATS_DUR + 0.10;
 
-// ─── Partikel ─────────────────────────────────────────────────────────────────
 const ATMO_POOL = 55;
-const ATMO_RATE = 0.14;   // Spawn-Intervall (s)
-const SPARK_MAX = 12;     // Funken pro Stern-Pop
+const ATMO_RATE = 0.14;
+const SPARK_MAX = 12;
 
-// ─── Easing ───────────────────────────────────────────────────────────────────
 function easeOutBack(x) {
   const c1 = 1.70158, c3 = c1 + 1;
   return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
 }
 function easeOutQuad(x) { return 1 - (1 - x) * (1 - x); }
 
-// ─── Hilfsfunktionen ──────────────────────────────────────────────────────────
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -58,7 +50,7 @@ function formatTime(seconds) {
 }
 
 function initAtmoParticle(p) {
-  // Goldene Glühwürmchen – verteilt über den gesamten Bildschirm
+
   p.active  = true;
   p.x       = Math.random() * CANVAS_WIDTH;
   p.y       = CANVAS_HEIGHT * 0.35 + Math.random() * (CANVAS_HEIGHT * 0.72);
@@ -96,16 +88,13 @@ function makePool(size) {
   return pool;
 }
 
-// ─── VictoryScreen ────────────────────────────────────────────────────────────
 export class VictoryScreen {
-  /**
-   * @param {{ onRestart: Function, onMainMenu: Function }} callbacks
-   */
+
   constructor({ onRestart, onMainMenu }) {
     this._onRestart  = onRestart;
     this._onMainMenu = onMainMenu;
 
-    this._data        = null;   // Spielstatistik-Snapshot
+    this._data        = null;
     this._levelTime   = 0;
     this._time        = 0;
     this._atmoTimer   = 0;
@@ -114,12 +103,6 @@ export class VictoryScreen {
     this._particles   = makePool(ATMO_POOL + SPARK_MAX * 3);
   }
 
-  /**
-   * Muss direkt vor dem Wechsel in den VICTORY-State aufgerufen werden.
-   * Speichert die finalen Spielstatistiken und setzt die Animation zurück.
-   * @param {{ hearts: number, heartsMax: number, score: number, gemsCollected: number, starCoins: boolean[] }} gameState
-   * @param {number} levelTime  Levelzeit in Sekunden
-   */
   show(gameState, levelTime) {
     this._data = {
       hearts:   gameState.hearts,
@@ -135,14 +118,12 @@ export class VictoryScreen {
     for (const p of this._particles) p.active = false;
   }
 
-  /** @param {number} dt */
   update(dt) {
     if (!this._data) return;
     this._time      += dt;
     this._hintBlink += dt;
     this._atmoTimer += dt;
 
-    // Atmosphärenpartikel periodisch spawnen
     if (this._atmoTimer >= ATMO_RATE) {
       this._atmoTimer = 0;
       for (const p of this._particles) {
@@ -150,7 +131,6 @@ export class VictoryScreen {
       }
     }
 
-    // Stern-Funken beim ersten Pop (nur wenn Stern gesammelt)
     for (let i = 0; i < 3; i++) {
       const tStart = T_STAR_0 + i * T_STAR_GAP;
       if (!this._starPopped[i] && this._time >= tStart + 0.06) {
@@ -168,29 +148,26 @@ export class VictoryScreen {
       }
     }
 
-    // Partikel simulieren
     for (const p of this._particles) {
       if (!p.active) continue;
       p.x    += p.vx * dt;
       p.y    += p.vy * dt;
-      p.vy   += 18 * dt;   // sehr leichte Auftriebsdämpfung
+      p.vy   += 18 * dt;
       p.life -= dt;
       if (p.life <= 0 || p.y < -20) p.active = false;
     }
   }
 
-  /** @param {import('../../core/input.js').InputManager} input */
   handleInput(input) {
     if (!this._data) return;
-    if (this._time < 0.5) return;   // Mindest-Anzeigezeit
+    if (this._time < 0.5) return;
     if (input.jumpPressed || input.enterPressed) {
       this._onRestart();
     }
   }
 
-  /** @param {CanvasRenderingContext2D} ctx */
   draw(ctx) {
-    // Vor show(): Himmelshintergrund ohne Inhalt
+
     if (!this._data) {
       const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
       sky.addColorStop(0, '#2a4a62');
@@ -209,10 +186,8 @@ export class VictoryScreen {
     this._drawHints(ctx);
   }
 
-  // ─── Hintergrund ─────────────────────────────────────────────────────────────
-
   _drawBackground(ctx) {
-    // Warmer Tageshimmel (etwas heller und goldener als Hauptmenü)
+
     const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     sky.addColorStop(0,   '#2a4a62');
     sky.addColorStop(0.5, '#5a8aa4');
@@ -220,7 +195,6 @@ export class VictoryScreen {
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Hinterer Waldlayer
     const bgBack = imageCache.get('BG_FOREST_BACK');
     if (bgBack) {
       const scale = CANVAS_HEIGHT / bgBack.naturalHeight;
@@ -228,7 +202,6 @@ export class VictoryScreen {
       ctx.drawImage(bgBack, 0, 0, drawW, CANVAS_HEIGHT);
     }
 
-    // Vorderer Waldlayer (unterer Bereich)
     const bgMiddle = imageCache.get('BG_FOREST_MIDDLE');
     if (bgMiddle) {
       const drawH = Math.round(CANVAS_HEIGHT * 0.55);
@@ -240,7 +213,6 @@ export class VictoryScreen {
       }
     }
 
-    // Warmes Sonnenlicht-Overlay: strahlt von oben ein
     const sun = ctx.createRadialGradient(CX, -20, 0, CX, 60, 380);
     sun.addColorStop(0,    'rgba(255,235,130,0.22)');
     sun.addColorStop(0.55, 'rgba(255,210,80,0.08)');
@@ -250,7 +222,7 @@ export class VictoryScreen {
   }
 
   _drawVignette(ctx) {
-    // Sanfte radiale Vignette — weicher als Game Over
+
     const grd = ctx.createRadialGradient(
       CX, CY * 1.0, CANVAS_HEIGHT * 0.20,
       CX, CY,       CANVAS_HEIGHT * 0.82,
@@ -261,8 +233,6 @@ export class VictoryScreen {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
-  // ─── Titel ────────────────────────────────────────────────────────────────────
-
   _drawTitle(ctx) {
     const tEased = easeOutQuad(Math.min(this._time / T_TITLE_DUR, 1.0));
 
@@ -271,7 +241,6 @@ export class VictoryScreen {
     ctx.translate(CX, 118);
     ctx.scale(0.92 + tEased * 0.08, 0.92 + tEased * 0.08);
 
-    // Helles pulsierendes Sonnenglow
     const glow = 0.72 + Math.sin(this._time * 1.6) * 0.12;
     ctx.shadowColor = `rgba(255,228,60,${glow})`;
     ctx.shadowBlur  = 36;
@@ -280,13 +249,11 @@ export class VictoryScreen {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'alphabetic';
 
-    // Leichter dunkler Umriss für Kontrast auf hellem Hintergrund
     ctx.strokeStyle = 'rgba(50,25,0,0.75)';
     ctx.lineWidth   = 5;
     ctx.lineJoin    = 'round';
     ctx.strokeText(t('levelComplete'), 0, 0);
 
-    // Heller goldener Verlauf: oben fast weiß → goldgelb → bernstein
     const grad = ctx.createLinearGradient(0, -52, 0, 0);
     grad.addColorStop(0,    '#fffce8');
     grad.addColorStop(0.35, '#ffe44d');
@@ -297,10 +264,8 @@ export class VictoryScreen {
     ctx.restore();
   }
 
-  // ─── Sternbewertung ───────────────────────────────────────────────────────────
-
   _drawStars(ctx) {
-    // Warmer Lichtschein hinter der Sternreihe
+
     const bloom = ctx.createRadialGradient(CX, STAR_CY, 0, CX, STAR_CY, 170);
     bloom.addColorStop(0,    'rgba(255,220,60,0.16)');
     bloom.addColorStop(0.55, 'rgba(255,185,40,0.06)');
@@ -344,8 +309,6 @@ export class VictoryScreen {
     }
   }
 
-  // ─── Statistiken auf Holzpanel ────────────────────────────────────────────────
-
   _drawStatsPanel(ctx) {
     const elapsed = this._time - T_STATS_IN;
     if (elapsed <= 0) return;
@@ -361,12 +324,10 @@ export class VictoryScreen {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Holzpanel (Hauptrahmen)
     this._drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
 
     ctx.lineJoin = 'round';
 
-    // Obere Trennlinie — mittig im Panel, symmetrisch zu BLOCK_Y
     ctx.strokeStyle = 'rgba(220,175,90,0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
@@ -374,12 +335,10 @@ export class VictoryScreen {
     ctx.lineTo(PANEL_X + PANEL_W - 14,  DIV_Y1);
     ctx.stroke();
 
-    // Statistikzeilen (genau 12 px Abstand von jeder Trennlinie)
     ctx.textBaseline = 'middle';
     for (let i = 0; i < rows.length; i++) {
       const y = BLOCK_Y + i * ROW_H;
 
-      // Label (rechts-bündig zur Canvas-Mitte)
       ctx.font        = FONT_LABEL;
       ctx.textAlign   = 'right';
       ctx.strokeStyle = 'rgba(20,10,2,0.70)';
@@ -388,7 +347,6 @@ export class VictoryScreen {
       ctx.fillStyle   = '#d8b882';
       ctx.fillText(rows[i][0], CX - 10, y);
 
-      // Wert (links-bündig von der Canvas-Mitte)
       ctx.font        = FONT_VALUE;
       ctx.textAlign   = 'left';
       ctx.strokeText(rows[i][1], CX + 14, y);
@@ -396,7 +354,6 @@ export class VictoryScreen {
       ctx.fillText(rows[i][1], CX + 14, y);
     }
 
-    // Untere Trennlinie
     ctx.strokeStyle = 'rgba(220,175,90,0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
@@ -406,8 +363,6 @@ export class VictoryScreen {
 
     ctx.restore();
   }
-
-  // ─── Hinweise ─────────────────────────────────────────────────────────────────
 
   _drawHints(ctx) {
     const elapsed = this._time - T_HINTS_IN;
@@ -419,7 +374,6 @@ export class VictoryScreen {
     ctx.textBaseline = 'middle';
     ctx.lineJoin     = 'round';
 
-    // Primärer Hinweis: pulsierend, cremegold auf dunklem Schatten
     const blink = 0.62 + Math.sin(this._hintBlink * 2.2) * 0.38;
     ctx.globalAlpha = fadeIn * blink;
     ctx.font        = FONT_HINT;
@@ -429,7 +383,6 @@ export class VictoryScreen {
     ctx.fillStyle   = '#fff8d8';
     ctx.fillText(t('continueHint'), CX, HINT1_Y);
 
-    // ESC-Hinweis: dezent, warmes Braun
     ctx.globalAlpha = fadeIn * 0.45;
     ctx.font        = FONT_HINT2;
     ctx.strokeStyle = 'rgba(20,10,2,0.55)';
@@ -438,7 +391,6 @@ export class VictoryScreen {
     ctx.fillStyle   = '#c8aa70';
     ctx.fillText(t('menuHint'), CX, HINT1_Y + 16);
 
-    // Atmosphärische Zeile: sehr ruhig atmend
     const atmoPulse = 0.35 + Math.sin(this._time * 0.85) * 0.14;
     ctx.globalAlpha = fadeIn * atmoPulse;
     ctx.font        = FONT_HINT2;
@@ -450,19 +402,17 @@ export class VictoryScreen {
     ctx.restore();
   }
 
-  // ─── Partikel ─────────────────────────────────────────────────────────────────
-
   _drawParticles(ctx) {
     ctx.save();
     for (const p of this._particles) {
       if (!p.active) continue;
       const lifeF = p.life / p.maxLife;
-      // Sanftes Ein- und Ausblenden
+
       const a = p.baseA * (lifeF < 0.25 ? lifeF / 0.25 : lifeF > 0.85 ? (1 - lifeF) / 0.15 : 1.0);
       ctx.globalAlpha = Math.max(0, a);
       ctx.fillStyle   = p.color;
       ctx.shadowColor = p.color;
-      ctx.shadowBlur  = p.r * 3.0;   // Firefly-Glow
+      ctx.shadowBlur  = p.r * 3.0;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
@@ -470,12 +420,9 @@ export class VictoryScreen {
     ctx.restore();
   }
 
-  // ─── Holzpanel (visuell identisch mit Hauptmenü-Stil) ─────────────────────────
-
   _drawWoodPanel(ctx, x, y, w, h) {
     const r = 8;
 
-    // Schlagschatten
     ctx.save();
     ctx.shadowColor   = 'rgba(0,0,0,0.65)';
     ctx.shadowBlur    = 14;
@@ -486,12 +433,10 @@ export class VictoryScreen {
     ctx.fill();
     ctx.restore();
 
-    // Basis-Holz
     ctx.fillStyle = '#7a5433';
     this._rrect(ctx, x, y, w, h, r);
     ctx.fill();
 
-    // Holzmaserung: helles Zentrum, dunkle Ränder
     const grain = ctx.createLinearGradient(x, y, x, y + h);
     grain.addColorStop(0,    'rgba(40,  20,  5,  0.60)');
     grain.addColorStop(0.10, 'rgba(195, 138, 68, 0.40)');
@@ -502,24 +447,20 @@ export class VictoryScreen {
     ctx.fillStyle = grain;
     ctx.fill();
 
-    // Dunkle Trimbänder oben und unten
     ctx.fillStyle = 'rgba(28,14,4,0.50)';
     ctx.fillRect(x + r, y,          w - r * 2, 11);
     ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
 
-    // Äußerer Rahmen
     ctx.strokeStyle = '#3b2615';
     ctx.lineWidth   = 4;
     this._rrect(ctx, x, y, w, h, r);
     ctx.stroke();
 
-    // Innere Highlight-Linie
     ctx.strokeStyle = 'rgba(220,175,100,0.22)';
     ctx.lineWidth   = 1;
     this._rrect(ctx, x + 5, y + 5, w - 10, h - 10, Math.max(r - 3, 2));
     ctx.stroke();
 
-    // Eckverzierungen (kleine Rauten)
     const corners = [
       [x + 7,     y + 7    ],
       [x + w - 7, y + 7    ],
@@ -555,4 +496,3 @@ export class VictoryScreen {
     ctx.closePath();
   }
 }
-

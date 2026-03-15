@@ -1,40 +1,28 @@
 import { TILE_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
 import { TILE_REGISTRY } from '../config/tileConfig.js';
 
-// Kachel-zu-Landegeräusch-Mapping.   key = Tile-Schlüssel im Level-JSON
-// Weitere Biome können hier einfach ergänzt werden.
 const LANDING_SOUND_BY_TILE = {
   g: 'assets/audio/sfx/grassLanding.mp3',
   d: 'assets/audio/sfx/grassLanding.mp3',
 };
 
-// Kachel-zu-Schrittgeräusch-Mapping.  Gleiche Biom-Logik wie Landing.
 const FOOTSTEP_SOUND_BY_TILE = {
   g: 'assets/audio/sfx/grassLanding.mp3',
   d: 'assets/audio/sfx/grassLanding.mp3',
 };
 
 export class TileMap {
-  /**
-   * @param {object}           data          Geparster JSON-Inhalt von level_XX.json
-   * @param {HTMLImageElement} tilesetImage  Vorgeladenes Tileset-Bild
-   */
+
   constructor(data, tilesetImage) {
     this._map        = data.map;
-    // Registry liefert alle bekannten Kacheln als Fallback;
-    // level-lokale 'tiles'-Einträge überschreiben bei Bedarf einzelne Werte.
+
     this._tiles      = { ...TILE_REGISTRY, ...(data.tiles ?? {}) };
     this._cols       = data.meta.columns;
     this._rows       = data.meta.rows;
-    this._srcSize    = data.meta.tileSize;   // Quelltile-Größe im PNG (z. B. 16 px)
+    this._srcSize    = data.meta.tileSize;
     this._tilesetImg = tilesetImage;
   }
 
-  /**
-   * Gibt true zurück wenn die Gitterzelle vollständig solid (nicht passierbar) ist.
-   * One-Way-Plattformen (oneWay: true) gelten NICHT als solid – sie haben eigene Kollisionslogik.
-   * Zellen außerhalb der Levelgrenzen gelten als solid.
-   */
   isSolid(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return true;
     const key = this._map[row]?.[col];
@@ -43,10 +31,6 @@ export class TileMap {
     return tile?.pass === false && !tile?.oneWay;
   }
 
-  /**
-   * Gibt true zurück wenn die Gitterzelle eine One-Way-Plattform ist
-   * (nur von oben begehbar; Durchspringen von unten und seitlich möglich).
-   */
   isOneWay(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return false;
     const key = this._map[row]?.[col];
@@ -54,10 +38,6 @@ export class TileMap {
     return this._tiles[key]?.oneWay === true;
   }
 
-  /**
-   * Gibt true zurück wenn die Gitterzelle eine Leiter ist.
-   * Leitern sind passierbar (pass: true) aber kletterbar (ladder: true).
-   */
   isLadder(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return false;
     const key = this._map[row]?.[col];
@@ -65,17 +45,9 @@ export class TileMap {
     return this._tiles[key]?.ladder === true;
   }
 
-  /**
-   * Gibt true zurück wenn der Spieler (AABB) eine Leiter berührt.
-   * Überprüft die vier Ecken der Hitbox.
-   * @param {number} x  Hitbox-Ursprung X (Weltpixel)
-   * @param {number} y  Hitbox-Ursprung Y (Weltpixel)
-   * @param {number} w  Hitbox-Breite
-   * @param {number} h  Hitbox-Höhe
-   */
   isOnLadder(x, y, w, h) {
     const ts = TILE_SIZE;
-    // Mittelpunkt horizontal (Leiter muss in der Mitte der Hitbox sein)
+
     const midCol = Math.floor((x + w / 2) / ts);
     const topRow    = Math.floor(y / ts);
     const bottomRow = Math.floor((y + h - 1) / ts);
@@ -85,13 +57,6 @@ export class TileMap {
     return false;
   }
 
-  /**
-   * Gibt den SFX-Pfad für das Landegeräusch zurück, das dem Tile unter den
-   * Spielerfüßen entspricht, oder null wenn kein Mapping existiert.
-   * @param {number} worldX  Mittelpunkt der Spielerhitbox (X)
-   * @param {number} feetY   Unterkante der Spielerhitbox (Y)
-   * @returns {string|null}
-   */
   getLandingSound(worldX, feetY) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(feetY  / TILE_SIZE);
@@ -99,15 +64,6 @@ export class TileMap {
     return key ? (LANDING_SOUND_BY_TILE[key] ?? null) : null;
   }
 
-  /**
-   * Gibt den SFX-Pfad für das Schrittgeräusch zurück, das dem Tile unter den
-   * Spielerfüßen entspricht, oder null wenn kein Mapping existiert.
-   * Das Mapping ist separat von getLandingSound, damit Biome unterschiedliche
-   * Schritt- und Lande-Sounds haben können.
-   * @param {number} worldX  Mittelpunkt der Spielerhitbox (X)
-   * @param {number} feetY   Unterkante der Spielerhitbox (Y)
-   * @returns {string|null}
-   */
   getFootstepSound(worldX, feetY) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(feetY  / TILE_SIZE);
@@ -115,10 +71,6 @@ export class TileMap {
     return key ? (FOOTSTEP_SOUND_BY_TILE[key] ?? null) : null;
   }
 
-  /**
-   * Gibt das Tile-Definitionsobjekt an einer Weltkoordinate zurück.
-   * @returns {{ pass: boolean, txCol: number, txRow: number }|null}
-   */
   getTileAt(worldX, worldY) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(worldY / TILE_SIZE);
@@ -127,22 +79,14 @@ export class TileMap {
     return key ? (this._tiles[key] ?? null) : null;
   }
 
-  /**
-   * Zeichnet alle sichtbaren Tiles.
-   * Muss innerhalb von ctx.save / camera.applyTransform / ctx.restore aufgerufen werden.
-   * @param {CanvasRenderingContext2D}                  ctx
-   * @param {{ x: number, y: number }}                 camera
-   */
   draw(ctx, camera) {
     if (!this._tilesetImg) return;
 
-    // Pixel-Art: Interpolation beim Atlas-Sampling abschalten
     ctx.imageSmoothingEnabled = false;
 
     const ts  = TILE_SIZE;
     const src = this._srcSize;
 
-    // Nur sichtbare Spalten und Zeilen zeichnen (Frustum Culling)
     const startCol = Math.max(0,              Math.floor(camera.x / ts));
     const endCol   = Math.min(this._cols - 1, Math.ceil((camera.x + CANVAS_WIDTH)  / ts));
     const startRow = Math.max(0,              Math.floor(camera.y / ts));
@@ -155,8 +99,6 @@ export class TileMap {
         const tile = this._tiles[key];
         if (!tile) continue;
 
-        // Optionaler Hintergrund-Fill vor dem Tile-Sprite (z. B. Höhlen-Bögen
-        // mit transparenten Ecken, damit die Parallaxe nicht durchscheint).
         if (tile.bgFill) {
           ctx.fillStyle = tile.bgFill;
           ctx.fillRect(col * ts, row * ts, ts, ts);
@@ -164,8 +106,8 @@ export class TileMap {
 
         ctx.drawImage(
           this._tilesetImg,
-          tile.txCol * src, tile.txRow * src, src, src,   // Quelle
-          col * ts,         row * ts,         ts,  ts     // Ziel (Weltkoord.)
+          tile.txCol * src, tile.txRow * src, src, src,
+          col * ts,         row * ts,         ts,  ts
         );
       }
     }

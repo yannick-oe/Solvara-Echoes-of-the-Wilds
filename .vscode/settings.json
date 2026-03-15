@@ -1,8 +1,0 @@
-{
-    "chat.tools.terminal.autoApprove": {
-        "/^python3 -c \"\nimport struct\nfor name in \\['spikes','spikes-top','spike-skull'\\]:\n    with open\\(f'/Users/yannick/Developer Akademie/Projekte/Solvara-Echoes-of-the-Wilds/assets/images/props/\\{name\\}\\.png','rb'\\) as f:\n        f\\.read\\(8\\)\n        f\\.read\\(4\\); f\\.read\\(4\\)\n        w=struct\\.unpack\\('>I',f\\.read\\(4\\)\\)\\[0\\]\n        h=struct\\.unpack\\('>I',f\\.read\\(4\\)\\)\\[0\\]\n    print\\(f'\\{name\\}\\.png: \\{w\\}x\\{h\\}'\\)\n\"$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
-    }
-}

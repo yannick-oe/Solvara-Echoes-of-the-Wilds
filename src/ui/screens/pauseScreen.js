@@ -2,37 +2,30 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { currentLang, setLang, t, LANGS } from '../../core/localization.js';
 import { audioManager } from '../../core/audioManager.js';
 
-// ─── Hauptpanel-Geometrie (Pause-Menü) ────────────────────────────────────────
 const PANEL_W = 420;
 const PANEL_H = 370;
-const PANEL_X = (CANVAS_WIDTH  - PANEL_W) / 2;   // 150
-const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;   //  55
-const CX      = CANVAS_WIDTH  / 2;               // 360
+const PANEL_X = (CANVAS_WIDTH  - PANEL_W) / 2;
+const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;
+const CX      = CANVAS_WIDTH  / 2;
 
-// ─── Subpanel-Geometrie (Options / Steuerung) ─────────────────────────────────
 const SUB_W = 480;
 const SUB_H = 380;
-const SUB_X = (CANVAS_WIDTH  - SUB_W) / 2;       // 120
-const SUB_Y = (CANVAS_HEIGHT - SUB_H) / 2;       //  90
+const SUB_X = (CANVAS_WIDTH  - SUB_W) / 2;
+const SUB_Y = (CANVAS_HEIGHT - SUB_H) / 2;
 
-// ─── Hauptmenü-Layout ─────────────────────────────────────────────────────────
 const PAUSE_ITEMS = ['continue', 'restartLevel', 'options', 'controls', 'mainMenu'];
 const ITEM_ZONE_H = 60;
-const TITLE_Y     = PANEL_Y + 35;   //  90
-const TITLE_SEP_Y = PANEL_Y + 58;   // 113
+const TITLE_Y     = PANEL_Y + 35;
+const TITLE_SEP_Y = PANEL_Y + 58;
 
-// Jede der 5 Zeilen sitzt mittig in ihrer 60px-Zone unterhalb des Titeltrennstrichs.
-// Zonen-Mittelpunkte: 143, 203, 263, 323, 383
 const ZONE_Y = PAUSE_ITEMS.map((_, i) =>
   Math.round(TITLE_SEP_Y + ITEM_ZONE_H * i + ITEM_ZONE_H / 2));
 
-// ─── Options-Zeilen ───────────────────────────────────────────────────────────
 const OPTIONS_IDS = ['masterVolume', 'musicVolume', 'sfxVolumeMaster', 'language'];
 
 export class PauseScreen {
-  /**
-   * @param {{ onResume: Function, onRestart: Function, onBackToStart: Function }} callbacks
-   */
+
+
   constructor(callbacks) {
     this._onResume      = callbacks.onResume;
     this._onRestart     = callbacks.onRestart;
@@ -42,7 +35,7 @@ export class PauseScreen {
 
   _reset() {
     this._selectedIndex = 0;
-    this._subScreen     = null;   // null | 'options' | 'controls'
+    this._subScreen     = null;
     this._optionIndex   = 0;
     this._prevUp    = false;
     this._prevDown  = false;
@@ -50,13 +43,11 @@ export class PauseScreen {
     this._prevRight = false;
   }
 
-  /** Zurücksetzen auf ersten Menüpunkt beim Öffnen. */
+
   reset() { this._reset(); }
 
-  /**
-   * Eingabe verarbeiten – muss jeden Frame im PAUSED-State aufgerufen werden.
-   * @param {import('../../core/input.js').InputManager} input
-   */
+
+
   handleInput(input) {
     if (this._subScreen === 'options') {
       this._handleOptionsInput(input);
@@ -69,7 +60,7 @@ export class PauseScreen {
       return;
     }
 
-    // Hauptmenü – P = Resume
+
     if (input.pausePressed) {
       this._onResume();
       return;
@@ -92,7 +83,7 @@ export class PauseScreen {
     }
   }
 
-  /** Navigationseingabe im Options-Subscreen. */
+
   _handleOptionsInput(input) {
     if (input.backPressed) { this._subScreen = null; return; }
     const upNow    = input.up;
@@ -154,16 +145,14 @@ export class PauseScreen {
     }
   }
 
-  // ─── Zeichnen ────────────────────────────────────────────────────────────────
 
-  /**
-   * Pause-Overlay über dem eingefrorenen Spielbild zeichnen.
-   * @param {CanvasRenderingContext2D} ctx
-   */
+
+
+
   draw(ctx) {
     const now = performance.now() / 1000;
 
-    // Abdunkelung
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.60)';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -174,14 +163,14 @@ export class PauseScreen {
     }
   }
 
-  /** Hauptmenü des Pause-Screens. */
+
   _drawMainMenu(ctx, now) {
     this._drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, false);
 
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // Titel mit starkem Glow
+
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.90)';
     ctx.shadowBlur  = 14 + Math.sin(now * 1.8) * 4;
@@ -190,7 +179,7 @@ export class PauseScreen {
     ctx.fillText('PAUSE', CX, TITLE_Y);
     ctx.restore();
 
-    // Titeltrennstrich
+
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.65)';
     ctx.lineWidth   = 2;
     ctx.beginPath();
@@ -198,7 +187,7 @@ export class PauseScreen {
     ctx.lineTo(PANEL_X + PANEL_W - 12, TITLE_SEP_Y);
     ctx.stroke();
 
-    // Trennlinien zwischen den Menüzeilen
+
     ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
     ctx.lineWidth   = 1;
     for (let i = 1; i < PAUSE_ITEMS.length; i++) {
@@ -209,7 +198,7 @@ export class PauseScreen {
       ctx.stroke();
     }
 
-    // Menüpunkte
+
     PAUSE_ITEMS.forEach((id, i) => {
       const y        = ZONE_Y[i];
       const selected = i === this._selectedIndex;
@@ -240,9 +229,9 @@ export class PauseScreen {
     });
   }
 
-  /** Subpanel (Options oder Steuerung). */
+
   _drawSubPanel(ctx) {
-    // Zweite, leichtere Abdunkelungsebene über dem bereits gedimmten Hintergrund
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -251,7 +240,7 @@ export class PauseScreen {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // Subpanel-Titel
+
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.5)';
     ctx.shadowBlur  = 10;
@@ -266,14 +255,14 @@ export class PauseScreen {
       this._drawControlsContent(ctx);
     }
 
-    // Footer
+
     ctx.font      = '11px monospace';
     ctx.fillStyle = '#c8b090';
     ctx.textAlign = 'center';
     ctx.fillText(t('returnHint'), CX, SUB_Y + SUB_H - 20);
   }
 
-  /** Options-Inhalt: Musik/SFX-Slider + Sprache. */
+
   _drawOptionsContent(ctx) {
     const rowY0   = SUB_Y + 78;
     const rowStep = 62;
@@ -282,7 +271,7 @@ export class PauseScreen {
       const y        = rowY0 + i * rowStep;
       const selected = i === this._optionIndex;
 
-      // Auswahlbalken
+
       if (selected) {
         const hl = ctx.createLinearGradient(SUB_X, y, SUB_X + SUB_W, y);
         hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
@@ -293,7 +282,7 @@ export class PauseScreen {
         ctx.fillRect(SUB_X, y - 28, SUB_W, 56);
       }
 
-      // Zeilenbezeichnung (links)
+
       ctx.fillStyle    = selected ? '#fff4c0' : '#f6e3c3';
       ctx.font         = selected ? 'bold 13px monospace' : '12px monospace';
       ctx.textAlign    = 'left';
@@ -309,18 +298,18 @@ export class PauseScreen {
         const barY = y + 8;
         const barH = 10;
 
-        // Prozentwert rechts über dem Slider
+
         ctx.fillStyle = selected ? '#fff4c0' : '#d6c7a2';
         ctx.font      = selected ? 'bold 12px monospace' : '11px monospace';
         ctx.textAlign = 'right';
         ctx.fillText(Math.round(vol * 100) + '%', SUB_X + SUB_W - 28, y - 10);
 
-        // Slider-Schiene
+
         ctx.fillStyle = 'rgba(20, 10, 4, 0.55)';
         this._rrect(ctx, barX, barY, barW, barH, 4);
         ctx.fill();
 
-        // Füllbalken
+
         const fillW = Math.round(barW * vol);
         if (fillW > 4) {
           const grd = ctx.createLinearGradient(barX, barY, barX + fillW, barY);
@@ -332,7 +321,7 @@ export class PauseScreen {
           ctx.fill();
         }
 
-        // Tick-Markierungen
+
         ctx.strokeStyle = 'rgba(255,220,120,0.25)';
         ctx.lineWidth   = 1;
         for (let s = 1; s < 10; s++) {
@@ -343,7 +332,7 @@ export class PauseScreen {
           ctx.stroke();
         }
 
-        // Knopf
+
         const kx = barX + Math.round(barW * vol);
         ctx.fillStyle = selected ? '#f0c040' : '#c8a060';
         ctx.beginPath();
@@ -353,7 +342,7 @@ export class PauseScreen {
           ctx.strokeStyle = 'rgba(240,192,0,0.5)';
           ctx.lineWidth   = 1.5;
           ctx.stroke();
-          // ◄ ► Hinweis
+
           ctx.fillStyle = 'rgba(240,192,0,0.55)';
           ctx.font      = '11px monospace';
           ctx.textAlign = 'center';
@@ -374,11 +363,11 @@ export class PauseScreen {
     });
   }
 
-  /** Steuerungsinhalt – identisch mit dem Controls-Screen im Startmenü. */
+
   _drawControlsContent(ctx) {
     ctx.textBaseline = 'middle';
 
-    // 4 Zeilen oben + Trennstrich + 4 Zeilen unten (step 26 px)
+
     const midY    = SUB_Y + 184;
     const b1Start = SUB_Y + 88;
     const b1Step  = 26;
@@ -400,7 +389,7 @@ export class PauseScreen {
       ctx.fillText(keys, SUB_X + SUB_W - 30, y);
     });
 
-    // Mittlere Trennlinie
+
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.35)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
@@ -430,12 +419,10 @@ export class PauseScreen {
     });
   }
 
-  // ─── Zeichen-Helfer (Holzpanel) ─────────────────────────────────────────────
 
-  /**
-   * Abgerundetes Holzpanel mit Schatten und Maserungsgradient.
-   * @param {boolean} [drawPlanks=true]  Interne Plankenlinien zeichnen.
-   */
+
+
+
   _drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
     const r = 8;
 

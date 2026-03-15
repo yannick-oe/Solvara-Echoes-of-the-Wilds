@@ -10,13 +10,13 @@ export class Enemy extends Entity {
     this.deathSound  = null;
   }
 
-  /** Wird aufgerufen wenn der Player den Gegner von oben trifft. */
+
   stompDie() {
     this.dead   = true;
     this.active = false;
   }
 
-  /** @param {number} dt @param {import('../../world/tileMap.js').TileMap} tileMap */
+
   update(dt, tileMap) {}
 
   draw(ctx, cam, imageCache) {}

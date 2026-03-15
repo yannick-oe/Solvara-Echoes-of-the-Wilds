@@ -1,15 +1,12 @@
 import { Pickup } from './pickup.js';
 
 const FRAME_COUNT = 4;
-const FRAME_SEC   = 0.1;  // 100 ms pro Frame
-const SIZE        = 45;   // Zeichengröße in Weltpixeln (1,5× für bessere Sichtbarkeit)
+const FRAME_SEC   = 0.1;
+const SIZE        = 45;
 
 export class StarCoin extends Pickup {
-  /**
-   * @param {number} x          Weltkoordinate links
-   * @param {number} y          Weltkoordinate oben
-   * @param {number} slotIndex  0–2, entspricht dem HUD-Slot
-   */
+
+
   constructor(x, y, slotIndex) {
     super(x, y, 24, 24, FRAME_COUNT, FRAME_SEC);
     this.slotIndex = slotIndex;

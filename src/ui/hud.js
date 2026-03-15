@@ -1,11 +1,10 @@
 import { CANVAS_WIDTH, STAR_COIN_COUNT } from '../core/constants.js';
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
 const PAD = 10;
 const PANEL_PAD = 8;
 const HEART_SIZE = 26;
 const HEART_ICON = '♥';
-const STAR_SIZE = 18;   // StarCoin-Icon im linken Panel
+const STAR_SIZE = 18;
 const STAR_GAP = 4;
 const COIN_ICON_FILLED = '⭐';
 const COIN_ICON_EMPTY = '☆';
@@ -13,20 +12,16 @@ const GEM_SIZE = 20;
 const HUD_FONT = 'bold 13px monospace';
 const SCORE_FONT = 'bold 12px monospace';
 
-// Animationsgeschwindigkeit Score (Einheiten/s Verstärkung)
 const COUNT_SPEED = 260;
-// Pulse-Zyklusdauer (s)
+
 const GEM_PULSE_PERIOD = 2.6;
 const HEART_PULSE_PERIOD = 3.2;
 const STAR_SHIMMER_PERIOD = 1.8;
 
-// Partikel-Pool-Größe
 const POOL_SIZE = 96;
 
-// ─── Easing ──────────────────────────────────────────────────────────────────
 function easeOut(t) { return 1 - (1 - t) ** 2; }
 
-// ─── Partikel initialisieren ─────────────────────────────────────────────────
 function initParticle(p, x, y, color) {
   const angle = Math.random() * Math.PI * 2;
   const speed = 38 + Math.random() * 90;
@@ -53,45 +48,45 @@ function makePool() {
 }
 
 export class Hud {
-  /** @param {import('../core/imageCache.js').ImageCache} imageCache */
+
   constructor(imageCache) {
     this._imageCache = imageCache;
 
-    // ── Zähler-Animation ─────────────────────────────────────────────────────
+
     this._displayScore = 0;
     this._prevScore = 0;
     this._displayGems = 0;
     this._targetGems = 0;
 
-    // ── Schlag / Bump-Animation ───────────────────────────────────────────────
-    this._heartBump = 0;   // 0..1, zerfällt per Frame
+
+    this._heartBump = 0;
     this._gemBump = 0;
-    this._heartFlash = 0;   // 0..1 roter Blitz, kein Partikel mehr
-    this._heartShakeT = 0;   // Shake-Timer (s)
-    // Pro StarCoin-Slot ein eigener Bump-Wert
+    this._heartFlash = 0;
+    this._heartShakeT = 0;
+
     this._starBump = new Float32Array(STAR_COIN_COUNT);
 
-    // ── Idle-Loop ─────────────────────────────────────────────────────────────
+
     this._time = 0;
 
-    // ── Partikel-Pool ─────────────────────────────────────────────────────────
+
     this._particles = makePool();
   }
 
-  // ─── Öffentliche API ─────────────────────────────────────────────────────
 
-  /** @param {number} dt  Deltazeit (s) */
+
+
   update(dt) {
     this._time += dt;
 
-    // Score-Countup
+
     if (this._displayScore < this._prevScore) {
       this._displayScore = Math.min(
         this._displayScore + COUNT_SPEED * dt * 4,
         this._prevScore,
       );
     }
-    // Gem-Countup
+
     if (this._displayGems < this._targetGems) {
       this._displayGems = Math.min(
         this._displayGems + COUNT_SPEED * dt * 0.04,
@@ -99,7 +94,7 @@ export class Hud {
       );
     }
 
-    // Bump-Zerfall
+
     this._heartBump = Math.max(0, this._heartBump - dt * 5);
     this._gemBump = Math.max(0, this._gemBump - dt * 5);
     this._heartFlash = Math.max(0, this._heartFlash - dt * 4);
@@ -108,7 +103,7 @@ export class Hud {
       this._starBump[i] = Math.max(0, this._starBump[i] - dt * 5);
     }
 
-    // Partikel
+
     for (const p of this._particles) {
       if (!p.active) continue;
       p.x += p.vx * dt;
@@ -119,20 +114,15 @@ export class Hud {
     }
   }
 
-  /**
-   * HUD-Ereignis auslösen.
-   * @param {'damage'|'heal'|'gem'|'starCoin'} event
-   * @param {number} screenX
-   * @param {number} screenY
-   * @param {number} [slotIndex]  nur für 'starCoin'
-   */
+
+
   notify(event, screenX, screenY, slotIndex) {
     switch (event) {
       case 'damage':
         this._heartBump = 0.28;
         this._heartFlash = 1.0;
         this._heartShakeT = 0.28;
-        // Kein Partikel-Burst bei Schaden (kein Blut-Effekt)
+
         break;
       case 'heal':
         this._heartBump = 0.22;
@@ -152,11 +142,8 @@ export class Hud {
     }
   }
 
-  /**
-   * HUD vollständig zeichnen (Screen-Space).
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {{ hearts: number, heartsMax: number, score: number, gemsCollected: number, starCoins: boolean[] }} gameState
-   */
+
+
   draw(ctx, gameState) {
     this._prevScore = gameState.score;
     this._targetGems = gameState.gemsCollected;
@@ -169,17 +156,17 @@ export class Hud {
     this._drawParticles(ctx);
   }
 
-  // ─── Linkes Panel (❤ × N + ⭐⭐☆) ────────────────────────────────────────
+
 
   _drawLeftPanel(ctx, gameState) {
     const { hearts, starCoins } = gameState;
 
-    // Shake-Offset bei Schaden
+
     const shakeX = this._heartShakeT > 0
       ? Math.round(Math.sin(this._time * 62) * 2.5 * (this._heartShakeT / 0.28))
       : 0;
 
-    // Panel-Dimensionen: zwei Zeilen (Herz + StarCoins)
+
     const panelW = 104;
     const panelH = 68;
 
@@ -188,7 +175,7 @@ export class Hud {
 
     this._drawPanel(ctx, PAD, PAD, panelW, panelH);
 
-    // ── Zeile 1: ❤ × N ────────────────────────────────────────────────────
+
     const heartRowY = PAD + PANEL_PAD + HEART_SIZE / 2;
 
     const pulse = Math.sin(this._time / HEART_PULSE_PERIOD * Math.PI * 2) * 0.04 + 1;
@@ -221,7 +208,7 @@ export class Hud {
     ctx.fillText(HEART_ICON, 0, 1);
     ctx.restore();
 
-    // × N
+
     ctx.font = HUD_FONT;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
@@ -233,7 +220,7 @@ export class Hud {
     ctx.fillStyle = '#fff4c0';
     ctx.fillText(`×${hearts}`, countX, heartRowY);
 
-    // ── Zeile 2: ⭐ ⭐ ☆ ───────────────────────────────────────────────────
+
     const starRowY = PAD + PANEL_PAD + HEART_SIZE + 6 + STAR_SIZE / 2;
     const starStartX = PAD + PANEL_PAD;
 
@@ -269,7 +256,7 @@ export class Hud {
     ctx.restore();
   }
 
-  // ─── Rechtes Panel (SCORE + 💎 × N) ──────────────────────────────────────
+
 
   _drawRightPanel(ctx, gameState) {
     const displayScore = Math.round(this._displayScore);
@@ -289,7 +276,7 @@ export class Hud {
     ctx.save();
     ctx.textBaseline = 'top';
 
-    // Score-Label
+
     ctx.font = SCORE_FONT;
     ctx.textAlign = 'left';
     ctx.strokeStyle = 'rgba(0,0,0,0.75)';
@@ -299,7 +286,7 @@ export class Hud {
     ctx.fillStyle = '#c8b090';
     ctx.fillText('SCORE', innerX, panelY + PANEL_PAD);
 
-    // Score-Wert
+
     ctx.font = HUD_FONT;
     ctx.textAlign = 'right';
     const scoreStr = String(displayScore).padStart(5, '0');
@@ -307,7 +294,7 @@ export class Hud {
     ctx.fillStyle = '#fff4c0';
     ctx.fillText(scoreStr, innerR, panelY + PANEL_PAD);
 
-    // Gem-Zeile
+
     const gemRowY = panelY + PANEL_PAD + 22;
     const gemPulse = Math.sin(this._time / GEM_PULSE_PERIOD * Math.PI * 2) * 0.06 + 1;
     const gemScale = gemPulse * (1 + this._gemBump);
@@ -343,7 +330,7 @@ export class Hud {
     ctx.restore();
   }
 
-  // ─── Partikel ─────────────────────────────────────────────────────────────
+
 
   _spawnBurst(sx, sy, count, col1, col2) {
     let spawned = 0;
@@ -371,7 +358,7 @@ export class Hud {
     ctx.restore();
   }
 
-  // ─── Panel-Hintergrund ────────────────────────────────────────────────────
+
 
   _drawPanel(ctx, x, y, w, h) {
     const r = 7;
@@ -391,7 +378,7 @@ export class Hud {
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
 
-    // Innere goldene Akzentlinie
+
     ctx.strokeStyle = 'rgba(200,160,80,0.22)';
     ctx.lineWidth = 1;
     this._rrect(ctx, x + 1, y + 1, w - 2, h - 2, r - 1);

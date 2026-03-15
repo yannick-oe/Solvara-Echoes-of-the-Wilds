@@ -1,15 +1,11 @@
 class IntervalManager {
   constructor() {
-    /** @type {Map<string, number>} */
+
     this._intervals = new Map();
   }
 
-  /**
-   * Registriert ein benanntes Intervall – ersetzt ein bestehendes gleichen Namens.
-   * @param {string}   id
-   * @param {Function} fn
-   * @param {number}   ms
-   */
+
+
   register(id, fn, ms) {
     this.clear(id);
     const handle = setInterval(fn, ms);

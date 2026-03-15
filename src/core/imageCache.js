@@ -3,10 +3,8 @@ class ImageCache {
     this._cache = {};
   }
 
-  /**
-   * @param {{ key: string, src: string }[]} entries
-   * @returns {Promise<void>}
-   */
+
+
   preload(entries) {
     const promises = entries.map(({ key, src }) =>
       new Promise((resolve, reject) => {
@@ -19,7 +17,7 @@ class ImageCache {
     return Promise.all(promises);
   }
 
-  /** @returns {HTMLImageElement|null} */
+
   get(key) {
     return this._cache[key] ?? null;
   }

@@ -3,37 +3,30 @@ import { currentLang, setLang, t, LANGS } from '../../core/localization.js';
 import { imageCache } from '../../core/imageCache.js';
 import { audioManager } from '../../core/audioManager.js';
 
-// Reihenfolge der Menüpunkte
 const MENU_IDS = ['start', 'options', 'controls', 'credits'];
 
-// Options-Screen: vier Zeilen
 const OPTIONS_IDS = ['masterVolume', 'musicVolume', 'sfxVolumeMaster', 'language'];
 
-// Layout-Konstanten (CANVAS_HEIGHT = 480, CY = 240)
 const CX            = CANVAS_WIDTH  / 2;
 const CY            = CANVAS_HEIGHT / 2;
 
-// Titel (oberhalb des Holzpanels)
 const TITLE_Y       = 66;
 const SUBTITLE_Y    = 110;
 
-// Holzpanel für das Hauptmenü
 const WOOD_W = 420;
 const WOOD_H = 240;
-const WOOD_X = (CANVAS_WIDTH  - WOOD_W) / 2;   // 150
-const WOOD_Y = 148;                              // Panel oben  → unten = 388
+const WOOD_X = (CANVAS_WIDTH  - WOOD_W) / 2;
+const WOOD_Y = 148;
 
-// Fußzeile unter dem Hauptmenü-Panel
-const FOOTER_Y = WOOD_Y + WOOD_H + 22;           // 410
+const FOOTER_Y = WOOD_Y + WOOD_H + 22;
 
-// Sub-Screen-Panel (Steuerung / Credits)
 const PANEL_W = 480;
 const PANEL_H = 380;
-const PANEL_X = (CANVAS_WIDTH  - PANEL_W) / 2;   // 120
-const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;   // 90
+const PANEL_X = (CANVAS_WIDTH  - PANEL_W) / 2;
+const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;
 
 export class StartScreen {
-  /** @param {Function} onStart  Callback wenn der Spieler startet */
+
   constructor(onStart) {
     this._onStart = onStart;
     this._reset();
@@ -42,14 +35,14 @@ export class StartScreen {
   _reset() {
     this._started       = false;
     this._selectedIndex = 0;
-    this._subScreen     = null;  // null | 'options' | 'controls' | 'credits'
-    this._optionIndex   = 0;     // aktuell gewählte Zeile im Options-Screen
-    // Edge-Detect-Zustand für Navigation
+    this._subScreen     = null;
+    this._optionIndex   = 0;
+
     this._prevUp    = false;
     this._prevDown  = false;
     this._prevLeft  = false;
     this._prevRight = false;
-    // Glühwürmchen-Partikel
+
     this._fireflies = Array.from({ length: 12 }, () => ({
       x:     Math.random() * CANVAS_WIDTH,
       y:     40 + Math.random() * (CANVAS_HEIGHT - 80),
@@ -62,17 +55,17 @@ export class StartScreen {
     this._lastDrawTime = null;
   }
 
-  /** Beim erneuten Betreten des START-States alles zurücksetzen. */
+
   reset() { this._reset(); }
 
-  /** @param {import('../../core/input.js').InputManager} input */
+
   handleInput(input) {
-    // Sub-Screen-Navigation
+
     if (this._subScreen !== null) {
       if (this._subScreen === 'options') {
         this._handleOptionsInput(input);
       } else {
-        // Controls / Credits: Q schließt das Panel
+
         if (input.backPressed) {
           this._subScreen = null;
         }
@@ -80,7 +73,7 @@ export class StartScreen {
       return;
     }
 
-    // ↑/↓ Navigation (Edge-Detect)
+
     const upNow   = input.up;
     const downNow = input.down;
     if (upNow && !this._prevUp) {
@@ -96,13 +89,13 @@ export class StartScreen {
     this._prevLeft  = input.left;
     this._prevRight = input.right;
 
-    // Enter / Space → Menüpunkt aktivieren
+
     if (input.enterPressed || input.jumpPressed) {
       this._activate(MENU_IDS[this._selectedIndex]);
     }
   }
 
-  /** Navigation innerhalb des Options-Screens. */
+
   _handleOptionsInput(input) {
     if (input.backPressed) { this._subScreen = null; return; }
     const upNow    = input.up;
@@ -168,9 +161,9 @@ export class StartScreen {
     }
   }
 
-  // ─── Zeichnen ──────────────────────────────────────────────────────────────
 
-  /** @param {CanvasRenderingContext2D} ctx */
+
+
   draw(ctx) {
     const now = performance.now() / 1000;
     const dt  = this._lastDrawTime !== null
@@ -178,7 +171,7 @@ export class StartScreen {
       : 0;
     this._lastDrawTime = now;
 
-    // Glühwürmchen-Positionen aktualisieren
+
     for (const ff of this._fireflies) {
       ff.x = ((ff.x + ff.vx * dt) % CANVAS_WIDTH  + CANVAS_WIDTH)  % CANVAS_WIDTH;
       ff.y = ((ff.y + ff.vy * dt) % CANVAS_HEIGHT + CANVAS_HEIGHT) % CANVAS_HEIGHT;
@@ -190,7 +183,7 @@ export class StartScreen {
     this._drawTitle(ctx, now);
 
     if (this._subScreen !== null) {
-      // Titel im Hintergrund abdunkeln, dann Panel obendrauf
+
       ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       this._drawSubPanel(ctx);
@@ -200,7 +193,7 @@ export class StartScreen {
   }
 
   _drawBackground(ctx) {
-    // Himmels-Gradient
+
     const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     sky.addColorStop(0,   '#1e3a52');
     sky.addColorStop(0.5, '#4a7a94');
@@ -208,7 +201,7 @@ export class StartScreen {
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Entfernter Waldlayer
+
     const bgBack = imageCache.get('BG_FOREST_BACK');
     if (bgBack) {
       const scale = CANVAS_HEIGHT / bgBack.naturalHeight;
@@ -216,7 +209,7 @@ export class StartScreen {
       ctx.drawImage(bgBack, 0, 0, drawW, CANVAS_HEIGHT);
     }
 
-    // Näherer Waldlayer – unterer Bereich (Baumkronen-/Büschellinie)
+
     const bgMiddle = imageCache.get('BG_FOREST_MIDDLE');
     if (bgMiddle) {
       const drawH = Math.round(CANVAS_HEIGHT * 0.58);
@@ -233,10 +226,10 @@ export class StartScreen {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // Holzplakette hinter dem Titel
+
     this._drawTitleBanner(ctx);
 
-    // Haupttitel mit pulsierendem Leuchteffekt
+
     const blur = 12 + Math.sin(now * 2.0) * 4;
     ctx.save();
     ctx.shadowColor   = 'rgba(240, 192, 0, 0.85)';
@@ -246,7 +239,7 @@ export class StartScreen {
     ctx.fillText('Solvara', CX, TITLE_Y);
     ctx.restore();
 
-    // Untertitel
+
     ctx.save();
     ctx.shadowColor   = 'rgba(0, 0, 0, 0.90)';
     ctx.shadowBlur    = 4;
@@ -257,35 +250,35 @@ export class StartScreen {
   }
 
   _drawMenu(ctx, now) {
-    // Panel ist statisch – nur Glühwürmchen bewegen sich
+
     this._drawWoodPanel(ctx, WOOD_X, WOOD_Y, WOOD_W, WOOD_H);
 
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // Optische Zentrierung: jedes Item mittig in seiner Planken-Zone.
-    // Trimmleisten: 11px oben/unten; Plankenlinien bei h/4, h/2, 3h/4.
-    const s  = WOOD_Y + 11;                         // 159 – Unterkante oberes Trimm
-    const p1 = WOOD_Y + Math.floor(WOOD_H / 4);     // 208
-    const p2 = WOOD_Y + Math.floor(WOOD_H / 2);     // 268
-    const p3 = WOOD_Y + Math.floor(3 * WOOD_H / 4); // 328
-    const b  = WOOD_Y + WOOD_H - 11;                // 377 – Oberkante unteres Trimm
+
+
+    const s  = WOOD_Y + 11;
+    const p1 = WOOD_Y + Math.floor(WOOD_H / 4);
+    const p2 = WOOD_Y + Math.floor(WOOD_H / 2);
+    const p3 = WOOD_Y + Math.floor(3 * WOOD_H / 4);
+    const b  = WOOD_Y + WOOD_H - 11;
     const ZONE_Y = [
-      Math.round((s  + p1) / 2),   // 184 – Zone 1
-      Math.round((p1 + p2) / 2),   // 238 – Zone 2
-      Math.round((p2 + p3) / 2),   // 298 – Zone 3
-      Math.round((p3 + b ) / 2),   // 353 – Zone 4
+      Math.round((s  + p1) / 2),
+      Math.round((p1 + p2) / 2),
+      Math.round((p2 + p3) / 2),
+      Math.round((p3 + b ) / 2),
     ];
 
     MENU_IDS.forEach((id, i) => {
       const y        = ZONE_Y[i];
       const selected = i === this._selectedIndex;
 
-      // Label: einfach lokalisierter Text
+
       const label = t(id);
 
       if (selected) {
-        // Auswahlbalken – horizontaler Gradient für gebogene Holzleisten-Optik
+
         const hl = ctx.createLinearGradient(WOOD_X, y, WOOD_X + WOOD_W, y);
         hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
         hl.addColorStop(0.12, 'rgba(20, 10, 4, 0.55)');
@@ -293,7 +286,7 @@ export class StartScreen {
         hl.addColorStop(1,    'rgba(20, 10, 4, 0.00)');
         ctx.fillStyle = hl;
         ctx.fillRect(WOOD_X, y - 16, WOOD_W, 32);
-        // Auswahlpfeil
+
         ctx.save();
         ctx.shadowColor = 'rgba(240,192,0,0.6)';
         ctx.shadowBlur  = 8;
@@ -310,7 +303,7 @@ export class StartScreen {
       ctx.fillText(label, CX + 8, y);
     });
 
-    // Footer-Hinweis unterhalb des Panels
+
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.7)';
     ctx.shadowBlur  = 4;
@@ -322,13 +315,13 @@ export class StartScreen {
   }
 
   _drawSubPanel(ctx) {
-    // Holzpanel – ohne Plankenlinien, Sub-Screens haben eigene Trennstruktur
+
     this._drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, false);
 
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // Panel-Titel
+
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.5)';
     ctx.shadowBlur  = 10;
@@ -345,7 +338,7 @@ export class StartScreen {
       this._drawCreditsContent(ctx);
     }
 
-    // Footer
+
     ctx.font      = '11px monospace';
     ctx.fillStyle = '#c8b090';
     ctx.textAlign = 'center';
@@ -353,7 +346,7 @@ export class StartScreen {
   }
 
   _drawOptionsContent(ctx) {
-    // Drei Zeilen: Musik-Lautstärke, SFX-Lautstärke, Sprache
+
     const rowY0   = PANEL_Y + 78;
     const rowStep = 62;
 
@@ -361,7 +354,7 @@ export class StartScreen {
       const y        = rowY0 + i * rowStep;
       const selected = i === this._optionIndex;
 
-      // Auswahlbalken
+
       if (selected) {
         const hl = ctx.createLinearGradient(PANEL_X, y, PANEL_X + PANEL_W, y);
         hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
@@ -372,7 +365,7 @@ export class StartScreen {
         ctx.fillRect(PANEL_X, y - 28, PANEL_W, 56);
       }
 
-      // Zeilenbezeichnung
+
       ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
       ctx.font      = selected ? 'bold 13px monospace' : '12px monospace';
       ctx.textAlign = 'left';
@@ -389,12 +382,12 @@ export class StartScreen {
         const barY  = y + 8;
         const barH  = 10;
 
-        // Schienen-Hintergrund
+
         ctx.fillStyle = 'rgba(20, 10, 4, 0.55)';
         this._rrect(ctx, barX, barY, barW, barH, 4);
         ctx.fill();
 
-        // Füllbalken
+
         const fillW = Math.round(barW * vol);
         if (fillW > 4) {
           const fillGrd = ctx.createLinearGradient(barX, barY, barX + fillW, barY);
@@ -406,7 +399,7 @@ export class StartScreen {
           ctx.fill();
         }
 
-        // Tick-Markierungen
+
         ctx.strokeStyle = 'rgba(255,220,120,0.25)';
         ctx.lineWidth   = 1;
         for (let s = 1; s < steps; s++) {
@@ -417,7 +410,7 @@ export class StartScreen {
           ctx.stroke();
         }
 
-        // Knopf / Handle
+
         const kx = barX + Math.round(barW * vol);
         ctx.fillStyle = selected ? '#f0c040' : '#c8a060';
         ctx.beginPath();
@@ -429,13 +422,13 @@ export class StartScreen {
           ctx.stroke();
         }
 
-        // Prozentwert – rechtsbündig über dem Slider (gleiche Höhe wie Label)
+
         ctx.fillStyle = selected ? '#fff4c0' : '#d6c7a2';
         ctx.font      = selected ? 'bold 12px monospace' : '11px monospace';
         ctx.textAlign = 'right';
         ctx.fillText(Math.round(vol * 100) + '%', PANEL_X + PANEL_W - 28, y - 10);
 
-        // Pfeil-Hinweis wenn selektiert
+
         if (selected) {
           ctx.fillStyle = 'rgba(240,192,0,0.55)';
           ctx.font      = '11px monospace';
@@ -444,7 +437,7 @@ export class StartScreen {
         }
 
       } else if (id === 'language') {
-        // Toggle-Anzeige: Sprache rechts, auf gleicher Höhe wie Label
+
         const langDisplay = currentLang === 'en' ? 'English' : 'Deutsch';
         ctx.save();
         ctx.shadowColor = selected ? 'rgba(240,192,0,0.5)' : 'transparent';
@@ -460,7 +453,7 @@ export class StartScreen {
   _drawControlsContent(ctx) {
     ctx.textBaseline = 'middle';
 
-    // 4 Zeilen oben + Trennstrich + 4 Zeilen unten (step 26 px)
+
     const midY   = PANEL_Y + 184;
     const b1Start = PANEL_Y + 88;
     const b1Step  = 26;
@@ -483,7 +476,7 @@ export class StartScreen {
       ctx.fillText(keys, PANEL_X + PANEL_W - 30, y);
     });
 
-    // Mittlere Trennlinie
+
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.35)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
@@ -517,7 +510,7 @@ export class StartScreen {
   _drawCreditsContent(ctx) {
     ctx.textBaseline = 'middle';
 
-    // ── Block 1: Top – zentriert
+
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
@@ -532,7 +525,7 @@ export class StartScreen {
     ctx.fillText('Yannick', CX, PANEL_Y + 166);
     ctx.restore();
 
-    // Kurzer zentrierter Trennstrich
+
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
@@ -540,7 +533,7 @@ export class StartScreen {
     ctx.lineTo(PANEL_X + 360, PANEL_Y + 195);
     ctx.stroke();
 
-    // ── Block 2: Zwei Spalten – Pyramiden-Layout
+
     const leftX  = CX - 95;
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
@@ -571,7 +564,7 @@ export class StartScreen {
     ctx.fillText('Pascal Belisle', rightX, PANEL_Y + 256);
     ctx.restore();
   }
-  /** Dekorative Holzplakette hinter dem Titeltext. */
+
   _drawTitleBanner(ctx) {
     const bw = 380;
     const bh = 104;
@@ -579,7 +572,7 @@ export class StartScreen {
     const by = TITLE_Y - 42;
     const r  = 6;
 
-    // Weicher Wärmeschein hinter dem Banner (Ambiente)
+
     const glow = ctx.createRadialGradient(CX, by + bh / 2, 8, CX, by + bh / 2, 230);
     glow.addColorStop(0,    'rgba(220, 155, 35, 0.20)');
     glow.addColorStop(0.45, 'rgba(180,  95, 10, 0.09)');
@@ -587,7 +580,7 @@ export class StartScreen {
     ctx.fillStyle = glow;
     ctx.fillRect(bx - 60, by - 32, bw + 120, bh + 64);
 
-    // Schatten
+
     ctx.save();
     ctx.shadowColor   = 'rgba(0,0,0,0.75)';
     ctx.shadowBlur    = 18;
@@ -597,12 +590,12 @@ export class StartScreen {
     ctx.fill();
     ctx.restore();
 
-    // Basis-Holz (dunkel)
+
     ctx.fillStyle = '#4a2f1a';
     this._rrect(ctx, bx, by, bw, bh, r);
     ctx.fill();
 
-    // Gradient: leicht helleres Zentrum
+
     const g = ctx.createLinearGradient(bx, by, bx, by + bh);
     g.addColorStop(0,    'rgba(22, 10, 3, 0.50)');
     g.addColorStop(0.30, 'rgba(100, 60, 22, 0.38)');
@@ -612,19 +605,19 @@ export class StartScreen {
     ctx.fillStyle = g;
     ctx.fill();
 
-    // Äußerer Rahmen
+
     ctx.strokeStyle = '#3b2615';
     ctx.lineWidth   = 3;
     this._rrect(ctx, bx, by, bw, bh, r);
     ctx.stroke();
 
-    // Innere Lichtkante
+
     ctx.strokeStyle = 'rgba(195, 148, 78, 0.28)';
     ctx.lineWidth   = 1;
     this._rrect(ctx, bx + 4, by + 4, bw - 8, bh - 8, Math.max(r - 2, 2));
     ctx.stroke();
 
-    // Eckverzierungen
+
     const corners = [
       [bx + 7,      by + 7     ],
       [bx + bw - 7, by + 7     ],
@@ -646,17 +639,14 @@ export class StartScreen {
     }
   }
 
-  // ─── Hilfs-Zeichner ────────────────────────────────────────────────────────
 
-  /**
-   * Zeichnet ein abgerundetes Holzpanel mit Schatten und Maserungsgradienten.
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {boolean} [drawPlanks=true]  Horizontale Plankenlinien zeichnen (nur Hauptmenü)
-   */
+
+
+
   _drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
     const r = 8;
 
-    // Schlagschatten (flacher Offset vermeidet Perspektiv-Effekt)
+
     ctx.save();
     ctx.shadowColor   = 'rgba(0, 0, 0, 0.70)';
     ctx.shadowBlur    = 14;
@@ -667,12 +657,12 @@ export class StartScreen {
     ctx.fill();
     ctx.restore();
 
-    // Basis-Holz
+
     ctx.fillStyle = '#7a5433';
     this._rrect(ctx, x, y, w, h, r);
     ctx.fill();
 
-    // Holzmaserung – helles Zentrum, dunkle Ober-/Unterkante
+
     const grain = ctx.createLinearGradient(x, y, x, y + h);
     grain.addColorStop(0,    'rgba(40,  20,  5,  0.60)');
     grain.addColorStop(0.10, 'rgba(195, 138, 68, 0.40)');
@@ -683,15 +673,15 @@ export class StartScreen {
     ctx.fillStyle = grain;
     ctx.fill();
 
-    // Dunkles Trimband oben
+
     ctx.fillStyle = 'rgba(28, 14, 4, 0.52)';
     ctx.fillRect(x + r, y, w - r * 2, 11);
 
-    // Dunkles Trimband unten
+
     ctx.fillStyle = 'rgba(28, 14, 4, 0.58)';
     ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
 
-    // Horizontale Plankenlinien (nur wenn gewünscht, z.B. Hauptmenü)
+
     if (drawPlanks) {
       ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
       ctx.lineWidth   = 1;
@@ -705,19 +695,19 @@ export class StartScreen {
       }
     }
 
-    // Äußerer Rahmen
+
     ctx.strokeStyle = '#3b2615';
     ctx.lineWidth   = 4;
     this._rrect(ctx, x, y, w, h, r);
     ctx.stroke();
 
-    // Innere Highlight-Linie
+
     ctx.strokeStyle = 'rgba(220, 175, 100, 0.22)';
     ctx.lineWidth   = 1;
     this._rrect(ctx, x + 5, y + 5, w - 10, h - 10, Math.max(r - 3, 2));
     ctx.stroke();
 
-    // Eckverzierungen (kleine Rauten)
+
     const corners = [
       [x + 7,     y + 7    ],
       [x + w - 7, y + 7    ],
@@ -739,7 +729,7 @@ export class StartScreen {
     }
   }
 
-  /** Hilfsmethode: Zeichnet einen abgerundeten Rechteck-Pfad (kein fill/stroke). */
+
   _rrect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -754,7 +744,7 @@ export class StartScreen {
     ctx.closePath();
   }
 
-  /** Glühwürmchen hinter dem Panel, über dem Hintergrund. */
+
   _drawFireflies(ctx, now) {
     for (const ff of this._fireflies) {
       const alpha = 0.22 + Math.abs(Math.sin(now * 1.5 + ff.phase)) * 0.48;
@@ -771,7 +761,7 @@ export class StartScreen {
     }
   }
 
-  /** Radiale Vignette über das gesamte Canvas. */
+
   _drawVignette(ctx) {
     const grd = ctx.createRadialGradient(
       CX, CY * 1.05, CANVAS_HEIGHT * 0.22,
@@ -783,4 +773,3 @@ export class StartScreen {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 }
-

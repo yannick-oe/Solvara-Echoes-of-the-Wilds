@@ -3,17 +3,17 @@ class InputManager {
     this.left          = false;
     this.right         = false;
     this.jump          = false;
-    this.jumpPressed   = false;  // nur im Frame des Tastendrucks true
-    this.enterPressed  = false;  // nur im Frame des Enter-Tastendrucks true
+    this.jumpPressed   = false;
+    this.enterPressed  = false;
     this.down          = false;
     this.up            = false;
     this.lookUp        = false;
-    this.escPressed    = false;  // nur im Frame des ersten ESC-Tastendrucks true (ungenutzt in Spiellogik)
-    this.pausePressed  = false;  // nur im Frame des P-Tastendrucks true
-    this.fullscreenPressed = false;  // nur im Frame des F-Tastendrucks true
-    this.backPressed   = false;  // nur im Frame des Q-Tastendrucks true (Untermenü verlassen)
-    this.rollPressed   = false;  // nur im Frame des Roll-Tastendrucks true (Touch-Steuerung)
-    this.mobileUpActive = false; // true solange der mobile ▲-Button gehalten wird
+    this.escPressed    = false;
+    this.pausePressed  = false;
+    this.fullscreenPressed = false;
+    this.backPressed   = false;
+    this.rollPressed   = false;
+    this.mobileUpActive = false;
 
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp   = this._onKeyUp.bind(this);
@@ -29,7 +29,6 @@ class InputManager {
     window.removeEventListener('keyup',   this._onKeyUp);
   }
 
-  /** Setzt frame-basierte Einmal-Flags zurück. Wird am Ende jedes update() aufgerufen. */
   resetFrameState() {
     this.jumpPressed  = false;
     this.enterPressed = false;
@@ -40,7 +39,6 @@ class InputManager {
     this.rollPressed  = false;
   }
 
-  /** Erlaubt TouchControls, Aktionen direkt zu setzen. */
   setTouch(action, value) {
     if (action === 'jump' && value && !this.jump) {
       this.jumpPressed = true;
@@ -53,7 +51,7 @@ class InputManager {
   }
 
   _onKeyDown(e) {
-    // Seitenscrollen durch Pfeiltasten und Space verhindern
+
     if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
       e.preventDefault();
     }
@@ -87,7 +85,7 @@ class InputManager {
         if (value) this.enterPressed = true;
         break;
       case 'Escape':
-        // escPressed wird vom Spiel nicht mehr für Pause/Menü genutzt
+
         if (value) this.escPressed = true;
         break;
       case 'KeyP':
@@ -104,4 +102,3 @@ class InputManager {
 }
 
 export const inputManager = new InputManager();
-

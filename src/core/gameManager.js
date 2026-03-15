@@ -28,9 +28,8 @@ import { VictoryScreen } from '../ui/screens/victoryScreen.js';
 import { PauseScreen } from '../ui/screens/pauseScreen.js';
 import { TouchControls } from '../ui/touchControls.js';
 
-// Kamera-Lookup-Effekt
-const CAM_LOOKUP_OFFSET = 80;  // px – Kamera hebt sich beim Hochschauen
-const CAM_LERP_SPEED    = 6;   // Interpolationsgeschwindigkeit (1/s)
+const CAM_LOOKUP_OFFSET = 80;
+const CAM_LERP_SPEED    = 6;
 
 function createGameState() {
   return {
@@ -45,7 +44,7 @@ function createGameState() {
 export class GameManager {
   constructor(canvas, container) {
     this.canvas = canvas;
-    this.container = container;   // für TouchControls
+    this.container = container;
     this.ctx = canvas.getContext('2d');
     this.state = GAME_STATES.LOADING;
     this.gameState = createGameState();
@@ -63,15 +62,15 @@ export class GameManager {
     this._effects       = [];
 
     this._pickups       = [];
-    this._interactables = [];   // Switch, Door
-    this._hazards       = [];   // FloorSpike, CeilingSpike
-    this._props         = [];   // Dekorative Weltprop-Objekte (JSON-driven)
+    this._interactables = [];
+    this._hazards       = [];
+    this._props         = [];
     this._hud           = new Hud(imageCache);
     this._deathTimeoutId       = null;
-    this._victoryPoseTimer     = 0;      // > 0 während Sieges-Pose
-    this._levelTimer           = 0;      // Spielzeit des aktuellen Levels (Sekunden)
-    this._finalLevelTime       = 0;      // eingefroren beim Sieg
-    this._victoryTransitionId  = null;   // setTimeout-Handle für Victory-Übergang
+    this._victoryPoseTimer     = 0;
+    this._levelTimer           = 0;
+    this._finalLevelTime       = 0;
+    this._victoryTransitionId  = null;
 
     this._startScreen   = new StartScreen(() => this.restart());
     this._gameOverScreen = new GameOverScreen(() => this.restart());
@@ -118,7 +117,7 @@ export class GameManager {
 
     inputManager.init();
     audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
-    this._touchControls.init();   // Touch-Overlay initialisieren (no-op auf Desktop)
+    this._touchControls.init();
     this.state = GAME_STATES.START;
     this._rafId = requestAnimationFrame(this._loop);
   }
@@ -134,7 +133,7 @@ export class GameManager {
     }
     intervalManager.stopAll();
     this._levelTimer       = 0;
-    this._victoryPoseTimer = 0;   // Sieg-Pose-Timer zwingend zurücksetzen
+    this._victoryPoseTimer = 0;
     this._finalLevelTime   = 0;
     this.gameState         = createGameState();
     this._player        = this._createPlayer();
@@ -157,7 +156,6 @@ export class GameManager {
     return new Player(x, y);
   }
 
-  /** Erstellt Gegner aus den JSON-Definitionen des Levels. */
   _spawnEnemies() {
     const defs = this._level.content?.enemies ?? [];
     return defs.map(def => {
@@ -170,7 +168,6 @@ export class GameManager {
     }).filter(Boolean);
   }
 
-  /** Erstellt Pickups aus den JSON-Definitionen des Levels. */
   _spawnPickups() {
     const defs = this._level.content?.pickups ?? [];
     return defs.map(def => {
@@ -183,17 +180,16 @@ export class GameManager {
     }).filter(Boolean);
   }
 
-  /** Erstellt Schalter und Tür aus den JSON-Definitionen des Levels. */
   _spawnInteractables() {
     const defs  = this._level.content?.interactables ?? [];
-    // Zuerst alle Türen anlegen und per id indizieren
+
     const doors = {};
     for (const def of defs) {
       if (def.type === 'door') {
         doors[def.id] = new Door(def.x, def.y);
       }
     }
-    // Dann Schalter anlegen und mit der gewünschten Tür verknüpfen
+
     const result = Object.values(doors);
     for (const def of defs) {
       if (def.type === 'switch') {
@@ -204,7 +200,6 @@ export class GameManager {
     return result;
   }
 
-  /** Erstellt Gefahren-Props aus den JSON-Definitionen des Levels. */
   _spawnHazards() {
     const defs = this._level.content?.hazards ?? [];
     return defs.map(def => {
@@ -219,23 +214,14 @@ export class GameManager {
     }).filter(Boolean);
   }
 
-  /**
-   * Erstellt die Liste der dekorativen Props aus content.props im Level-JSON.
-   * Jeder Eintrag wird zu einem leichtgewichtigen Datenobjekt normalisiert.
-   * Kein Gameplay-Einfluss – rein visuell.
-   */
   _spawnProps() {
     const defs = this._level.content?.props ?? [];
     return defs.map(def => {
       const entry = PROP_REGISTRY[def.asset];
-      if (!entry) {
-        console.warn(`[Props] Unbekanntes Prop-Asset: '${def.asset}' – wird übersprungen.`);
-        return null;
-      }
-      // Endgültige Skalierung: defaultScale (Registry) × Instanz-Skale (Level-JSON).
-      // scaleX / scaleY überschreiben den einheitlichen scale-Wert achsenweise.
+      if (!entry) return null;
+
       const base     = entry.defaultScale ?? 1;
-      const instU    = def.scale  ?? 1;   // uniformer Fallback
+      const instU    = def.scale  ?? 1;
       const scaleX   = base * (def.scaleX ?? instU);
       const scaleY   = base * (def.scaleY ?? instU);
 
@@ -258,11 +244,11 @@ export class GameManager {
     if (next === GAME_STATES.PLAYING) {
       audioManager.playMusic('assets/audio/music/level01.ogg');
     }
-    // VICTORY: Audio wird separat in _startVictorySequence verwaltet
+
   }
 
   _loop(timestamp) {
-    // Ersten Frame überspringen: _lastTime initialisieren ohne riesigen dt-Sprung
+
     if (!this._loopStarted) {
       this._loopStarted = true;
       this._lastTime = timestamp;
@@ -273,12 +259,11 @@ export class GameManager {
     const dt = Math.min((timestamp - this._lastTime) / 1000, 0.05);
     this._lastTime = timestamp;
 
-    // Vollbild-Toggle: F-Taste in allen Spielzuständen aktiv
     if (inputManager.fullscreenPressed) this._toggleFullscreen();
 
     this._update(dt);
     this._draw();
-    this._touchControls.setGameState(this.state);  // Touch-Overlay-Sichtbarkeit aktualisieren
+    this._touchControls.setGameState(this.state);
     inputManager.resetFrameState();
 
     this._rafId = requestAnimationFrame(this._loop);
@@ -291,7 +276,7 @@ export class GameManager {
         this._startScreen.handleInput(inputManager);
         break;
       case GAME_STATES.PLAYING:
-        // Sieges-Pose hat Vorrang: ESC und alle anderen Eingaben ignorieren
+
         if (this._victoryPoseTimer > 0) {
           this._victoryPoseTimer -= dt;
           if (this._victoryPoseTimer <= 0) {
@@ -306,63 +291,51 @@ export class GameManager {
           }
           break;
         }
-        // Pause-Toggle: P während PLAYING (nur wenn keine Sieges-Pose)
+
         if (inputManager.pausePressed) {
           this._pauseScreen.reset();
           this.state = GAME_STATES.PAUSED;
           break;
         }
-        // Level-Timer: läuft nur während aktivem Spiel (nicht während Sieges-Pose)
+
         this._levelTimer += dt;
 
         this._player.update(dt, inputManager, this._level.tileMap);
 
-        // Gegner updaten
         for (const enemy of this._enemies) {
           if (enemy.active) enemy.update(dt, this._level.tileMap);
         }
 
-        // Gefahren updaten (CeilingSpike-Fallen)
         const groundY = this._level.tileMap.height - this._level.tileMap.height % 48;
         for (const hz of this._hazards) {
           if (hz.update) hz.update(dt, this._player, groundY);
         }
 
-        // Pickups animieren
         for (const pickup of this._pickups) {
           if (pickup.active) pickup.update(dt);
         }
 
-        // Stomp-Kollision
         this._checkStomp();
 
-        // Roll-Kill: rollender Spieler tötet berührte Gegner
         this._checkRollKill();
 
-        // Gegner-Körperkontakt (Schaden) – nur wenn nicht sterbend
         if (!this._player.dying) {
           this._checkEnemyDamage();
 
-          // Pickup-Kollision
           this._checkPickups();
 
-          // Schalter + Zielzone prüfen
           this._checkInteractables();
 
-          // Spike-Kollision prüfen
           this._checkHazards();
         }
 
-        // HUD animieren
         this._hud.update(dt);
 
-        // Effekte updaten; inaktive entfernen
         for (const fx of this._effects) fx.update(dt);
         this._effects = this._effects.filter(fx => fx.active);
 
-        // Kamera folgt Spieler auf beiden Achsen, dann an Levelgrenzen klemmen
         this._camera.follow(this._player);
-        // Look-Up-Offset additiv aufaddieren (weiche Interpolation)
+
         {
           const target = this._player.state === 'lookUp' ? -CAM_LOOKUP_OFFSET : 0;
           this._camLookOffset += (target - this._camLookOffset) * Math.min(CAM_LERP_SPEED * dt, 1);
@@ -386,11 +359,10 @@ export class GameManager {
 
   _draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // Solide Hintergrundfarbe – verhindert dass transparente Tile-Pixel (z. B.
-    // Bogen- / Schrägen-Ecken) den leeren Canvas durchscheinen lassen.
+
     this.ctx.fillStyle = '#1a1220';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    // Pixel-Art: Interpolation deaktivieren – verhindert Atlas-Bleeding beim Upscaling
+
     this.ctx.imageSmoothingEnabled = false;
 
     switch (this.state) {
@@ -401,7 +373,7 @@ export class GameManager {
         this._drawWorld();
         break;
       case GAME_STATES.PAUSED:
-        // Spielwelt eingefroren im Hintergrund, Pause-Overlay darüber
+
         this._drawWorld();
         this._pauseScreen.draw(this.ctx);
         break;
@@ -414,26 +386,21 @@ export class GameManager {
     }
   }
 
-  /** Parallax + TileMap für den PLAYING State. */
   _drawWorld() {
-    // 1. Hintergrund-Ebenen im Screen-Space
+
     this._parallax?.draw(this.ctx, this._camera.x);
 
-    // 2. Kamera-Transform für Weltgegenstände
     this.ctx.save();
     this._camera.applyTransform(this.ctx);
 
     this._level.tileMap?.draw(this.ctx, this._camera);
 
-    // Dekorative Props – Ebene "back" (hinter Spielfiguren)
     this._drawProps('back');
 
-    // Gefahren hinter dem Spieler zeichnen
     for (const hz of this._hazards) {
       hz.draw(this.ctx, this._camera, imageCache);
     }
 
-    // Interaktierbare Objekte (hinter Spieler, damit diese sichtbar bleiben)
     for (const obj of this._interactables) {
       obj.draw(this.ctx, this._camera, imageCache);
     }
@@ -450,12 +417,10 @@ export class GameManager {
       if (pickup.active) pickup.draw(this.ctx, this._camera, imageCache);
     }
 
-    // Dekorative Props – Ebene "front" (vor Spielfiguren)
     this._drawProps('front');
 
     this.ctx.restore();
 
-    // Beleuchtungs-Overlay (Screen-Space): wärmt Farben auf, fügt vertikalen Lichtfall hinzu
     const lightGrd = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     lightGrd.addColorStop(0, 'rgba(255,240,180,0.08)');
     lightGrd.addColorStop(1, 'rgba(0,0,0,0.08)');
@@ -464,15 +429,9 @@ export class GameManager {
     this.ctx.fillStyle = 'rgba(255,230,150,0.03)';
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // 3. HUD im Screen-Space
     this._hud.draw(this.ctx, this.gameState);
   }
 
-  /**
-   * Zeichnet alle Props der angegebenen Ebene.
-   * Wird innerhalb des Kamera-Transforms aufgerufen (Weltkoordinaten).
-   * @param {'back'|'front'} layer
-   */
   _drawProps(layer) {
     const ctx = this.ctx;
     for (const prop of this._props) {
@@ -503,19 +462,6 @@ export class GameManager {
     }
   }
 
-  /**
-   * Stomp-Prüfung: Spieler landet auf einem Gegner von oben.
-   *
-   * Bedingung:
-   *   - Spieler fällt (velY > 0)
-   *   - AABB des Spielers überlappt mit dem Gegner
-   *   - Unterkante des Spielers war in letztem Frame OBERHALB der Oberkante des Gegners
-   *     (approximiert: Spieler-Unterkante liegt jetzt im oberen Drittel des Gegners)
-   *
-   * Bei Treffer:
-   *   - Gegner stirbt, DeathEffect wird gespawnt
-   *   - Spieler bekommt kleinen Aufprall-Bounce
-   */
   _checkStomp() {
     if (this._player.velY <= 0) return;
 
@@ -524,27 +470,20 @@ export class GameManager {
     for (const enemy of this._enemies) {
       if (!enemy.active || enemy.dead) continue;
 
-      // AABB-Überlappung prüfen
       const overlapX = p.x < enemy.x + enemy.w && p.x + p.w > enemy.x;
       const overlapY = p.y < enemy.y + enemy.h && p.y + p.h > enemy.y;
       if (!overlapX || !overlapY) continue;
 
-      // Spieler-Unterkante muss im oberen Drittel des Gegners liegen
       const stompZone = enemy.y + enemy.h / 3;
       if (p.y + p.h > stompZone) continue;
 
-      // Treffer!
       enemy.stompDie();
       if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
-      p.velY = -400;   // kleiner Bounce
+      p.velY = -400;
     }
   }
 
-  /**
-   * Roll-Kill: rollender Spieler tötet jeden Gegner den er berührt.
-   * Gegner stirbt sofort; Roll-Geschwindigkeit wird leicht reduziert.
-   */
   _checkRollKill() {
     if (!this._player.isRolling()) return;
     const p = this._player;
@@ -554,11 +493,10 @@ export class GameManager {
       enemy.stompDie();
       if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
       this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
-      p.rollHit();  // Geschwindigkeit leicht reduzieren + Staub-Burst
+      p.rollHit();
     }
   }
 
-  /** AABB-Überlappung Spieler ↔ Pickup; bei Treffer collect() aufrufen. */
   _checkPickups() {
     const p = this._player;
     for (const pickup of this._pickups) {
@@ -567,7 +505,6 @@ export class GameManager {
 
       pickup.collect(p, this.gameState);
 
-      // Pickup-Mittelpunkt → Bildschirmkoordinate
       const sx = pickup.x + pickup.w / 2 - this._camera.x;
       const sy = pickup.y + pickup.h / 2 - this._camera.y;
 
@@ -584,7 +521,6 @@ export class GameManager {
     }
   }
 
-  /** Schalter automatisch bei Berührung aktivieren; Tür-Blocking und Sieges-Auslöser. */
   _checkInteractables() {
     const p = this._player;
     for (const obj of this._interactables) {
@@ -593,8 +529,7 @@ export class GameManager {
           audioManager.playSfx('assets/audio/sfx/switchSound.mp3', { volume: SFX_VOLUME.switch });
         }
       } else if (obj instanceof Door) {
-        // Geschlossene Tür: Spieler kann sie nicht aktivieren – kein Kollisionsblocker mehr.
-        // Offene Tür: Spieler betritt sie → Sieges-Sequenz starten.
+
         if (obj.isOpen && p.intersects(obj) && this._victoryPoseTimer <= 0) {
           this._startVictorySequence();
         }
@@ -602,18 +537,12 @@ export class GameManager {
     }
   }
 
-  /** Spieler in Sieges-Pose einfrieren; nach kurzer Verzögerung zu VICTORY wechseln. */
   _startVictorySequence() {
     this._player.startVictoryPose();
-    this._victoryPoseTimer = 0.65;  // Sekunden Sieges-Pose sichtbar
+    this._victoryPoseTimer = 0.65;
     this._finalLevelTime   = this._levelTimer;
   }
 
-  /**
-   * Prüft ob der Spieler eine Spike-Gefahr berührt.
-   * FloorSpike: statisch, immer tödlich.
-   * CeilingSpike: nur tödlich während des Falls (isLethal).
-   */
   _checkHazards() {
     const p = this._player;
     for (const hz of this._hazards) {
@@ -623,32 +552,26 @@ export class GameManager {
         this.gameState.hearts = 0;
         this._hud.notify('damage', p.x + p.w / 2 - this._camera.x, p.y - this._camera.y);
         this._handlePlayerDeath();
-        return;   // nur ein Treffer pro Frame
+        return;
       }
     }
   }
 
-  /**
-   * Prüft Kollision zwischen Spieler und Gegnerkörper.
-   * Schäden werden nur vergeben wenn kein gültiger Stomp vorliegt.
-   * Pro Frame kann maximal ein Treffer verarbeitet werden.
-   */
   _checkEnemyDamage() {
     if (this._player.dying) return;
-    if (this._player.isRolling()) return;  // rollender Spieler tötet statt Schaden zu nehmen
+    if (this._player.isRolling()) return;
     const p = this._player;
     for (const enemy of this._enemies) {
       if (!enemy.active || enemy.dead) continue;
       if (!p.intersects(enemy)) continue;
 
-      // Stomp-Zone ausschließen: fällt der Spieler und trifft oben aufs Drittel?
       if (p.velY > 0 && p.y + p.h <= enemy.y + enemy.h / 3) continue;
 
       const tookDamage = p.takeDamage(enemy.x + enemy.w / 2);
       if (!tookDamage) break;
 
       this.gameState.hearts--;
-      // HUD-Schadensfeedback (Herz-Schallen)
+
       this._hud.notify('damage', p.x + p.w / 2 - this._camera.x, p.y - this._camera.y);
       if (this.gameState.hearts <= 0) {
         this.gameState.hearts = 0;
@@ -656,17 +579,16 @@ export class GameManager {
       } else {
         audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
       }
-      break;  // nur ein Treffer pro Frame
+      break;
     }
   }
 
-  /** Setzt den Spieler in den Sterbe-Zustand und leitet die Game-Over-Sequenz ein. */
   _handlePlayerDeath() {
     this._player.startDying();
     audioManager.playSfx('assets/audio/sfx/deathSound.mp3', { volume: SFX_VOLUME.death });
-    // Musik schnell ausblenden
+
     audioManager.fadeOutMusic(300);
-    // Nach kurzem Delay in den GAMEOVER-State wechseln
+
     this._deathTimeoutId = setTimeout(() => {
       this._deathTimeoutId = null;
       this._gameOverScreen.show();
@@ -674,10 +596,6 @@ export class GameManager {
     }, 400);
   }
 
-  /**
-   * Setzt den Level-Zustand vollständig zurück (Spieler, Gegner, Pickups, Kamera).
-   * Pickups werden neu gespawnt, sodass ein vollständiger Level-Reset erfolgt.
-   */
   _resetLevelState() {
     this._deathTimeoutId = null;
     this.gameState       = createGameState();
@@ -703,7 +621,6 @@ export class GameManager {
     ctx.fillText('Loading…', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   }
 
-  /** Vollbild umschalten – nutzt den gameContainer als Vollbild-Element. */
   _toggleFullscreen() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
       const req = this.container.requestFullscreen
@@ -715,4 +632,3 @@ export class GameManager {
     }
   }
 }
-

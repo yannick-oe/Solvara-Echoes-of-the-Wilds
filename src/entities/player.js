@@ -27,22 +27,15 @@ import {
   PLAYER_SPEED,
 } from '../core/constants.js';
 
-// ─── Kollisions-Hitbox (Weltpixel) ───────────────────────────────────────────
 const PLAYER_W = 32;
 const PLAYER_H = 48;
 
-// ─── Sprite-Zeichengröße (etwas größer für präsentere Optik) ────────────────
-// 72 → 88: Charakter wirkt heldenhafter, Hitbox bleibt fair.
 const DRAW_W = 88;
 const DRAW_H = 88;
 
-// Offset vom Hitbox-Ursprung zum Sprite-Ursprung:
-//   X: zentriert horizontal  → (32 − 88) / 2 = −28
-//   Y: Füße bündig unten     → 48 − 88       = −40
 const DRAW_OX = Math.round((PLAYER_W - DRAW_W) / 2);
 const DRAW_OY = PLAYER_H - DRAW_H;
 
-// ─── Animations-Konfiguration ─────────────────────────────────────────────────
 const ANIM = {
   idle:     { prefix: 'PLAYER_IDLE',     frames: 4, fps: 6  },
   run:      { prefix: 'PLAYER_RUN',      frames: 6, fps: 10 },
@@ -60,9 +53,6 @@ const ANIM = {
 
 const FALL_FRAME = 1;
 
-// ─── Spieler-Tuning (alle Werte in src/config/playerConfig.js) ───────────────
-
-// ─── Staub-Partikel ───────────────────────────────────────────────────────────
 const DUST_POOL_SIZE = 24;
 
 function makeDustPool() {
@@ -92,7 +82,7 @@ function spawnDust(pool, cx, groundY, count = 5) {
 }
 
 export class Player extends Entity {
-  /** @param {number} x  Spawn-X  @param {number} y  Spawn-Y */
+
   constructor(x, y) {
     super(x, y, PLAYER_W, PLAYER_H);
     this.facingRight = true;
@@ -106,52 +96,49 @@ export class Player extends Entity {
     this._hurtTimer  = 0;
     this.dying       = false;
 
-    // Wall Grab
-    this._wallGrabSide = 0;      // -1 = links, 1 = rechts, 0 = keiner
-    this._wallLockSide = 0;      // gesperrte Seite – bis Gegenseite berührt wird
 
-    // Klettern
+    this._wallGrabSide = 0;
+    this._wallLockSide = 0;
+
+
     this._onLadder           = false;
     this._climbMoving        = false;
-    this._atLadderTop        = false;  // steht an Leiteroberkante – DOWN erlaubt Wiedereinsteigen
-    this._ladderExitCooldown = 0;      // verhindert sofortiges Wiedereinsteigen nach Oberkante
+    this._atLadderTop        = false;
+    this._ladderExitCooldown = 0;
 
-    // Coyote-Time / Sprungpuffer
+
     this._coyoteTimer = 0;
     this._jumpBuffer  = 0;
 
-    // Wall-Abstoß-Timer (zeigt kurz die Push-off-Pose)
+
     this._wallPushOffTimer = 0;
 
-    // Roll
+
     this._rollChargeTimer = 0;
     this._rolling         = false;
     this._rollDir         = 0;
     this._rollSpeed       = 0;
 
-    // One-Way-Plattform: Y-Position der vorherigen Spielerfüße (für Top-Surface-Check)
+
     this._prevFeetY = y + PLAYER_H;
-    // Drop-Through-Timer: > 0 → One-Way-Plattformen kurz ignorieren (durchfallen)
+
     this._dropThroughTimer = 0;
 
-    // Lande-Squash-Effekt: scaleY kurz unter 1 nach Landung
-    this._squashTimer = 0;      // > 0 → Squash aktiv
-    this._squashScale = 1.0;    // aktueller Y-Skalierungsfaktor
 
-    // Schritt-SFX-Cadence: Zeit bis zum nächsten Schrittgeräusch
+    this._squashTimer = 0;
+    this._squashScale = 1.0;
+
+
     this._stepTimer = 0;
 
-    // Staub-Partikel
+
     this._dustPool = makeDustPool();
   }
 
-  /**
-   * @param {number}                                  dt
-   * @param {import('../core/input.js').InputManager} input
-   * @param {import('../world/tileMap.js').TileMap}   tileMap
-   */
+
+
   update(dt, input, tileMap) {
-    // Während Sterbe-Animation: nur freier Fall, keine Tile-Kollision, kein Input
+
     if (this.dying) {
       this.velY  = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
       this.y    += this.velY * dt;
@@ -161,14 +148,14 @@ export class Player extends Entity {
       return;
     }
 
-    // Timer herunterzählen
+
     if (this._invulTimer  > 0) this._invulTimer  = Math.max(0, this._invulTimer  - dt);
     if (this._hurtTimer   > 0) this._hurtTimer   = Math.max(0, this._hurtTimer   - dt);
     if (this._wallPushOffTimer > 0) this._wallPushOffTimer = Math.max(0, this._wallPushOffTimer - dt);
     if (this._ladderExitCooldown > 0) this._ladderExitCooldown = Math.max(0, this._ladderExitCooldown - dt);
     if (this._dropThroughTimer   > 0) this._dropThroughTimer   = Math.max(0, this._dropThroughTimer   - dt);
     if (this._stepTimer          > 0) this._stepTimer          = Math.max(0, this._stepTimer          - dt);
-    // Squash-Effekt: Scale zurück zu 1 Richtung ablaufendes Timer
+
     if (this._squashTimer > 0) {
       this._squashTimer = Math.max(0, this._squashTimer - dt);
       this._squashScale = 0.92 + (1.0 - 0.92) * (1 - this._squashTimer / 0.10);
@@ -176,56 +163,56 @@ export class Player extends Entity {
       this._squashScale = 1.0;
     }
 
-    // Sprungpuffer: Merkt einen zu frühen Sprungdruck
+
     if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
     else if (this._jumpBuffer > 0) this._jumpBuffer = Math.max(0, this._jumpBuffer - dt);
 
-    // ── Leiter-Einstieg von Leiteroberkante (μuss VOR overlapLadder-Check stehen!) ────
-    // Spieler steht auf solidem Boden direkt über einem Leitertile und drückt DOWN.
+
+
     if (!this._onLadder && this._atLadderTop && this._hurtTimer <= 0 &&
         input.down && !this._rolling) {
       const _ts  = TILE_SIZE;
       const _col = Math.floor((this.x + this.w / 2) / _ts);
       const _fr  = Math.floor((this.y + this.h) / _ts);
-      // Leiter entweder auf Fußhöhe (_fr, Fall B: kein Solid oben) oder eine Zeile
-      // tiefer (_fr+1, Fall A: Solid oben) suchen – deckt beide Snap-Positionen ab.
+
+
       const _ladderRow = tileMap.isLadder(_col, _fr) ? _fr
                        : tileMap.isLadder(_col, _fr + 1) ? _fr + 1 : -1;
       if (_ladderRow >= 0) {
-        // Spieler minimal in das Leitertile versetzen, damit isOnLadder sofort true wird
+
         this.y = _ladderRow * _ts - this.h + 2;
         this._atLadderTop = false;
         this._enterLadder();
       } else {
-        this._atLadderTop = false;  // Leiter nicht mehr darunter
+        this._atLadderTop = false;
       }
     }
 
-    // ── Leiter-Overlap prüfen ──────────────────────────────────────────────────────
+
     const canLadder     = this._hurtTimer <= 0;
     const overlapLadder = canLadder && tileMap.isOnLadder(this.x, this.y, this.w, this.h);
 
-    // atLadderTop bereinigen wenn Spieler sich vom Leiterkanal wegbewegt hat
+
     if (this._atLadderTop && !this._onLadder) {
       const _ts  = TILE_SIZE;
       const _col = Math.floor((this.x + this.w / 2) / _ts);
       const _fr  = Math.floor((this.y + this.h) / _ts);
-      // Beide Snap-Varianten prüfen: Fußhöhe (_fr) und eine Zeile tiefer (_fr+1)
+
       if (!tileMap.isLadder(_col, _fr) && !tileMap.isLadder(_col, _fr + 1)) {
         this._atLadderTop = false;
       }
     }
 
-    // Leiter-Einstieg (normaler Overlap-Pfad)
+
     if (!this._onLadder && overlapLadder && this._ladderExitCooldown <= 0 && (input.up || input.down)) {
       this._atLadderTop = false;
       this._enterLadder();
     }
-    // Leiter-Ausstieg
+
     if (this._onLadder) {
       if (!overlapLadder) {
-        // Verlässt der Spieler die Leiter nach oben (velY ≤ 0), Cooldown + Flag setzen,
-        // damit er nicht sofort wieder einsteigt und normal auf dem Boden landet.
+
+
         if (this.velY <= 0) {
           this.velY = 0;
           this._atLadderTop = true;
@@ -239,7 +226,7 @@ export class Player extends Entity {
       }
     }
 
-    // Leiter-Modus: eigene Physik, danach fertig
+
     if (this._onLadder) {
       this._handleLadder(dt, input, tileMap);
       this._updateAnim(dt, input);
@@ -247,14 +234,14 @@ export class Player extends Entity {
       return;
     }
 
-    // Kontextsensitives LookUp für Mobile-Up: schaut hoch wenn keine Leiter erreichbar.
-    // Desktop-Steuerung bleibt unverändert (KeyW/ArrowUp setzen nie mobileUpActive).
+
+
     const effectiveLookUp = input.lookUp ||
       (!overlapLadder && !this._atLadderTop && !!input.mobileUpActive);
 
-    // ── Roll-Aufladung (nur auf Boden, kein Schaden) ──────────────────────────
+
     if (this.onGround && !this._rolling && this._hurtTimer <= 0) {
-      // rollPressed (Touch-Steuerung): sofortiger Roll in aktueller Blickrichtung
+
       if (input.rollPressed) {
         this._startRoll(this.facingRight ? 1 : -1);
       } else {
@@ -270,7 +257,7 @@ export class Player extends Entity {
       }
     }
 
-    // ── Roll-Modus: eigene Physik, danach fertig ──────────────────────────
+
     if (this._rolling) {
       this._handleRoll(dt, input, tileMap);
       this._updateAnim(dt, input);
@@ -278,23 +265,23 @@ export class Player extends Entity {
       return;
     }
 
-    // ── Coyote-Timer ──────────────────────────────────────────────────────
+
     if (this.onGround) {
       this._coyoteTimer = COYOTE_TIME;
     } else {
       this._coyoteTimer = Math.max(0, this._coyoteTimer - dt);
     }
 
-    // ── Wall-Grab-Detektion ───────────────────────────────────────────────
+
     if (this._hurtTimer <= 0) {
       this._detectWallGrab(tileMap, input);
     }
 
     if (this._wallGrabSide !== 0) {
-      // ── Wall-Grab-Physik ────────────────────────────────────────────────
+
       this._handleWallGrab(dt, input, tileMap);
     } else {
-      // ── Normale Eingabe ─────────────────────────────────────────────────
+
       if (this._hurtTimer <= 0) {
         if (input.left) {
           this.velX = -PLAYER_SPEED;
@@ -306,15 +293,15 @@ export class Player extends Entity {
           this.velX = 0;
         }
 
-        // Crouch / LookUp unterdrücken horizontale Bewegung
+
         if (this.onGround && (input.down || effectiveLookUp)) {
           this.velX = 0;
         }
 
-        // Sprung mit Coyote-Time + Sprungpuffer
+
         const canJump = this.onGround || this._coyoteTimer > 0;
 
-        // Drop-Through: DOWN + Sprung auf One-Way-Plattform → durchfallen statt springen
+
         if (this.onGround && input.down && this._jumpBuffer > 0 && this._dropThroughTimer <= 0) {
           const _ts = TILE_SIZE;
           const _fRow = Math.floor((this.y + this.h) / _ts);
@@ -342,22 +329,22 @@ export class Player extends Entity {
         }
       }
 
-      // Schwerkraft
+
       this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
 
-      // X bewegen + Kollision
+
       this.x += this.velX * dt;
       this._resolveX(tileMap);
 
-      // Y bewegen + Kollision
+
       const wasGrounded = this.onGround;
       this.onGround = false;
       this._prevFeetY = this.y + this.h;
       this.y += this.velY * dt;
       this._resolveY(tileMap);
 
-      // Leiteroberkante-Fixierung: Spieler auf der Leiter-Oberfläche halten solange
-      // _atLadderTop gesetzt ist und kein anderweitiger Bodenkontakt besteht.
+
+
       if (this._atLadderTop && !this.onGround) {
         const _ts   = TILE_SIZE;
         const _col  = Math.floor((this.x + this.w / 2) / _ts);
@@ -371,18 +358,18 @@ export class Player extends Entity {
         }
       }
 
-      // Landedetektion → Landegeräusch + Squash + Staub + Lockout zurücksetzen
+
       if (!wasGrounded && this.onGround) {
         const landSfx = tileMap.getLandingSound(this.x + this.w / 2, this.y + this.h);
         if (landSfx) audioManager.playSfx(landSfx, { volume: SFX_VOLUME.landing });
         this._squashTimer = 0.10;
         this._squashScale = 0.92;
-        this._stepTimer   = 0.20;  // kurze Pause nach Landung vor erstem Schritt
+        this._stepTimer   = 0.20;
         spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
         this._wallLockSide = 0;
       }
 
-      // Schrittgeräusch-Cadence (nur wenn wirklich horizontal bewegt wird)
+
       if (this.onGround && this._hurtTimer <= 0 && Math.abs(this.velX) > 20) {
         if (this._stepTimer <= 0) {
           const stepSfx = tileMap.getFootstepSound(this.x + this.w / 2, this.y + this.h);
@@ -396,11 +383,8 @@ export class Player extends Entity {
     this._updateDust(dt);
   }
 
-  /**
-   * Wendet Trefferschaden an. Gibt true zurück wenn Schaden angenommen wurde.
-   * @param {number} enemyCenterX
-   * @returns {boolean}
-   */
+
+
   takeDamage(enemyCenterX) {
     if (this._invulTimer > 0 || this.dying) return false;
     const dir        = (this.x + this.w / 2) < enemyCenterX ? -1 : 1;
@@ -408,7 +392,7 @@ export class Player extends Entity {
     this.velY        = KNOCKBACK_Y;
     this._hurtTimer  = HURT_DURATION;
     this._invulTimer = INVUL_DURATION;
-    // Wandgriff + Leiter + Roll sofort abbrechen
+
     this._wallGrabSide = 0;
     this._atLadderTop  = false;
     this._exitLadder();
@@ -416,7 +400,7 @@ export class Player extends Entity {
     return true;
   }
 
-  /** Versetzt den Spieler in den Sterbe-Zustand. */
+
   startDying() {
     this.dying       = true;
     this.state       = 'hurt2';
@@ -430,7 +414,7 @@ export class Player extends Entity {
     this._exitRoll();
   }
 
-  /** Friert den Spieler ein und spielt die Sieges-Pose. */
+
   startVictoryPose() {
     this.state      = 'victory';
     this.frameIndex = 0;
@@ -442,12 +426,8 @@ export class Player extends Entity {
     this._exitRoll();
   }
 
-  /**
-   * Zeichnet Staub-Partikel dann den aktuellen Animations-Frame.
-   * @param {CanvasRenderingContext2D}                    ctx
-   * @param {*}                                          _cam  (unused)
-   * @param {import('../core/imageCache.js').ImageCache} imageCache
-   */
+
+
   draw(ctx, _cam, imageCache) {
     this._drawDust(ctx);
 
@@ -457,12 +437,12 @@ export class Player extends Entity {
 
     const anim = ANIM[this.state];
     let fi = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
-    // Wall-Grab: Frame 0 = Hängen, Frame 1 = Abstoß-Moment
+
     if (this.state === 'wallGrab') {
       fi = this._wallPushOffTimer > 0 ? 1 : 0;
     }
 
-    // Wandgriff: Sprite schaut immer ZUR Wand hin
+
     let flipX = !this.facingRight;
     if (this.state === 'wallGrab') {
       flipX = this._wallGrabSide < 0;
@@ -474,10 +454,10 @@ export class Player extends Entity {
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
 
-    // Squash-Effekt: Sprite kurz nach Landung vertikal einquetschen
+
     if (this._squashScale !== 1.0) {
       const squashH = DRAW_H * this._squashScale;
-      const squashY = dy + (DRAW_H - squashH);   // von Füßen nach oben stauchen
+      const squashY = dy + (DRAW_H - squashH);
       if (!flipX) {
         ctx.drawImage(img, dx, squashY, DRAW_W, squashH);
       } else {
@@ -498,7 +478,7 @@ export class Player extends Entity {
     }
   }
 
-  // ─── Leiter ────────────────────────────────────────────────────────────────
+
 
   _enterLadder() {
     this._onLadder     = true;
@@ -506,7 +486,7 @@ export class Player extends Entity {
     this._wallGrabSide = 0;
     this.velX          = 0;
     this.velY          = 0;
-    this._exitRoll();  // Roll durch Leiter unterbrechen
+    this._exitRoll();
   }
 
   _exitLadder() {
@@ -517,7 +497,7 @@ export class Player extends Entity {
   _handleLadder(dt, input, tileMap) {
     const ts = TILE_SIZE;
 
-    // Horizontal zur Leitermitten-X einrasten
+
     const midCol   = Math.floor((this.x + this.w / 2) / ts);
     const ladderCX = midCol * ts + ts / 2;
     this.x        += (ladderCX - this.w / 2 - this.x) * Math.min(8 * dt, 1);
@@ -535,7 +515,7 @@ export class Player extends Entity {
     this.velX = 0;
     this.y   += this.velY * dt;
 
-    // Boden der Leiter: unter uns ist solid → landen + aussteigen
+
     const probeY    = this.y + this.h;
     const bottomRow = Math.floor(probeY / ts);
     const col       = Math.floor((this.x + this.w / 2) / ts);
@@ -547,26 +527,26 @@ export class Player extends Entity {
       return;
     }
 
-    // Obere Kante: kein Leitertile mehr → auf Oberseite der Leiter einrasten
+
     const topRow = Math.floor(this.y / ts);
     if (this.velY < 0 && !tileMap.isLadder(col, topRow)) {
-      // Füße bündig auf der Oberkante der obersten Leitertile platzieren
-      // (topRow + 1) ist die letzte Leitertile; ihre Oberkante liegt bei (topRow+1)*ts
+
+
       this.y    = (topRow + 1) * ts - this.h;
       this.velY = 0;
-      // Wenn direkt über der Leiter eine solide Plattform liegt, darauf einrasten
+
       if (tileMap.isSolid(col, topRow)) {
         this.y = topRow * ts - this.h;
       }
-      // Stets als geerdet markieren – verhindert sofortiges Durchfallen nach oben Austritt
+
       this.onGround            = true;
-      this._atLadderTop        = true;   // Leiteroberkante: DOWN-Taste erlaubt Wiedereinsteigen
-      this._ladderExitCooldown  = 0.15;  // Flicker-Sperre: sofortiges Wiedereinsteigen verhindern
+      this._atLadderTop        = true;
+      this._ladderExitCooldown  = 0.15;
       this._exitLadder();
     }
   }
 
-  // ─── Wall Grab ─────────────────────────────────────────────────────────────
+
 
   _detectWallGrab(tileMap, input) {
     if (this.onGround) {
@@ -576,7 +556,7 @@ export class Player extends Entity {
 
     const ts = TILE_SIZE;
 
-    // Rechte Wand – gesperrt wenn gerade davon abgesprungen
+
     if (input.right && this._wallGrabSide !== -1 && this._wallLockSide !== 1) {
       const checkCol  = Math.floor((this.x + this.w) / ts);
       const topRow    = Math.floor(this.y / ts);
@@ -584,14 +564,14 @@ export class Player extends Entity {
       for (let row = topRow; row <= bottomRow; row++) {
         if (tileMap.isSolid(checkCol, row)) {
           this._wallGrabSide = 1;
-          this._wallLockSide = 0;   // Gegenseite berührt → Sperre aufheben
+          this._wallLockSide = 0;
           this.facingRight   = true;
           return;
         }
       }
     }
 
-    // Linke Wand – checkCol gespiegelt zur Rechten für korrekte bündige Ausrichtung
+
     if (input.left && this._wallGrabSide !== 1 && this._wallLockSide !== -1) {
       const checkCol  = Math.floor((this.x - 1) / ts);
       const topRow    = Math.floor(this.y / ts);
@@ -599,14 +579,14 @@ export class Player extends Entity {
       for (let row = topRow; row <= bottomRow; row++) {
         if (tileMap.isSolid(checkCol, row)) {
           this._wallGrabSide = -1;
-          this._wallLockSide = 0;   // Gegenseite berührt → Sperre aufheben
+          this._wallLockSide = 0;
           this.facingRight   = false;
           return;
         }
       }
     }
 
-    // Wandgriff lösen wenn kein Wandkontakt oder kein Drücken mehr
+
     if (this._wallGrabSide !== 0) {
       const stillTouch = this._isAgainstWall(tileMap, this._wallGrabSide);
       const stillPress = (this._wallGrabSide > 0 && input.right) ||
@@ -630,11 +610,11 @@ export class Player extends Entity {
 
   _handleWallGrab(dt, input, tileMap) {
     this.velX = 0;
-    // Aufwärts-Impuls beim Wandgriff sofort stoppen – verhindert Aufwärtsgleiten
+
     if (this.velY < 0) this.velY = 0;
     this.velY = Math.min(this.velY + WALL_SLIDE_GRAVITY * dt, WALL_SLIDE_MAX_SPEED);
 
-    // Y-Bewegung mit Boden-Kollision – verhindert Durchgleiten durch Böden
+
     const wasGrounded = this.onGround;
     this.onGround = false;
     this._prevFeetY = this.y + this.h;
@@ -643,7 +623,7 @@ export class Player extends Entity {
     if (!wasGrounded && this.onGround) {
       spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
       this._wallLockSide = 0;
-      this._wallGrabSide = 0;  // Wandgriff bei Landung freigeben
+      this._wallGrabSide = 0;
       return;
     }
 
@@ -652,20 +632,20 @@ export class Player extends Entity {
       this.velX              = jumpDir * WALL_JUMP_X;
       this.velY              = WALL_JUMP_Y;
       this.facingRight       = jumpDir > 0;
-      this._wallLockSide     = this._wallGrabSide;  // diese Seite sperren
-      this._wallPushOffTimer = 0.10;                // Abstoß-Pose kurz einblenden
+      this._wallLockSide     = this._wallGrabSide;
+      this._wallPushOffTimer = 0.10;
       this._wallGrabSide     = 0;
       this._jumpBuffer       = 0;
       spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h / 2, 4);
     }
   }
 
-  // ─── Roll ─────────────────────────────────────────────────────────────────────
 
-  /** Gibt true zurück wenn der Spieler gerade rollt (für gameManager). */
+
+
   isRolling() { return this._rolling; }
 
-  /** Startet die Roll-Aktion in die angegebene Richtung. @param {-1|1} dir */
+
   _startRoll(dir) {
     this._rolling         = true;
     this._rollDir         = dir;
@@ -676,7 +656,7 @@ export class Player extends Entity {
     spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
   }
 
-  /** Beendet die Roll-Aktion und setzt Roll-Zustand zurück. */
+
   _exitRoll() {
     this._rolling         = false;
     this._rollSpeed       = 0;
@@ -685,23 +665,17 @@ export class Player extends Entity {
     audioManager.stopLoopedSfx('roll');
   }
 
-  /**
-   * Reduziert Roll-Geschwindigkeit nach Gegner-Treffer + Staub-Burst.
-   * Wird von gameManager._checkRollKill() aufgerufen.
-   */
+
+
   rollHit() {
     this._rollSpeed *= 0.75;
     spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h / 2, 5);
   }
 
-  /**
-   * Verarbeitet Roll-Physik: Reibung, Bewegung, Kollision.
-   * @param {number} dt
-   * @param {import('../core/input.js').InputManager} input
-   * @param {import('../world/tileMap.js').TileMap}   tileMap
-   */
+
+
   _handleRoll(dt, input, tileMap) {
-    // ── Sprung aus Roll heraus ─────────────────────────────────────────────
+
     if (this._jumpBuffer > 0 && this.onGround) {
       this.velY        = JUMP_FORCE;
       this.onGround    = false;
@@ -711,30 +685,30 @@ export class Player extends Entity {
       return;
     }
 
-    // ── Reibung ─────────────────────────────────────────────────────────────
+
     this._rollSpeed = Math.max(0, this._rollSpeed - ROLL_FRICTION * dt);
     if (this._rollSpeed < ROLL_MIN_SPEED) {
       this._exitRoll();
       return;
     }
 
-    // ── Gelegentlicher Staub beim schnellen Rollen ──────────────────────────
+
     if (this.onGround && this._rollSpeed > ROLL_SPEED_INIT * 0.4) {
       if (Math.random() < 0.25) {
         spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 1);
       }
     }
 
-    // ── Horizontale Bewegung + Kollision ───────────────────────────────────
+
     this.velX = this._rollDir * this._rollSpeed;
     this.x   += this.velX * dt;
     this._resolveX(tileMap);
     if (this.velX === 0) {
-      this._exitRoll();  // Wand getroffen → Roll abbrechen
+      this._exitRoll();
       return;
     }
 
-    // ── Schwerkraft + Vertikale Kollision ─────────────────────────────────
+
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
     const wasGrounded = this.onGround;
     this.onGround = false;
@@ -747,26 +721,15 @@ export class Player extends Entity {
     }
   }
 
-  // ─── Animations-Hilfsmethode ───────────────────────────────────────────────
 
-  /**
-   * Wählt den richtigen State und schaltet Frames weiter.
-   *
-   * Priorität (absteigend):
-   *   1. hurt      → Schutz-State hat immer Vorrang
-   *   2. wallGrab  → Wandgriff (airborne + Wandkontakt)
-   *   3. climb     → Leiter
-   *   4. airborne  → jump/fall
-   *   5. crouch    → Boden + down
-   *   6. lookUp    → Boden + up
-   *   7. run       → velX ≠ 0
-   *   8. idle
-   */
+
+
+
   _updateAnim(dt, input, lookUpOverride = false) {
     let next;
     const FALL_THRESHOLD = 60;
 
-    // Wall-Abstoß-Pose für kurzen Moment erzwingen
+
     if (this._wallPushOffTimer > 0 && this._wallGrabSide === 0) {
       if (this.state !== 'wallGrab') {
         this.state      = 'wallGrab';
@@ -796,7 +759,7 @@ export class Player extends Entity {
       next = 'idle';
     }
 
-    // Leiter-Pose: statisch wenn keine Bewegung
+
     if (next === 'climb' && !this._climbMoving) {
       if (this.state !== 'climb') {
         this.state      = 'climb';
@@ -824,7 +787,7 @@ export class Player extends Entity {
     }
   }
 
-  // ─── Staub-Partikel ────────────────────────────────────────────────────────
+
 
   _updateDust(dt) {
     for (const p of this._dustPool) {
@@ -843,7 +806,7 @@ export class Player extends Entity {
       if (!p.active) continue;
       const lifeF = p.life / p.maxLife;
       ctx.globalAlpha = p.a * lifeF;
-      // Erdton: weiß-grau-hellbraun — NICHT gem/cherry/star-Farben
+
       ctx.fillStyle   = '#c8b89a';
       ctx.shadowColor = '#a09070';
       ctx.shadowBlur  = p.r * 1.5;
@@ -854,12 +817,10 @@ export class Player extends Entity {
     ctx.restore();
   }
 
-  // ─── Interne Kollisions-Hilfsmethoden ─────────────────────────────────────
 
-  /**
-   * Löst horizontale Tile-Kollision auf.
-   * @param {import('../world/tileMap.js').TileMap} tileMap
-   */
+
+
+
   _resolveX(tileMap) {
     if (this.velX === 0) return;
 
@@ -881,10 +842,8 @@ export class Player extends Entity {
     }
   }
 
-  /**
-   * Löst vertikale Tile-Kollision auf.
-   * @param {import('../world/tileMap.js').TileMap} tileMap
-   */
+
+
   _resolveY(tileMap) {
     const ts       = TILE_SIZE;
     const leftCol  = Math.floor(this.x / ts);
@@ -895,14 +854,14 @@ export class Player extends Entity {
       const bottomRow = Math.floor(probeY / ts);
 
       for (let col = leftCol; col <= rightCol; col++) {
-        // Vollständig solide Kachel: immer blockieren
+
         if (tileMap.isSolid(col, bottomRow)) {
           this.y        = bottomRow * ts - this.h;
           this.velY     = 0;
           this.onGround = true;
           return;
         }
-        // One-Way-Plattform: nur landen wenn Spieler von oben kommt und nicht durchfällt
+
         if (this._dropThroughTimer <= 0 && tileMap.isOneWay(col, bottomRow)) {
           const platformTop = bottomRow * ts;
           if (this._prevFeetY <= platformTop) {

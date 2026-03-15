@@ -4,21 +4,16 @@ const DRAW_W = 32;
 const DRAW_H = 32;
 
 export class Switch extends Entity {
-  /**
-   * @param {number} x
-   * @param {number} y
-   * @param {import('./door.js').Door|null} linkedDoor
-   */
+
+
   constructor(x, y, linkedDoor = null) {
     super(x, y, 24, 24);
     this.activated  = false;
     this.linkedDoor = linkedDoor;
   }
 
-  /**
-   * Aktiviert den Schalter wenn noch nicht aktiv.
-   * Gibt true zurück bei erstmaliger Aktivierung.
-   */
+
+
   activate() {
     if (!this.activated) {
       this.activated = true;
