@@ -10,42 +10,70 @@
     body {
       margin: 0;
       height: 100%;
-      overflow: hidden;
-    }
-
-    body {
       background-image: url(assets/images/backgrounds/background.png);
       background-size: cover;
       background-position: center;
+      overflow: hidden;
     }
 
+    /* Container zentriert das Spiel */
     #gameContainer {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
     }
 
+    /* Glow hinter dem Spiel für Tiefe */
+    #gameContainer::before {
+      content: "";
+      position: absolute;
+      width: 820px;
+      height: 580px;
+      background: radial-gradient(circle,
+          rgba(255, 210, 140, 0.25),
+          rgba(0, 0, 0, 0) 70%);
+      filter: blur(35px);
+      z-index: 0;
+    }
+
+    /* Der eigentliche Spielrahmen */
     canvas {
-      display: block;
+      position: relative;
+      z-index: 1;
+
       width: 720px;
       height: 480px;
+
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+
+      border-radius: 12px;
+
+      /* Holzrahmen */
+      border: 14px solid #3b2515;
+
+      /* Mehrschichtiger Rahmen + Tiefe */
+      box-shadow:
+        inset 0 0 0 3px #b58a45,
+        /* goldene Zierkante */
+        inset 0 0 0 6px #6b4425,
+        /* Holzstruktur */
+        inset 0 0 0 10px #2a1a0f,
+        /* dunkle Innenkante */
+        0 20px 60px rgba(0, 0, 0, 0.75);
+      /* Drop Shadow */
     }
 
-    /* Vollbild: Canvas und Container füllen den gesamten Bildschirm */
-    :fullscreen #gameContainer,
-    :-webkit-full-screen #gameContainer {
-      background: #000;
-    }
-
+    /* Fullscreen */
     :fullscreen canvas,
     :-webkit-full-screen canvas {
       width: 100vw;
       height: 100vh;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
     }
   </style>
 </head>
