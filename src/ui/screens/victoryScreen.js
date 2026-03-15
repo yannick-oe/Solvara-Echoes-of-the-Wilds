@@ -185,8 +185,6 @@ export class VictoryScreen {
     if (this._time < 0.5) return;   // Mindest-Anzeigezeit
     if (input.jumpPressed || input.enterPressed) {
       this._onRestart();
-    } else if (input.escPressed) {
-      this._onMainMenu();
     }
   }
 

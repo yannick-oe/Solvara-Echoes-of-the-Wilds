@@ -269,6 +269,9 @@ export class GameManager {
     const dt = Math.min((timestamp - this._lastTime) / 1000, 0.05);
     this._lastTime = timestamp;
 
+    // Vollbild-Toggle: F-Taste in allen Spielzuständen aktiv
+    if (inputManager.fullscreenPressed) this._toggleFullscreen();
+
     this._update(dt);
     this._draw();
     inputManager.resetFrameState();
@@ -298,8 +301,8 @@ export class GameManager {
           }
           break;
         }
-        // Pause-Toggle: ESC während PLAYING (nur wenn keine Sieges-Pose)
-        if (inputManager.escPressed) {
+        // Pause-Toggle: P während PLAYING (nur wenn keine Sieges-Pose)
+        if (inputManager.pausePressed) {
           this._pauseScreen.reset();
           this.state = GAME_STATES.PAUSED;
           break;
@@ -693,6 +696,18 @@ export class GameManager {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Loading…', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+  }
+
+  /** Vollbild umschalten – nutzt den gameContainer als Vollbild-Element. */
+  _toggleFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const req = this.container.requestFullscreen
+                ?? this.container.webkitRequestFullscreen;
+      req?.call(this.container)?.catch?.(() => {});
+    } else {
+      const exit = document.exitFullscreen ?? document.webkitExitFullscreen;
+      exit?.call(document)?.catch?.(() => {});
+    }
   }
 }
 

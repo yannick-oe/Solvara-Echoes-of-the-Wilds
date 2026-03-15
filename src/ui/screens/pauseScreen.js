@@ -63,14 +63,14 @@ export class PauseScreen {
       return;
     }
     if (this._subScreen === 'controls') {
-      if (input.escPressed || input.enterPressed || input.jumpPressed) {
+      if (input.backPressed) {
         this._subScreen = null;
       }
       return;
     }
 
-    // Hauptmenü – ESC = Resume
-    if (input.escPressed) {
+    // Hauptmenü – P = Resume
+    if (input.pausePressed) {
       this._onResume();
       return;
     }
@@ -94,6 +94,7 @@ export class PauseScreen {
 
   /** Navigationseingabe im Options-Subscreen. */
   _handleOptionsInput(input) {
+    if (input.backPressed) { this._subScreen = null; return; }
     const upNow    = input.up;
     const downNow  = input.down;
     const leftNow  = input.left;
@@ -130,9 +131,6 @@ export class PauseScreen {
       }
     }
 
-    if (input.escPressed) {
-      this._subScreen = null;
-    }
   }
 
   _activate(item) {
@@ -380,13 +378,15 @@ export class PauseScreen {
   _drawControlsContent(ctx) {
     ctx.textBaseline = 'middle';
 
-    const midY    = SUB_Y + 167;
-    const b1Start = SUB_Y + 83;
-    const b1Step  = 28;
+    // 4 Zeilen oben + Trennstrich + 4 Zeilen unten (step 26 px)
+    const midY    = SUB_Y + 184;
+    const b1Start = SUB_Y + 88;
+    const b1Step  = 26;
     const b1Rows  = [
       [t('move'),   'Arrow Keys / WASD'],
       [t('jump'),   'Space'],
       [t('crouch'), 'S / ↓'],
+      [t('roll'),   'S + ← / →'],
     ];
 
     b1Rows.forEach(([label, keys], i) => {
@@ -408,11 +408,14 @@ export class PauseScreen {
     ctx.lineTo(SUB_X + SUB_W - 30,   midY);
     ctx.stroke();
 
-    const b2Start = SUB_Y + 210;
-    const b2Step  = 28;
+    const b2Start = SUB_Y + 205;
+    const b2Step  = 26;
     const b2Rows  = [
-      [t('lookUp'), 'E'],
-      [t('pause'),  'ESC'],
+      [t('climb'),      'W / S  ↑ / ↓'],
+      [t('lookUp'),     'E'],
+      [t('pause'),      'P'],
+      [t('fullscreen'), 'F'],
+      [t('back'),       'Q'],
     ];
 
     b2Rows.forEach(([label, keys], i) => {

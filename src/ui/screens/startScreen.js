@@ -72,8 +72,8 @@ export class StartScreen {
       if (this._subScreen === 'options') {
         this._handleOptionsInput(input);
       } else {
-        // Controls / Credits: beliebiger Bestätigungs-/Zurück-Key schließt
-        if (input.escPressed || input.enterPressed || input.jumpPressed) {
+        // Controls / Credits: Q schließt das Panel
+        if (input.backPressed) {
           this._subScreen = null;
         }
       }
@@ -104,6 +104,7 @@ export class StartScreen {
 
   /** Navigation innerhalb des Options-Screens. */
   _handleOptionsInput(input) {
+    if (input.backPressed) { this._subScreen = null; return; }
     const upNow    = input.up;
     const downNow  = input.down;
     const leftNow  = input.left;
@@ -140,9 +141,6 @@ export class StartScreen {
       }
     }
 
-    if (input.escPressed) {
-      this._subScreen = null;
-    }
   }
 
   _toggleLang() {
@@ -462,19 +460,15 @@ export class StartScreen {
   _drawControlsContent(ctx) {
     ctx.textBaseline = 'middle';
 
-    // Mittlerer Trennstrich teilt den Inhalt in zwei gleich große Hälften:
-    // Obere Hälfte (y 145–257): Block 1 – Bewegung
-    // Untere Hälfte (y 257–370): Block 2 – Sonstiges
-    const midY = PANEL_Y + 167;   // = 257
-
-    // ── Block 1: Bewegen / Springen / Ducken ─────────────────────────────────
-    // Inhalt (56px bei step=28) mittig in 112px-Zone (145–257): Padding = 28px
-    const b1Start = PANEL_Y + 83;   // = 173
-    const b1Step  = 28;
+    // 4 Zeilen oben + Trennstrich + 4 Zeilen unten (step 26 px)
+    const midY   = PANEL_Y + 184;
+    const b1Start = PANEL_Y + 88;
+    const b1Step  = 26;
     const b1Rows  = [
       [t('move'),   'Arrow Keys / WASD'],
       [t('jump'),   'Space'],
       [t('crouch'), 'S / ↓'],
+      [t('roll'),   'S + ← / →'],
     ];
 
     b1Rows.forEach(([label, keys], i) => {
@@ -497,13 +491,14 @@ export class StartScreen {
     ctx.lineTo(PANEL_X + PANEL_W - 30, midY);
     ctx.stroke();
 
-    // ── Block 2: Hochschauen / Pause ─────────────────────────────────────────
-    // Inhalt (28px bei step=28) mittig in 113px-Zone (257–370): Padding = 42px
-    const b2Start = PANEL_Y + 210;   // = 300
-    const b2Step  = 28;
+    const b2Start = PANEL_Y + 205;
+    const b2Step  = 26;
     const b2Rows  = [
-      [t('lookUp'), 'E'],
-      [t('pause'),  'ESC'],
+      [t('climb'),      'W / S  ↑ / ↓'],
+      [t('lookUp'),     'E'],
+      [t('pause'),      'P'],
+      [t('fullscreen'), 'F'],
+      [t('back'),       'Q'],
     ];
 
     b2Rows.forEach(([label, keys], i) => {
@@ -522,11 +517,11 @@ export class StartScreen {
   _drawCreditsContent(ctx) {
     ctx.textBaseline = 'middle';
 
-    // ── Block 1: Top – zentriert ─────────────────────────────────────────────
+    // ── Block 1: Top – zentriert
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Game Design & Programming', CX, PANEL_Y + 80);
+    ctx.fillText('Game Design & Programming', CX, PANEL_Y + 140);
 
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
@@ -534,24 +529,23 @@ export class StartScreen {
     ctx.fillStyle   = '#f0c040';
     ctx.font        = 'bold 14px monospace';
     ctx.textAlign   = 'center';
-    ctx.fillText('Yannick', CX, PANEL_Y + 106);
+    ctx.fillText('Yannick', CX, PANEL_Y + 166);
     ctx.restore();
 
     // Kurzer zentrierter Trennstrich
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
-    ctx.moveTo(PANEL_X + 120, PANEL_Y + 135);
-    ctx.lineTo(PANEL_X + 360, PANEL_Y + 135);
+    ctx.moveTo(PANEL_X + 120, PANEL_Y + 195);
+    ctx.lineTo(PANEL_X + 360, PANEL_Y + 195);
     ctx.stroke();
 
-    // ── Block 2: Zwei Spalten – Pyramiden-Layout ─────────────────────────────
-    // Linke Spalte: Pixel Assets  (CX - 95)
-    const leftX  = CX - 95;   // = 265
+    // ── Block 2: Zwei Spalten – Pyramiden-Layout
+    const leftX  = CX - 95;
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Pixel Assets', leftX, PANEL_Y + 170);
+    ctx.fillText('Pixel Assets', leftX, PANEL_Y + 230);
 
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
@@ -559,15 +553,14 @@ export class StartScreen {
     ctx.fillStyle   = '#f0c040';
     ctx.font        = 'bold 14px monospace';
     ctx.textAlign   = 'center';
-    ctx.fillText('Anismuz', leftX, PANEL_Y + 196);
+    ctx.fillText('Anismuz', leftX, PANEL_Y + 256);
     ctx.restore();
 
-    // Rechte Spalte: Music – leicht versetzt nach rechts (CX + 115)
-    const rightX = CX + 115;  // = 475
+    const rightX = CX + 115;
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Music', rightX, PANEL_Y + 170);
+    ctx.fillText('Music', rightX, PANEL_Y + 230);
 
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
@@ -575,10 +568,9 @@ export class StartScreen {
     ctx.fillStyle   = '#f0c040';
     ctx.font        = 'bold 14px monospace';
     ctx.textAlign   = 'center';
-    ctx.fillText('Pascal Belisle', rightX, PANEL_Y + 196);
+    ctx.fillText('Pascal Belisle', rightX, PANEL_Y + 256);
     ctx.restore();
   }
-
   /** Dekorative Holzplakette hinter dem Titeltext. */
   _drawTitleBanner(ctx) {
     const bw = 380;

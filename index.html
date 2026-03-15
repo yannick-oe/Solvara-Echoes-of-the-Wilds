@@ -13,6 +13,12 @@
       overflow: hidden;
     }
 
+    body {
+      background-image: url(assets/images/backgrounds/background.png);
+      background-size: cover;
+      background-position: center;
+    }
+
     #gameContainer {
       position: absolute;
       inset: 0;
@@ -24,9 +30,22 @@
 
     canvas {
       display: block;
-      width: 100%;
-      height: 100%;
+      width: 720px;
+      height: 480px;
       image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* Vollbild: Canvas und Container füllen den gesamten Bildschirm */
+    :fullscreen #gameContainer,
+    :-webkit-full-screen #gameContainer {
+      background: #000;
+    }
+
+    :fullscreen canvas,
+    :-webkit-full-screen canvas {
+      width: 100vw;
+      height: 100vh;
     }
   </style>
 </head>

@@ -187,9 +187,13 @@ export class Player extends Entity {
       const _ts  = TILE_SIZE;
       const _col = Math.floor((this.x + this.w / 2) / _ts);
       const _fr  = Math.floor((this.y + this.h) / _ts);
-      if (tileMap.isLadder(_col, _fr + 1)) {
+      // Leiter entweder auf Fußhöhe (_fr, Fall B: kein Solid oben) oder eine Zeile
+      // tiefer (_fr+1, Fall A: Solid oben) suchen – deckt beide Snap-Positionen ab.
+      const _ladderRow = tileMap.isLadder(_col, _fr) ? _fr
+                       : tileMap.isLadder(_col, _fr + 1) ? _fr + 1 : -1;
+      if (_ladderRow >= 0) {
         // Spieler minimal in das Leitertile versetzen, damit isOnLadder sofort true wird
-        this.y = (_fr + 1) * _ts - this.h + 1;
+        this.y = _ladderRow * _ts - this.h + 2;
         this._atLadderTop = false;
         this._enterLadder();
       } else {
@@ -201,12 +205,15 @@ export class Player extends Entity {
     const canLadder     = this._hurtTimer <= 0;
     const overlapLadder = canLadder && tileMap.isOnLadder(this.x, this.y, this.w, this.h);
 
-    // atLadderTop beräinigen wenn Spieler sich vom Leiterkanal wegbewegt hat
+    // atLadderTop bereinigen wenn Spieler sich vom Leiterkanal wegbewegt hat
     if (this._atLadderTop && !this._onLadder) {
       const _ts  = TILE_SIZE;
       const _col = Math.floor((this.x + this.w / 2) / _ts);
       const _fr  = Math.floor((this.y + this.h) / _ts);
-      if (!tileMap.isLadder(_col, _fr + 1)) this._atLadderTop = false;
+      // Beide Snap-Varianten prüfen: Fußhöhe (_fr) und eine Zeile tiefer (_fr+1)
+      if (!tileMap.isLadder(_col, _fr) && !tileMap.isLadder(_col, _fr + 1)) {
+        this._atLadderTop = false;
+      }
     }
 
     // Leiter-Einstieg (normaler Overlap-Pfad)
@@ -338,6 +345,21 @@ export class Player extends Entity {
       this._prevFeetY = this.y + this.h;
       this.y += this.velY * dt;
       this._resolveY(tileMap);
+
+      // Leiteroberkante-Fixierung: Spieler auf der Leiter-Oberfläche halten solange
+      // _atLadderTop gesetzt ist und kein anderweitiger Bodenkontakt besteht.
+      if (this._atLadderTop && !this.onGround) {
+        const _ts   = TILE_SIZE;
+        const _col  = Math.floor((this.x + this.w / 2) / _ts);
+        const _fRow = Math.floor((this.y + this.h) / _ts);
+        if (tileMap.isLadder(_col, _fRow)) {
+          this.y        = _fRow * _ts - this.h;
+          this.velY     = 0;
+          this.onGround = true;
+        } else {
+          this._atLadderTop = false;
+        }
+      }
 
       // Landedetektion → Landegeräusch + Squash + Staub + Lockout zurücksetzen
       if (!wasGrounded && this.onGround) {
@@ -524,9 +546,10 @@ export class Player extends Entity {
       this.velY = 0;
       // Wenn direkt über der Leiter eine solide Plattform liegt, darauf einrasten
       if (tileMap.isSolid(col, topRow)) {
-        this.y        = topRow * ts - this.h;
-        this.onGround = true;
+        this.y = topRow * ts - this.h;
       }
+      // Stets als geerdet markieren – verhindert sofortiges Durchfallen nach oben Austritt
+      this.onGround            = true;
       this._atLadderTop        = true;   // Leiteroberkante: DOWN-Taste erlaubt Wiedereinsteigen
       this._ladderExitCooldown  = 0.15;  // Flicker-Sperre: sofortiges Wiedereinsteigen verhindern
       this._exitLadder();

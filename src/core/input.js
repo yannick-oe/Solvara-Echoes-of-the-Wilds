@@ -8,7 +8,10 @@ class InputManager {
     this.down          = false;
     this.up            = false;
     this.lookUp        = false;
-    this.escPressed    = false;  // nur im Frame des ersten ESC-Tastendrucks true
+    this.escPressed    = false;  // nur im Frame des ersten ESC-Tastendrucks true (ungenutzt in Spiellogik)
+    this.pausePressed  = false;  // nur im Frame des P-Tastendrucks true
+    this.fullscreenPressed = false;  // nur im Frame des F-Tastendrucks true
+    this.backPressed   = false;  // nur im Frame des Q-Tastendrucks true (Untermenü verlassen)
 
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp   = this._onKeyUp.bind(this);
@@ -29,6 +32,9 @@ class InputManager {
     this.jumpPressed  = false;
     this.enterPressed = false;
     this.escPressed   = false;
+    this.pausePressed = false;
+    this.fullscreenPressed = false;
+    this.backPressed  = false;
   }
 
   /** Erlaubt TouchControls, Aktionen direkt zu setzen. */
@@ -74,8 +80,17 @@ class InputManager {
         if (value) this.enterPressed = true;
         break;
       case 'Escape':
-        // escPressed nur beim Niederdrücken setzen (value===true), nicht beim Loslassen
+        // escPressed wird vom Spiel nicht mehr für Pause/Menü genutzt
         if (value) this.escPressed = true;
+        break;
+      case 'KeyP':
+        if (value) this.pausePressed = true;
+        break;
+      case 'KeyF':
+        if (value) this.fullscreenPressed = true;
+        break;
+      case 'KeyQ':
+        if (value) this.backPressed = true;
         break;
     }
   }

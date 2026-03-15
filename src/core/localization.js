@@ -26,15 +26,19 @@ export const TEXT = {
     move:         'Move',
     jump:         'Jump',
     crouch:       'Crouch',
+    roll:         'Roll',
+    climb:        'Climb',
     lookUp:       'Look Up',
     pause:        'Pause',
+    fullscreen:   'Fullscreen',
 
     // Credits
     creditsDev:    'Game Design & Programming',
     creditsAssets: 'Pixel Assets',
 
     // Allgemein
-    returnHint:  'Enter or ESC to return',
+    back:        'Back',
+    returnHint:  'Q  –  Back',
     retryHint:   'Press any key to retry',
 
     // Victory-Screen
@@ -44,7 +48,7 @@ export const TEXT = {
     gems:            'Gems',
     time:            'Time',
     continueHint:    'Enter / Space  –  Continue',
-    menuHint:        'ESC  –  Main Menu',
+    menuHint:        'P  –  Main Menu',
     nextPathAwaits:  'A new challenge lies ahead…',
   },
   de: {
@@ -71,15 +75,19 @@ export const TEXT = {
     move:         'Bewegen',
     jump:         'Springen',
     crouch:       'Ducken',
+    roll:         'Rollen',
+    climb:        'Klettern',
     lookUp:       'Hochschauen',
     pause:        'Pause',
+    fullscreen:   'Vollbild',
 
     // Credits
     creditsDev:    'Spieldesign & Programmierung',
     creditsAssets: 'Pixel-Assets',
 
     // Allgemein
-    returnHint:  'Enter oder ESC → Zurück',
+    back:        'Zurück',
+    returnHint:  'Q  –  Zurück',
     retryHint:   'Beliebige Taste zum Neustarten',
 
     // Victory-Screen
@@ -89,7 +97,7 @@ export const TEXT = {
     gems:            'Edelsteine',
     time:            'Zeit',
     continueHint:    'Enter / Leertaste  –  Weiter',
-    menuHint:        'ESC  –  Hauptmenü',
+    menuHint:        'P  –  Hauptmenü',
     nextPathAwaits:  'Ein neues Abenteuer wartet auf dich…',
   },
 };
