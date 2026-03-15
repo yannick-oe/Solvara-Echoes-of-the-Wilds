@@ -8,7 +8,7 @@ export const TEXT = {
     options:      'Options',
     controls:     'Controls',
     credits:      'Credits',
-    pressEnter:   'Press Enter to Select',
+    pressEnter:   'Press Enter to Start',
 
     // Pause-Menü
     continue:     'Continue',
