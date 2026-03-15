@@ -12,6 +12,8 @@ class InputManager {
     this.pausePressed  = false;  // nur im Frame des P-Tastendrucks true
     this.fullscreenPressed = false;  // nur im Frame des F-Tastendrucks true
     this.backPressed   = false;  // nur im Frame des Q-Tastendrucks true (Untermenü verlassen)
+    this.rollPressed   = false;  // nur im Frame des Roll-Tastendrucks true (Touch-Steuerung)
+    this.mobileUpActive = false; // true solange der mobile ▲-Button gehalten wird
 
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp   = this._onKeyUp.bind(this);
@@ -35,12 +37,17 @@ class InputManager {
     this.pausePressed = false;
     this.fullscreenPressed = false;
     this.backPressed  = false;
+    this.rollPressed  = false;
   }
 
   /** Erlaubt TouchControls, Aktionen direkt zu setzen. */
   setTouch(action, value) {
     if (action === 'jump' && value && !this.jump) {
       this.jumpPressed = true;
+    }
+    if (action === 'rollPressed') {
+      if (value) this.rollPressed = true;
+      return;
     }
     this[action] = value;
   }

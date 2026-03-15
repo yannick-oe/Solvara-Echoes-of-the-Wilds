@@ -247,16 +247,26 @@ export class Player extends Entity {
       return;
     }
 
+    // Kontextsensitives LookUp für Mobile-Up: schaut hoch wenn keine Leiter erreichbar.
+    // Desktop-Steuerung bleibt unverändert (KeyW/ArrowUp setzen nie mobileUpActive).
+    const effectiveLookUp = input.lookUp ||
+      (!overlapLadder && !this._atLadderTop && !!input.mobileUpActive);
+
     // ── Roll-Aufladung (nur auf Boden, kein Schaden) ──────────────────────────
     if (this.onGround && !this._rolling && this._hurtTimer <= 0) {
-      const holdDir = input.left ? -1 : (input.right ? 1 : 0);
-      if (input.down && holdDir !== 0) {
-        this._rollChargeTimer = Math.min(this._rollChargeTimer + dt, ROLL_CHARGE_TIME);
-        if (this._rollChargeTimer >= ROLL_CHARGE_TIME) {
-          this._startRoll(holdDir);
-        }
+      // rollPressed (Touch-Steuerung): sofortiger Roll in aktueller Blickrichtung
+      if (input.rollPressed) {
+        this._startRoll(this.facingRight ? 1 : -1);
       } else {
-        this._rollChargeTimer = 0;
+        const holdDir = input.left ? -1 : (input.right ? 1 : 0);
+        if (input.down && holdDir !== 0) {
+          this._rollChargeTimer = Math.min(this._rollChargeTimer + dt, ROLL_CHARGE_TIME);
+          if (this._rollChargeTimer >= ROLL_CHARGE_TIME) {
+            this._startRoll(holdDir);
+          }
+        } else {
+          this._rollChargeTimer = 0;
+        }
       }
     }
 
@@ -297,7 +307,7 @@ export class Player extends Entity {
         }
 
         // Crouch / LookUp unterdrücken horizontale Bewegung
-        if (this.onGround && (input.down || input.lookUp)) {
+        if (this.onGround && (input.down || effectiveLookUp)) {
           this.velX = 0;
         }
 
@@ -382,7 +392,7 @@ export class Player extends Entity {
       }
     }
 
-    this._updateAnim(dt, input);
+    this._updateAnim(dt, input, effectiveLookUp);
     this._updateDust(dt);
   }
 
@@ -752,7 +762,7 @@ export class Player extends Entity {
    *   7. run       → velX ≠ 0
    *   8. idle
    */
-  _updateAnim(dt, input) {
+  _updateAnim(dt, input, lookUpOverride = false) {
     let next;
     const FALL_THRESHOLD = 60;
 
@@ -778,7 +788,7 @@ export class Player extends Entity {
       next = this.velY < FALL_THRESHOLD ? 'jump' : 'fall';
     } else if (input.down) {
       next = 'crouch';
-    } else if (input.lookUp) {
+    } else if (lookUpOverride) {
       next = 'lookUp';
     } else if (this.velX !== 0) {
       next = 'run';

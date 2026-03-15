@@ -26,6 +26,7 @@ import { StartScreen } from '../ui/screens/startScreen.js';
 import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
 import { VictoryScreen } from '../ui/screens/victoryScreen.js';
 import { PauseScreen } from '../ui/screens/pauseScreen.js';
+import { TouchControls } from '../ui/touchControls.js';
 
 // Kamera-Lookup-Effekt
 const CAM_LOOKUP_OFFSET = 80;  // px – Kamera hebt sich beim Hochschauen
@@ -89,6 +90,8 @@ export class GameManager {
       onBackToStart: () => { audioManager.playMusic('assets/audio/music/startMenu.ogg'); this._startScreen.reset(); this.state = GAME_STATES.START; },
     });
 
+    this._touchControls = new TouchControls(container, inputManager, () => this.state);
+
     this._loop = this._loop.bind(this);
   }
 
@@ -115,6 +118,7 @@ export class GameManager {
 
     inputManager.init();
     audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
+    this._touchControls.init();   // Touch-Overlay initialisieren (no-op auf Desktop)
     this.state = GAME_STATES.START;
     this._rafId = requestAnimationFrame(this._loop);
   }
@@ -274,6 +278,7 @@ export class GameManager {
 
     this._update(dt);
     this._draw();
+    this._touchControls.setGameState(this.state);  // Touch-Overlay-Sichtbarkeit aktualisieren
     inputManager.resetFrameState();
 
     this._rafId = requestAnimationFrame(this._loop);

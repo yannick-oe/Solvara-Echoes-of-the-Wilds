@@ -37,9 +37,10 @@ export const TEXT = {
     creditsAssets: 'Pixel Assets',
 
     // Allgemein
-    back:        'Back',
-    returnHint:  'Q  –  Back',
-    retryHint:   'Press any key to retry',
+    back:         'Back',
+    returnHint:   'Q  –  Back',
+    retryHint:    'Press any key to retry',
+    rotateDevice: 'Rotate device to play',
 
     // Victory-Screen
     levelComplete:   'Level Complete',
@@ -86,9 +87,10 @@ export const TEXT = {
     creditsAssets: 'Pixel-Assets',
 
     // Allgemein
-    back:        'Zurück',
-    returnHint:  'Q  –  Zurück',
-    retryHint:   'Beliebige Taste zum Neustarten',
+    back:         'Zurück',
+    returnHint:   'Q  –  Zurück',
+    retryHint:    'Beliebige Taste zum Neustarten',
+    rotateDevice: 'Gerät drehen zum Spielen',
 
     // Victory-Screen
     levelComplete:   'Level abgeschlossen',
