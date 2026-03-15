@@ -1,0 +1,274 @@
+/**
+ * Bewegungs-Handler für Wand-Greifen, Leiter und Roll-Angriff.
+ * Alle Funktionen arbeiten direkt auf dem Player-Objekt.
+ * @module playerMovement
+ */
+
+import { TILE_SIZE, GRAVITY, MAX_FALL_SPEED, JUMP_FORCE } from '../core/constants.js';
+import {
+  ROLL_SPEED_INIT, ROLL_FRICTION, ROLL_MIN_SPEED,
+  WALL_SLIDE_GRAVITY, WALL_SLIDE_MAX_SPEED, WALL_JUMP_X, WALL_JUMP_Y,
+  CLIMB_SPEED,
+} from '../config/playerConfig.js';
+import { audioManager } from '../core/audioManager.js';
+import { SFX_VOLUME }   from '../config/audioConfig.js';
+import { resolveX, resolveY } from './playerPhysics.js';
+import { spawnDust } from './playerDust.js';
+
+// ─── Leiter ────────────────────────────────────────────────────────────────
+
+/** Setzt den Spieler in den Kletter-Modus. */
+export function enterLadder(player) {
+  player._onLadder     = true;
+  player._atLadderTop  = false;
+  player._wallGrabSide = 0;
+  player.velX          = 0;
+  player.velY          = 0;
+  exitRoll(player);
+}
+
+/** Beendet den Kletter-Modus. */
+export function exitLadder(player) {
+  player._onLadder    = false;
+  player._climbMoving = false;
+}
+
+/**
+ * Aktualisiert die Leiter-Bewegung.
+ * @param {import('./player.js').Player} player
+ * @param {number} dt
+ * @param {object} input
+ * @param {import('../world/tileMap.js').TileMap} tileMap
+ */
+export function handleLadder(player, dt, input, tileMap) {
+  const ts = TILE_SIZE;
+
+  // Horizontal zur Leiter-Mitte ausrichten
+  const midCol   = Math.floor((player.x + player.w / 2) / ts);
+  const ladderCX = midCol * ts + ts / 2;
+  player.x      += (ladderCX - player.w / 2 - player.x) * Math.min(8 * dt, 1);
+
+  player._climbMoving = false;
+  if (input.up) {
+    player.velY         = -CLIMB_SPEED;
+    player._climbMoving = true;
+  } else if (input.down) {
+    player.velY         =  CLIMB_SPEED;
+    player._climbMoving = true;
+  } else {
+    player.velY = 0;
+  }
+  player.velX = 0;
+  player.y   += player.velY * dt;
+
+  // Boden-Kollision auf der Leiter
+  const probeY    = player.y + player.h;
+  const bottomRow = Math.floor(probeY / ts);
+  const col       = Math.floor((player.x + player.w / 2) / ts);
+  if (player.velY >= 0 && tileMap.isSolid(col, bottomRow)) {
+    player.y        = bottomRow * ts - player.h;
+    player.velY     = 0;
+    player.onGround = true;
+    exitLadder(player);
+    return;
+  }
+
+  // Obere Leiter-Grenze
+  const topRow = Math.floor(player.y / ts);
+  if (player.velY < 0 && !tileMap.isLadder(col, topRow)) {
+    player.y    = (topRow + 1) * ts - player.h;
+    player.velY = 0;
+    if (tileMap.isSolid(col, topRow)) {
+      player.y = topRow * ts - player.h;
+    }
+    player.onGround            = true;
+    player._atLadderTop        = true;
+    player._ladderExitCooldown = 0.15;
+    exitLadder(player);
+  }
+}
+
+// ─── Wand-Greifen ──────────────────────────────────────────────────────────
+
+/**
+ * Erkennt, ob der Spieler an einer Wand hängt, und setzt `_wallGrabSide`.
+ * @param {import('./player.js').Player} player
+ * @param {import('../world/tileMap.js').TileMap} tileMap
+ * @param {object} input
+ */
+export function detectWallGrab(player, tileMap, input) {
+  if (player.onGround) {
+    player._wallGrabSide = 0;
+    return;
+  }
+
+  const ts = TILE_SIZE;
+
+  if (input.right && player._wallGrabSide !== -1 && player._wallLockSide !== 1) {
+    const checkCol  = Math.floor((player.x + player.w) / ts);
+    const topRow    = Math.floor(player.y / ts);
+    const bottomRow = Math.floor((player.y + player.h - 1) / ts);
+    for (let row = topRow; row <= bottomRow; row++) {
+      if (tileMap.isSolid(checkCol, row)) {
+        player._wallGrabSide = 1;
+        player._wallLockSide = 0;
+        player.facingRight   = true;
+        return;
+      }
+    }
+  }
+
+  if (input.left && player._wallGrabSide !== 1 && player._wallLockSide !== -1) {
+    const checkCol  = Math.floor((player.x - 1) / ts);
+    const topRow    = Math.floor(player.y / ts);
+    const bottomRow = Math.floor((player.y + player.h - 1) / ts);
+    for (let row = topRow; row <= bottomRow; row++) {
+      if (tileMap.isSolid(checkCol, row)) {
+        player._wallGrabSide = -1;
+        player._wallLockSide = 0;
+        player.facingRight   = false;
+        return;
+      }
+    }
+  }
+
+  if (player._wallGrabSide !== 0) {
+    const stillTouch = isAgainstWall(player, tileMap, player._wallGrabSide);
+    const stillPress = (player._wallGrabSide > 0 && input.right) ||
+                       (player._wallGrabSide < 0 && input.left);
+    if (!stillTouch || !stillPress) player._wallGrabSide = 0;
+  }
+}
+
+/**
+ * Prüft, ob der Spieler an der angegebenen Wandseite anliegt.
+ * @param {import('./player.js').Player} player
+ * @param {import('../world/tileMap.js').TileMap} tileMap
+ * @param {number} side - +1 rechts, -1 links
+ */
+export function isAgainstWall(player, tileMap, side) {
+  const ts       = TILE_SIZE;
+  const checkCol = side > 0
+    ? Math.floor((player.x + player.w) / ts)
+    : Math.floor((player.x - 1) / ts);
+  const topRow    = Math.floor(player.y / ts);
+  const bottomRow = Math.floor((player.y + player.h - 1) / ts);
+  for (let row = topRow; row <= bottomRow; row++) {
+    if (tileMap.isSolid(checkCol, row)) return true;
+  }
+  return false;
+}
+
+/**
+ * Verarbeitet den Wandgreif-Zustand (Gleiten + Wandsprung).
+ * @param {import('./player.js').Player} player
+ * @param {number} dt
+ * @param {object} input
+ * @param {import('../world/tileMap.js').TileMap} tileMap
+ */
+export function handleWallGrab(player, dt, input, tileMap) {
+  player.velX = 0;
+  if (player.velY < 0) player.velY = 0;
+  player.velY = Math.min(player.velY + WALL_SLIDE_GRAVITY * dt, WALL_SLIDE_MAX_SPEED);
+
+  const wasGrounded = player.onGround;
+  player.onGround   = false;
+  player._prevFeetY = player.y + player.h;
+  player.y         += player.velY * dt;
+  resolveY(player, tileMap);
+
+  if (!wasGrounded && player.onGround) {
+    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
+    player._wallLockSide = 0;
+    player._wallGrabSide = 0;
+    return;
+  }
+
+  if (player._jumpBuffer > 0) {
+    const jumpDir           = -player._wallGrabSide;
+    player.velX             = jumpDir * WALL_JUMP_X;
+    player.velY             = WALL_JUMP_Y;
+    player.facingRight      = jumpDir > 0;
+    player._wallLockSide    = player._wallGrabSide;
+    player._wallPushOffTimer = 0.10;
+    player._wallGrabSide    = 0;
+    player._jumpBuffer      = 0;
+    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h / 2, 4);
+  }
+}
+
+// ─── Roll-Angriff ──────────────────────────────────────────────────────────
+
+/** Startet den Roll-Angriff. */
+export function startRoll(player, dir) {
+  player._rolling         = true;
+  player._rollDir         = dir;
+  player._rollSpeed       = ROLL_SPEED_INIT;
+  player._rollChargeTimer = 0;
+  player.facingRight      = dir > 0;
+  audioManager.playLoopedSfx('roll', 'assets/audio/sfx/rollSound.mp3', { volume: SFX_VOLUME.roll });
+  spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 6);
+}
+
+/** Beendet den Roll-Angriff. */
+export function exitRoll(player) {
+  player._rolling         = false;
+  player._rollSpeed       = 0;
+  player._rollDir         = 0;
+  player._rollChargeTimer = 0;
+  audioManager.stopLoopedSfx('roll');
+}
+
+/**
+ * Aktualisiert die Roll-Bewegung.
+ * @param {import('./player.js').Player} player
+ * @param {number} dt
+ * @param {object} input
+ * @param {import('../world/tileMap.js').TileMap} tileMap
+ */
+export function handleRoll(player, dt, input, tileMap) {
+  // Roll kann mit Sprung abgebrochen werden
+  if (player._jumpBuffer > 0 && player.onGround) {
+    player.velY        = JUMP_FORCE;
+    player.onGround    = false;
+    player._jumpBuffer = 0;
+    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
+    exitRoll(player);
+    return;
+  }
+
+  // Geschwindigkeit abbremsen
+  player._rollSpeed = Math.max(0, player._rollSpeed - ROLL_FRICTION * dt);
+  if (player._rollSpeed < ROLL_MIN_SPEED) {
+    exitRoll(player);
+    return;
+  }
+
+  // Gelegentliche Bodenpartikel
+  if (player.onGround && player._rollSpeed > ROLL_SPEED_INIT * 0.4) {
+    if (Math.random() < 0.25) {
+      spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 1);
+    }
+  }
+
+  // Horizontal bewegen
+  player.velX = player._rollDir * player._rollSpeed;
+  player.x   += player.velX * dt;
+  resolveX(player, tileMap);
+  if (player.velX === 0) {
+    exitRoll(player);
+    return;
+  }
+
+  // Vertikal bewegen
+  player.velY = Math.min(player.velY + GRAVITY * dt, MAX_FALL_SPEED);
+  const wasGrounded  = player.onGround;
+  player.onGround    = false;
+  player._prevFeetY  = player.y + player.h;
+  player.y          += player.velY * dt;
+  resolveY(player, tileMap);
+  if (!wasGrounded && player.onGround) {
+    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
+    player._wallLockSide = 0;
+  }
+}

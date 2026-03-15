@@ -1,4 +1,5 @@
 import { CANVAS_WIDTH, STAR_COIN_COUNT } from '../core/constants.js';
+import { rrect, drawHudPanel } from './canvasUtils.js';
 
 const PAD = 10;
 const PANEL_PAD = 8;
@@ -173,7 +174,7 @@ export class Hud {
     ctx.save();
     ctx.translate(shakeX, 0);
 
-    this._drawPanel(ctx, PAD, PAD, panelW, panelH);
+    drawHudPanel(ctx, PAD, PAD, panelW, panelH);
 
 
     const heartRowY = PAD + PANEL_PAD + HEART_SIZE / 2;
@@ -268,7 +269,7 @@ export class Hud {
     const panelX = CANVAS_WIDTH - PAD - panelW;
     const panelY = PAD;
 
-    this._drawPanel(ctx, panelX, panelY, panelW, panelH);
+    drawHudPanel(ctx, panelX, panelY, panelW, panelH);
 
     const innerX = panelX + PANEL_PAD;
     const innerR = panelX + panelW - PANEL_PAD;
@@ -360,44 +361,4 @@ export class Hud {
 
 
 
-  _drawPanel(ctx, x, y, w, h) {
-    const r = 7;
-    ctx.save();
-
-    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 2;
-
-    const grd = ctx.createLinearGradient(x, y, x, y + h);
-    grd.addColorStop(0, 'rgba(14, 9, 4, 0.78)');
-    grd.addColorStop(1, 'rgba(5,  2, 1, 0.88)');
-    ctx.fillStyle = grd;
-    this._rrect(ctx, x, y, w, h, r);
-    ctx.fill();
-
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-
-
-    ctx.strokeStyle = 'rgba(200,160,80,0.22)';
-    ctx.lineWidth = 1;
-    this._rrect(ctx, x + 1, y + 1, w - 2, h - 2, r - 1);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  _rrect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y, x + w, y + r, r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x, y + h, x, y + h - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
-    ctx.closePath();
-  }
 }

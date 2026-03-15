@@ -14,7 +14,6 @@ export const ASSET_PATHS = {
   PLAYER_CROUCH:   [1,2].map(n => `${SPRITES}/player/crouch/player-crouch-${n}.png`),
   PLAYER_HURT:     [1,2].map(n => `${SPRITES}/player/hurt/player-hurt-${n}.png`),
   PLAYER_HURT2:    [`${SPRITES}/player/Hurt2/hurt-2.png`],
-  PLAYER_DIZZY:    [1,2,3,4,5,6].map(n => `${SPRITES}/player/Dizzy/Dizzy${n}.png`),
   PLAYER_ROLL:     [1,2,3,4].map(n => `${SPRITES}/player/Roll/Roll${n}.png`),
   PLAYER_VICTORY:  [`${SPRITES}/player/Victory/Victory.png`],
   PLAYER_LOOK_UP:  [`${SPRITES}/player/LookUp/lookUp.png`],
@@ -40,10 +39,6 @@ export const ASSET_PATHS = {
 
   PROP_SPIKES:       `${IMG}/props/spikes.png`,
   PROP_SPIKES_TOP:   `${IMG}/props/spikes-top.png`,
-};
-
-export const AUDIO_PATHS = {
-  MUSIC_LEVEL: 'assets/audio/music/platformer_level03_loop.ogg',
 };
 
 export const ASSET_ENTRIES = Object.entries(ASSET_PATHS).flatMap(([key, val]) => {

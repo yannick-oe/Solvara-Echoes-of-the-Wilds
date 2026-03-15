@@ -1,6 +1,11 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { t } from '../../core/localization.js';
 import { imageCache } from '../../core/imageCache.js';
+import { drawWoodPanel } from '../canvasUtils.js';
+import {
+  easeOutBack, easeOutQuad, formatTime,
+  makePool, initAtmoParticle, initSparkParticle,
+} from '../victoryParticles.js';
 
 const CX      = CANVAS_WIDTH  / 2;
 const CY      = CANVAS_HEIGHT / 2;
@@ -37,57 +42,6 @@ const ATMO_POOL = 55;
 const ATMO_RATE = 0.14;
 const SPARK_MAX = 12;
 
-function easeOutBack(x) {
-  const c1 = 1.70158, c3 = c1 + 1;
-  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
-}
-function easeOutQuad(x) { return 1 - (1 - x) * (1 - x); }
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function initAtmoParticle(p) {
-
-  p.active  = true;
-  p.x       = Math.random() * CANVAS_WIDTH;
-  p.y       = CANVAS_HEIGHT * 0.35 + Math.random() * (CANVAS_HEIGHT * 0.72);
-  p.vx      = (Math.random() - 0.5) * 14;
-  p.vy      = -(10 + Math.random() * 22);
-  p.life    = 3.8 + Math.random() * 3.0;
-  p.maxLife = p.life;
-  p.r       = 1.0 + Math.random() * 1.8;
-  p.baseA   = 0.18 + Math.random() * 0.38;
-  const c   = Math.random();
-  p.color   = c < 0.50 ? '#ffd700' : c < 0.80 ? '#ffe88f' : '#fff3c4';
-}
-
-function initSparkParticle(p, cx, cy) {
-  const angle = Math.random() * Math.PI * 2;
-  const speed = 45 + Math.random() * 88;
-  p.active  = true;
-  p.x       = cx;
-  p.y       = cy;
-  p.vx      = Math.cos(angle) * speed;
-  p.vy      = Math.sin(angle) * speed - 45;
-  p.life    = 0.42 + Math.random() * 0.32;
-  p.maxLife = p.life;
-  p.r       = 1.6 + Math.random() * 2.8;
-  p.baseA   = 1;
-  p.color   = Math.random() < 0.55 ? '#ffd700' : '#ffe88f';
-}
-
-function makePool(size) {
-  const pool = [];
-  for (let i = 0; i < size; i++) {
-    pool.push({ active: false, x: 0, y: 0, vx: 0, vy: 0,
-                life: 0, maxLife: 1, r: 2, baseA: 1, color: '#ffd700' });
-  }
-  return pool;
-}
-
 export class VictoryScreen {
 
   constructor({ onRestart, onMainMenu }) {
@@ -103,6 +57,11 @@ export class VictoryScreen {
     this._particles   = makePool(ATMO_POOL + SPARK_MAX * 3);
   }
 
+  /**
+   * Zeigt den Siegesschirm mit den übergebenen Spieldaten.
+   * @param {object}  gameState  - Aktueller Spiel-Status (hearts, score, gems, starCoins)
+   * @param {number}  levelTime  - Verstrichene Level-Zeit in Sekunden
+   */
   show(gameState, levelTime) {
     this._data = {
       hearts:   gameState.hearts,
@@ -127,7 +86,7 @@ export class VictoryScreen {
     if (this._atmoTimer >= ATMO_RATE) {
       this._atmoTimer = 0;
       for (const p of this._particles) {
-        if (!p.active) { initAtmoParticle(p); break; }
+        if (!p.active) { initAtmoParticle(p, CANVAS_WIDTH, CANVAS_HEIGHT); break; }
       }
     }
 
@@ -161,9 +120,8 @@ export class VictoryScreen {
   handleInput(input) {
     if (!this._data) return;
     if (this._time < 0.5) return;
-    if (input.jumpPressed || input.enterPressed) {
-      this._onRestart();
-    }
+    if (input.pausePressed)              this._onMainMenu();
+    if (input.jumpPressed || input.enterPressed) this._onRestart();
   }
 
   draw(ctx) {
@@ -324,7 +282,7 @@ export class VictoryScreen {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    this._drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
+    drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
 
     ctx.lineJoin = 'round';
 
@@ -420,79 +378,4 @@ export class VictoryScreen {
     ctx.restore();
   }
 
-  _drawWoodPanel(ctx, x, y, w, h) {
-    const r = 8;
-
-    ctx.save();
-    ctx.shadowColor   = 'rgba(0,0,0,0.65)';
-    ctx.shadowBlur    = 14;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 4;
-    ctx.fillStyle = '#7a5433';
-    this._rrect(ctx, x, y, w, h, r);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.fillStyle = '#7a5433';
-    this._rrect(ctx, x, y, w, h, r);
-    ctx.fill();
-
-    const grain = ctx.createLinearGradient(x, y, x, y + h);
-    grain.addColorStop(0,    'rgba(40,  20,  5,  0.60)');
-    grain.addColorStop(0.10, 'rgba(195, 138, 68, 0.40)');
-    grain.addColorStop(0.50, 'rgba(215, 158, 82, 0.46)');
-    grain.addColorStop(0.90, 'rgba(125, 76,  30, 0.34)');
-    grain.addColorStop(1,    'rgba(25,  12,  3,  0.68)');
-    this._rrect(ctx, x, y, w, h, r);
-    ctx.fillStyle = grain;
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(28,14,4,0.50)';
-    ctx.fillRect(x + r, y,          w - r * 2, 11);
-    ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
-
-    ctx.strokeStyle = '#3b2615';
-    ctx.lineWidth   = 4;
-    this._rrect(ctx, x, y, w, h, r);
-    ctx.stroke();
-
-    ctx.strokeStyle = 'rgba(220,175,100,0.22)';
-    ctx.lineWidth   = 1;
-    this._rrect(ctx, x + 5, y + 5, w - 10, h - 10, Math.max(r - 3, 2));
-    ctx.stroke();
-
-    const corners = [
-      [x + 7,     y + 7    ],
-      [x + w - 7, y + 7    ],
-      [x + 7,     y + h - 7],
-      [x + w - 7, y + h - 7],
-    ];
-    ctx.fillStyle   = '#4a2f1a';
-    ctx.strokeStyle = 'rgba(220,175,100,0.40)';
-    ctx.lineWidth   = 1;
-    for (const [ox, oy] of corners) {
-      ctx.beginPath();
-      ctx.moveTo(ox,     oy - 4);
-      ctx.lineTo(ox + 4, oy);
-      ctx.lineTo(ox,     oy + 4);
-      ctx.lineTo(ox - 4, oy);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    }
-  }
-
-  _rrect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y,     x + w, y + r,     r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x,     y + h, x,     y + h - r, r);
-    ctx.lineTo(x,     y + r);
-    ctx.arcTo(x,     y,     x + r, y,         r);
-    ctx.closePath();
-  }
 }

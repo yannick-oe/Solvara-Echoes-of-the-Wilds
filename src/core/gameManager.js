@@ -1,25 +1,13 @@
 import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT, CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from './constants.js';
 import { imageCache } from './imageCache.js';
-import { Player }      from '../entities/player.js';
-import { AntEnemy }    from '../entities/enemies/ant.js';
-import { FrogEnemy }   from '../entities/enemies/frog.js';
-import { EagleEnemy }  from '../entities/enemies/eagle.js';
-import { DeathEffect } from '../entities/effects/deathEffect.js';
-import { Gem }         from '../entities/pickups/gem.js';
-import { StarCoin }    from '../entities/pickups/starCoin.js';
-import { Cherry }      from '../entities/pickups/cherry.js';
-import { Door }        from '../entities/interactables/door.js';
-import { Switch }      from '../entities/interactables/switch.js';
-import { FloorSpike }  from '../entities/hazards/floorSpike.js';
-import { CeilingSpike } from '../entities/hazards/ceilingSpike.js';
 import { Hud }         from '../ui/hud.js';
 import { audioManager } from './audioManager.js';
 import { inputManager } from './input.js';
 import { intervalManager } from './intervalManager.js';
 import { Camera } from './camera.js';
 import { ASSET_ENTRIES } from '../config/assetPaths.js';
+import { PROP_ASSET_ENTRIES } from '../config/propConfig.js';
 import { SFX_VOLUME }   from '../config/audioConfig.js';
-import { PROP_REGISTRY, PROP_ASSET_ENTRIES } from '../config/propConfig.js';
 import { Level } from '../world/level.js';
 import { Parallax } from '../world/parallax.js';
 import { StartScreen } from '../ui/screens/startScreen.js';
@@ -27,6 +15,8 @@ import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
 import { VictoryScreen } from '../ui/screens/victoryScreen.js';
 import { PauseScreen } from '../ui/screens/pauseScreen.js';
 import { TouchControls } from '../ui/touchControls.js';
+import { createPlayer, spawnEnemies, spawnPickups, spawnInteractables, spawnHazards, spawnProps } from './entityFactory.js';
+import { checkStomp, checkRollKill, checkPickups, checkInteractables, checkHazards, checkEnemyDamage } from './collisionManager.js';
 
 const CAM_LOOKUP_OFFSET = 80;
 const CAM_LERP_SPEED    = 6;
@@ -52,7 +42,6 @@ export class GameManager {
     this._rafId = null;
     this._lastTime = 0;
     this._loopStarted = false;
-
     this._level = new Level();
     this._camera = new Camera();
     this._parallax      = null;
@@ -60,17 +49,16 @@ export class GameManager {
     this._camLookOffset = 0;
     this._enemies       = [];
     this._effects       = [];
-
     this._pickups       = [];
     this._interactables = [];
     this._hazards       = [];
     this._props         = [];
     this._hud           = new Hud(imageCache);
-    this._deathTimeoutId       = null;
-    this._victoryPoseTimer     = 0;
-    this._levelTimer           = 0;
-    this._finalLevelTime       = 0;
-    this._victoryTransitionId  = null;
+    this._deathTimeoutId      = null;
+    this._victoryPoseTimer    = 0;
+    this._levelTimer          = 0;
+    this._finalLevelTime      = 0;
+    this._victoryTransitionId = null;
 
     this._startScreen   = new StartScreen(() => this.restart());
     this._gameOverScreen = new GameOverScreen(() => this.restart());
@@ -94,27 +82,22 @@ export class GameManager {
     this._loop = this._loop.bind(this);
   }
 
+  /**
+   * Lädt Assets und Level, initialisiert Eingaben und startet den Game-Loop.
+   * @returns {Promise<void>}
+   */
   async start() {
     this._drawLoadingScreen();
     await imageCache.preload(ASSET_ENTRIES);
     await imageCache.preload(PROP_ASSET_ENTRIES);
     await this._level.load('assets/data/levels/level_01.json');
-
-    this._player  = this._createPlayer();
-    this._enemies  = this._spawnEnemies();
-    this._pickups  = this._spawnPickups();
-    this._interactables = this._spawnInteractables();
-    this._hazards       = this._spawnHazards();
-    this._props         = this._spawnProps();
-    this._effects  = [];
+    this._initEntities();
     this._camera.y = 0;
-
     this._parallax = new Parallax([
       { img: imageCache.get('BG_FOREST_BACK'),   speed: 0.15 },
       { img: imageCache.get('BG_FOREST_MIDDLE'), speed: 0.4,
         drawH: Math.round(CANVAS_HEIGHT * 0.58), alignBottom: true },
     ]);
-
     inputManager.init();
     audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
     this._touchControls.init();
@@ -122,20 +105,19 @@ export class GameManager {
     this._rafId = requestAnimationFrame(this._loop);
   }
 
+  /** Setzt das aktuelle Level zurück und startet die PLAYING-Phase neu. */
   restart() {
-    if (this._deathTimeoutId !== null) {
-      clearTimeout(this._deathTimeoutId);
-      this._deathTimeoutId = null;
-    }
-    if (this._victoryTransitionId !== null) {
-      clearTimeout(this._victoryTransitionId);
-      this._victoryTransitionId = null;
-    }
+    if (this._deathTimeoutId !== null)      { clearTimeout(this._deathTimeoutId);      this._deathTimeoutId = null; }
+    if (this._victoryTransitionId !== null) { clearTimeout(this._victoryTransitionId); this._victoryTransitionId = null; }
     intervalManager.stopAll();
-    this._levelTimer       = 0;
-    this._victoryPoseTimer = 0;
-    this._finalLevelTime   = 0;
-    this.gameState         = createGameState();
+    this._levelTimer = this._victoryPoseTimer = this._finalLevelTime = 0;
+    this.gameState   = createGameState();
+    this._initEntities();
+    this._camera.x = this._camera.y = this._camLookOffset = 0;
+    this._setState(GAME_STATES.PLAYING);
+  }
+
+  _initEntities() {
     this._player        = this._createPlayer();
     this._enemies       = this._spawnEnemies();
     this._pickups       = this._spawnPickups();
@@ -143,124 +125,30 @@ export class GameManager {
     this._hazards       = this._spawnHazards();
     this._props         = this._spawnProps();
     this._effects       = [];
-    this._camera.x      = 0;
-    this._camera.y      = 0;
-    this._camLookOffset = 0;
-    this._setState(GAME_STATES.PLAYING);
   }
 
-  _createPlayer() {
-    const spawn = this._level.content?.playerSpawn;
-    const x = spawn?.x ?? 2 * TILE_SIZE;
-    const y = spawn?.y ?? (8 * TILE_SIZE - 48);
-    return new Player(x, y);
-  }
-
-  _spawnEnemies() {
-    const defs = this._level.content?.enemies ?? [];
-    return defs.map(def => {
-      switch (def.type) {
-        case 'ant':   return new AntEnemy(def.x, def.y);
-        case 'frog':  return new FrogEnemy(def.x, def.y);
-        case 'eagle': return new EagleEnemy(def.x, def.minY, def.maxY);
-        default:      return null;
-      }
-    }).filter(Boolean);
-  }
-
-  _spawnPickups() {
-    const defs = this._level.content?.pickups ?? [];
-    return defs.map(def => {
-      switch (def.type) {
-        case 'gem':      return new Gem(def.x, def.y);
-        case 'starCoin': return new StarCoin(def.x, def.y, def.slotIndex);
-        case 'cherry':   return new Cherry(def.x, def.y);
-        default:         return null;
-      }
-    }).filter(Boolean);
-  }
-
-  _spawnInteractables() {
-    const defs  = this._level.content?.interactables ?? [];
-
-    const doors = {};
-    for (const def of defs) {
-      if (def.type === 'door') {
-        doors[def.id] = new Door(def.x, def.y);
-      }
-    }
-
-    const result = Object.values(doors);
-    for (const def of defs) {
-      if (def.type === 'switch') {
-        const linked = doors[def.linkedDoor ?? 0];
-        result.push(new Switch(def.x, def.y, linked));
-      }
-    }
-    return result;
-  }
-
-  _spawnHazards() {
-    const defs = this._level.content?.hazards ?? [];
-    return defs.map(def => {
-      switch (def.type) {
-        case 'floorSpike':
-          return new FloorSpike(def.x, def.y);
-        case 'ceilingSpike':
-          return new CeilingSpike(def.x, def.y, def.triggers ?? false, def.triggerRange ?? 88);
-        default:
-          return null;
-      }
-    }).filter(Boolean);
-  }
-
-  _spawnProps() {
-    const defs = this._level.content?.props ?? [];
-    return defs.map(def => {
-      const entry = PROP_REGISTRY[def.asset];
-      if (!entry) return null;
-
-      const base     = entry.defaultScale ?? 1;
-      const instU    = def.scale  ?? 1;
-      const scaleX   = base * (def.scaleX ?? instU);
-      const scaleY   = base * (def.scaleY ?? instU);
-
-      return {
-        key:    entry.key,
-        x:      def.x     ?? 0,
-        y:      def.y     ?? 0,
-        layer:  def.layer ?? 'back',
-        scaleX,
-        scaleY,
-        flipX:  def.flipX ?? false,
-        flipY:  def.flipY ?? false,
-        alpha:  def.alpha ?? 1,
-      };
-    }).filter(Boolean);
-  }
+  _createPlayer()       { return createPlayer(this._level.content); }
+  _spawnEnemies()       { return spawnEnemies(this._level.content); }
+  _spawnPickups()       { return spawnPickups(this._level.content); }
+  _spawnInteractables() { return spawnInteractables(this._level.content); }
+  _spawnHazards()       { return spawnHazards(this._level.content); }
+  _spawnProps()         { return spawnProps(this._level.content); }
 
   _setState(next) {
     this.state = next;
-    if (next === GAME_STATES.PLAYING) {
-      audioManager.playMusic('assets/audio/music/level01.ogg');
-    }
-
+    if (next === GAME_STATES.PLAYING) audioManager.playMusic('assets/audio/music/level01.ogg');
   }
 
   _loop(timestamp) {
-
     if (!this._loopStarted) {
       this._loopStarted = true;
       this._lastTime = timestamp;
       this._rafId = requestAnimationFrame(this._loop);
       return;
     }
-
     const dt = Math.min((timestamp - this._lastTime) / 1000, 0.05);
     this._lastTime = timestamp;
-
     if (inputManager.fullscreenPressed) this._toggleFullscreen();
-
     this._update(dt);
     this._draw();
     this._touchControls.setGameState(this.state);
@@ -275,74 +163,7 @@ export class GameManager {
         audioManager.playMusic('assets/audio/music/startMenu.ogg');
         this._startScreen.handleInput(inputManager);
         break;
-      case GAME_STATES.PLAYING:
-
-        if (this._victoryPoseTimer > 0) {
-          this._victoryPoseTimer -= dt;
-          if (this._victoryPoseTimer <= 0) {
-            this._victoryPoseTimer = 0;
-            audioManager.fadeOutMusic(220);
-            this._victoryTransitionId = setTimeout(() => {
-              this._victoryTransitionId = null;
-              audioManager.playSting('assets/audio/music/victory.mp3');
-              this._victoryScreen.show(this.gameState, this._finalLevelTime);
-              this.state = GAME_STATES.VICTORY;
-            }, 280);
-          }
-          break;
-        }
-
-        if (inputManager.pausePressed) {
-          this._pauseScreen.reset();
-          this.state = GAME_STATES.PAUSED;
-          break;
-        }
-
-        this._levelTimer += dt;
-
-        this._player.update(dt, inputManager, this._level.tileMap);
-
-        for (const enemy of this._enemies) {
-          if (enemy.active) enemy.update(dt, this._level.tileMap);
-        }
-
-        const groundY = this._level.tileMap.height - this._level.tileMap.height % 48;
-        for (const hz of this._hazards) {
-          if (hz.update) hz.update(dt, this._player, groundY);
-        }
-
-        for (const pickup of this._pickups) {
-          if (pickup.active) pickup.update(dt);
-        }
-
-        this._checkStomp();
-
-        this._checkRollKill();
-
-        if (!this._player.dying) {
-          this._checkEnemyDamage();
-
-          this._checkPickups();
-
-          this._checkInteractables();
-
-          this._checkHazards();
-        }
-
-        this._hud.update(dt);
-
-        for (const fx of this._effects) fx.update(dt);
-        this._effects = this._effects.filter(fx => fx.active);
-
-        this._camera.follow(this._player);
-
-        {
-          const target = this._player.state === 'lookUp' ? -CAM_LOOKUP_OFFSET : 0;
-          this._camLookOffset += (target - this._camLookOffset) * Math.min(CAM_LERP_SPEED * dt, 1);
-          this._camera.y += this._camLookOffset;
-        }
-        this._camera.clamp(this._level.width, this._level.height);
-        break;
+      case GAME_STATES.PLAYING:    this._updatePlaying(dt); break;
       case GAME_STATES.GAMEOVER:
         this._gameOverScreen.update(dt);
         this._gameOverScreen.handleInput(inputManager);
@@ -355,6 +176,58 @@ export class GameManager {
         this._pauseScreen.handleInput(inputManager);
         break;
     }
+  }
+
+  _updatePlaying(dt) {
+    if (this._victoryPoseTimer > 0) {
+      this._victoryPoseTimer -= dt;
+      if (this._victoryPoseTimer <= 0) {
+        this._victoryPoseTimer = 0;
+        audioManager.fadeOutMusic(220);
+        this._victoryTransitionId = setTimeout(() => {
+          this._victoryTransitionId = null;
+          audioManager.playSting('assets/audio/music/victory.mp3');
+          this._victoryScreen.show(this.gameState, this._finalLevelTime);
+          this.state = GAME_STATES.VICTORY;
+        }, 280);
+      }
+      return;
+    }
+
+    if (inputManager.pausePressed) {
+      this._pauseScreen.reset();
+      this.state = GAME_STATES.PAUSED;
+      return;
+    }
+
+    this._levelTimer += dt;
+    this._player.update(dt, inputManager, this._level.tileMap);
+
+    for (const enemy of this._enemies) {
+      if (enemy.active) enemy.update(dt, this._level.tileMap);
+    }
+    const groundY = this._level.tileMap.height - this._level.tileMap.height % TILE_SIZE;
+    for (const hz of this._hazards) hz.update?.(dt, this._player, groundY);
+    for (const pickup of this._pickups) { if (pickup.active) pickup.update(dt); }
+
+    this._checkStomp();
+    this._checkRollKill();
+    if (!this._player.dying) {
+      this._checkEnemyDamage();
+      this._checkPickups();
+      this._checkInteractables();
+      this._checkHazards();
+    }
+
+    this._hud.update(dt);
+    for (const fx of this._effects) fx.update(dt);
+    this._effects = this._effects.filter(fx => fx.active);
+
+    this._camera.follow(this._player);
+    const target = this._player.state === 'lookUp' ? -CAM_LOOKUP_OFFSET : 0;
+    this._camLookOffset += (target - this._camLookOffset) * Math.min(CAM_LERP_SPEED * dt, 1);
+    this._camera.y += this._camLookOffset;
+    this._camera.clamp(this._level.width, this._level.height);
   }
 
   _draw() {
@@ -463,124 +336,29 @@ export class GameManager {
   }
 
   _checkStomp() {
-    if (this._player.velY <= 0) return;
-
-    const p = this._player;
-
-    for (const enemy of this._enemies) {
-      if (!enemy.active || enemy.dead) continue;
-
-      const overlapX = p.x < enemy.x + enemy.w && p.x + p.w > enemy.x;
-      const overlapY = p.y < enemy.y + enemy.h && p.y + p.h > enemy.y;
-      if (!overlapX || !overlapY) continue;
-
-      const stompZone = enemy.y + enemy.h / 3;
-      if (p.y + p.h > stompZone) continue;
-
-      enemy.stompDie();
-      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
-      this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
-      p.velY = -400;
-    }
+    checkStomp({ player: this._player, enemies: this._enemies, effects: this._effects });
   }
-
   _checkRollKill() {
-    if (!this._player.isRolling()) return;
-    const p = this._player;
-    for (const enemy of this._enemies) {
-      if (!enemy.active || enemy.dead) continue;
-      if (!p.intersects(enemy)) continue;
-      enemy.stompDie();
-      if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
-      this._effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
-      p.rollHit();
-    }
+    checkRollKill({ player: this._player, enemies: this._enemies, effects: this._effects });
   }
-
   _checkPickups() {
-    const p = this._player;
-    for (const pickup of this._pickups) {
-      if (!pickup.active) continue;
-      if (!p.intersects(pickup)) continue;
-
-      pickup.collect(p, this.gameState);
-
-      const sx = pickup.x + pickup.w / 2 - this._camera.x;
-      const sy = pickup.y + pickup.h / 2 - this._camera.y;
-
-      if (pickup instanceof StarCoin) {
-        audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3', { volume: SFX_VOLUME.pickup });
-        this._hud.notify('starCoin', sx, sy, pickup.slotIndex);
-      } else if (pickup instanceof Gem) {
-        audioManager.playSfx('assets/audio/sfx/pickupGem.mp3', { volume: SFX_VOLUME.pickup });
-        this._hud.notify('gem', sx, sy);
-      } else if (pickup instanceof Cherry) {
-        audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3', { volume: SFX_VOLUME.pickup });
-        this._hud.notify('heal', sx, sy);
-      }
-    }
+    checkPickups({ player: this._player, pickups: this._pickups, gameState: this.gameState, hud: this._hud, camera: this._camera });
   }
-
   _checkInteractables() {
-    const p = this._player;
-    for (const obj of this._interactables) {
-      if (obj instanceof Switch) {
-        if (p.intersects(obj) && obj.activate()) {
-          audioManager.playSfx('assets/audio/sfx/switchSound.mp3', { volume: SFX_VOLUME.switch });
-        }
-      } else if (obj instanceof Door) {
-
-        if (obj.isOpen && p.intersects(obj) && this._victoryPoseTimer <= 0) {
-          this._startVictorySequence();
-        }
-      }
-    }
+    const alreadyPosed = this._victoryPoseTimer > 0;
+    if (alreadyPosed) return;
+    checkInteractables({ player: this._player, interactables: this._interactables, onVictory: () => this._startVictorySequence() });
   }
-
   _startVictorySequence() {
     this._player.startVictoryPose();
     this._victoryPoseTimer = 0.65;
     this._finalLevelTime   = this._levelTimer;
   }
-
   _checkHazards() {
-    const p = this._player;
-    for (const hz of this._hazards) {
-      if (!hz.active) continue;
-      const lethal = hz instanceof CeilingSpike ? hz.isLethal : true;
-      if (lethal && p.intersects(hz)) {
-        this.gameState.hearts = 0;
-        this._hud.notify('damage', p.x + p.w / 2 - this._camera.x, p.y - this._camera.y);
-        this._handlePlayerDeath();
-        return;
-      }
-    }
+    checkHazards({ player: this._player, hazards: this._hazards, gameState: this.gameState, hud: this._hud, camera: this._camera, onDeath: () => this._handlePlayerDeath() });
   }
-
   _checkEnemyDamage() {
-    if (this._player.dying) return;
-    if (this._player.isRolling()) return;
-    const p = this._player;
-    for (const enemy of this._enemies) {
-      if (!enemy.active || enemy.dead) continue;
-      if (!p.intersects(enemy)) continue;
-
-      if (p.velY > 0 && p.y + p.h <= enemy.y + enemy.h / 3) continue;
-
-      const tookDamage = p.takeDamage(enemy.x + enemy.w / 2);
-      if (!tookDamage) break;
-
-      this.gameState.hearts--;
-
-      this._hud.notify('damage', p.x + p.w / 2 - this._camera.x, p.y - this._camera.y);
-      if (this.gameState.hearts <= 0) {
-        this.gameState.hearts = 0;
-        this._handlePlayerDeath();
-      } else {
-        audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
-      }
-      break;
-    }
+    checkEnemyDamage({ player: this._player, enemies: this._enemies, gameState: this.gameState, hud: this._hud, camera: this._camera, onDeath: () => this._handlePlayerDeath() });
   }
 
   _handlePlayerDeath() {
@@ -594,20 +372,6 @@ export class GameManager {
       this._gameOverScreen.show();
       this._setState(GAME_STATES.GAMEOVER);
     }, 400);
-  }
-
-  _resetLevelState() {
-    this._deathTimeoutId = null;
-    this.gameState       = createGameState();
-    this._player         = this._createPlayer();
-    this._enemies        = this._spawnEnemies();
-    this._pickups        = this._spawnPickups();
-    this._interactables  = this._spawnInteractables();
-    this._hazards        = this._spawnHazards();
-    this._effects        = [];
-    this._camera.x       = 0;
-    this._camera.y       = 0;
-    this._camLookOffset  = 0;
   }
 
   _drawLoadingScreen() {
