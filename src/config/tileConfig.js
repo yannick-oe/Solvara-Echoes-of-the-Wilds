@@ -180,13 +180,18 @@ export const TILE_REGISTRY = {
   // --- Bogen + Leiter + Spezial  Zeile 10  (txRow = 10) ------------------
 
   /** Bogen – obere linke Zwickel (halbtransparent) */
-  atl:  { txCol:  1, txRow: 10, pass: false,  category: 'arch',     label: 'Bogen oben L'           },
+  atl:      { txCol:  1, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben L'          },
   /** Bogen – oberer Mittelbogen links */
-  atm:  { txCol:  2, txRow: 10, pass: false, category: 'arch',     label: 'Bogen oben Mitte L'     },
+  atm:      { txCol:  2, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte L'    },
   /** Bogen – oberer Mittelbogen rechts */
-  atr:  { txCol:  4, txRow: 10, pass: false, category: 'arch',     label: 'Bogen oben Mitte R'     },
+  atr:      { txCol:  4, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte R'    },
   /** Bogen – obere rechte Zwickel */
-  ate:  { txCol:  5, txRow: 10, pass: false,  category: 'arch',     label: 'Bogen oben R'           },
+  ate:      { txCol:  5, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben R'          },
+  /** Höhlen-Varianten – identische Sprites, aber mit dunklem bgFill gegen Parallax-Durchscheinen */
+  atlCave:  { txCol:  1, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben L (Höhle)',       bgFill: '#2f2540' },
+  atmCave:  { txCol:  2, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte L (Höhle)', bgFill: '#2f2540' },
+  atrCave:  { txCol:  4, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte R (Höhle)', bgFill: '#2f2540' },
+  ateCave:  { txCol:  5, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben R (Höhle)',       bgFill: '#2f2540' },
 
   /** Leiter  ★ Pflicht-Kürzel */
   l:    { txCol:  7, txRow: 10, pass: true,  ladder: true, category: 'ladder', label: 'Leiter' },
@@ -199,9 +204,11 @@ export const TILE_REGISTRY = {
   // --- Bogen-Unterzeile 11  (txRow = 11) ----------------------------------
 
   /** Bogen – untere linke Zwickel */
-  abl:  { txCol:  2, txRow: 11, pass: false,  category: 'arch',     label: 'Bogen unten L'          },
+  abl:      { txCol:  2, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten L'         },
   /** Bogen – untere rechte Zwickel */
-  abr:  { txCol:  4, txRow: 11, pass: false,  category: 'arch',     label: 'Bogen unten R'          },
+  abr:      { txCol:  4, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten R'         },
+  ablCave:  { txCol:  2, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten L (Höhle)', bgFill: '#2f2540' },
+  abrCave:  { txCol:  4, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten R (Höhle)', bgFill: '#2f2540' },
   /** Tempel-Block 1 */
   tb:   { txCol: 15, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block 1'         },
   /** Tempel-Block 2 */

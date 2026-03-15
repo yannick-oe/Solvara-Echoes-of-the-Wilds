@@ -155,6 +155,13 @@ export class TileMap {
         const tile = this._tiles[key];
         if (!tile) continue;
 
+        // Optionaler Hintergrund-Fill vor dem Tile-Sprite (z. B. Höhlen-Bögen
+        // mit transparenten Ecken, damit die Parallaxe nicht durchscheint).
+        if (tile.bgFill) {
+          ctx.fillStyle = tile.bgFill;
+          ctx.fillRect(col * ts, row * ts, ts, ts);
+        }
+
         ctx.drawImage(
           this._tilesetImg,
           tile.txCol * src, tile.txRow * src, src, src,   // Quelle

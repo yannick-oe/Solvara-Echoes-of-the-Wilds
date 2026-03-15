@@ -378,6 +378,10 @@ export class GameManager {
 
   _draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // Solide Hintergrundfarbe – verhindert dass transparente Tile-Pixel (z. B.
+    // Bogen- / Schrägen-Ecken) den leeren Canvas durchscheinen lassen.
+    this.ctx.fillStyle = '#1a1220';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // Pixel-Art: Interpolation deaktivieren – verhindert Atlas-Bleeding beim Upscaling
     this.ctx.imageSmoothingEnabled = false;
 
