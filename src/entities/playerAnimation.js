@@ -1,9 +1,10 @@
+// #region Constants
 /**
- * Animations-Definitionen und Zustandsmaschine für den Spieler.
+ * Animation definitions and state machine for the player.
  * @module playerAnimation
  */
 
-/** Animations-Tabelle: Zustandsname → Spritesheet-Konfiguration. */
+/** Animation table: state name -> spritesheet configuration. */
 export const ANIM = {
   idle:     { prefix: 'PLAYER_IDLE',     frames: 4, fps: 6  },
   run:      { prefix: 'PLAYER_RUN',      frames: 6, fps: 10 },
@@ -20,16 +21,24 @@ export const ANIM = {
 };
 
 /**
- * Wählt den nächsten Animationszustand und rückt den Frame-Timer vor.
+ * Selects the next animation state and advances the frame timer.
  * @param {import('./player.js').Player} player
  * @param {number} dt
  * @param {object} input
  * @param {boolean} [lookUpOverride=false]
  */
+// #endregion
+
+// #region Public Methods
+/**
+ * Handles update anim.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ * @param {object} input Input parameter.
+ * @param {string} lookUpOverride Input parameter.
+ */
 export function updateAnim(player, dt, input, lookUpOverride = false) {
   const FALL_THRESHOLD = 60;
-
-  // Wandsprung-Übergangsframe fixieren
   if (player._wallPushOffTimer > 0 && player._wallGrabSide === 0) {
     if (player.state !== 'wallGrab') {
       player.state      = 'wallGrab';
@@ -38,7 +47,6 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
     }
     return;
   }
-
   let next;
   if (player._hurtTimer > 0) {
     next = 'hurt';
@@ -59,8 +67,6 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
   } else {
     next = 'idle';
   }
-
-  // Klettern ohne Bewegung einfrieren
   if (next === 'climb' && !player._climbMoving) {
     if (player.state !== 'climb') {
       player.state      = 'climb';
@@ -69,18 +75,14 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
     }
     return;
   }
-
-  // Zustandswechsel: Frame-Counter zurücksetzen
   if (next !== player.state) {
     player.state      = next;
     player.frameIndex = 0;
     player.frameTimer = 0;
     return;
   }
-
   const anim = ANIM[player.state];
   if (anim.fps === 0) return;
-
   player.frameTimer += dt;
   const frameDuration = 1 / anim.fps;
   if (player.frameTimer >= frameDuration) {
@@ -88,3 +90,4 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
     player.frameIndex  = (player.frameIndex + 1) % anim.frames;
   }
 }
+// #endregion

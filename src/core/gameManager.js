@@ -1,3 +1,4 @@
+// #region Imports
 import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT, CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from './constants.js';
 import { imageCache } from './imageCache.js';
 import { Hud }         from '../ui/hud.js';
@@ -17,10 +18,17 @@ import { PauseScreen } from '../ui/screens/pauseScreen.js';
 import { TouchControls } from '../ui/touchControls.js';
 import { createPlayer, spawnEnemies, spawnPickups, spawnInteractables, spawnHazards, spawnProps } from './entityFactory.js';
 import { checkStomp, checkRollKill, checkPickups, checkInteractables, checkHazards, checkEnemyDamage } from './collisionManager.js';
+// #endregion
 
+// #region Constants
 const CAM_LOOKUP_OFFSET = 80;
 const CAM_LERP_SPEED    = 6;
+// #endregion
 
+// #region Class Definition
+/**
+ * Handles create game state.
+ */
 function createGameState() {
   return {
     hearts:         PLAYER_START_HEARTS,
@@ -32,13 +40,17 @@ function createGameState() {
 }
 
 export class GameManager {
+  /**
+   * Creates a new instance.
+   * @param {object} canvas Input parameter.
+   * @param {object} container Input parameter.
+   */
   constructor(canvas, container) {
     this.canvas = canvas;
     this.container = container;
     this.ctx = canvas.getContext('2d');
     this.state = GAME_STATES.LOADING;
     this.gameState = createGameState();
-
     this._rafId = null;
     this._lastTime = 0;
     this._loopStarted = false;
@@ -59,7 +71,6 @@ export class GameManager {
     this._levelTimer          = 0;
     this._finalLevelTime      = 0;
     this._victoryTransitionId = null;
-
     this._startScreen   = new StartScreen(() => this.restart());
     this._gameOverScreen = new GameOverScreen(() => this.restart());
     this._victoryScreen = new VictoryScreen({
@@ -83,8 +94,7 @@ export class GameManager {
   }
 
   /**
-   * Lädt Assets und Level, initialisiert Eingaben und startet den Game-Loop.
-   * @returns {Promise<void>}
+   * Loads assets and level data, initializes input, and starts the game loop.
    */
   async start() {
     this._drawLoadingScreen();
@@ -105,7 +115,7 @@ export class GameManager {
     this._rafId = requestAnimationFrame(this._loop);
   }
 
-  /** Setzt das aktuelle Level zurück und startet die PLAYING-Phase neu. */
+  /** Resets the current level and restarts the PLAYING phase. */
   restart() {
     if (this._deathTimeoutId !== null)      { clearTimeout(this._deathTimeoutId);      this._deathTimeoutId = null; }
     if (this._victoryTransitionId !== null) { clearTimeout(this._victoryTransitionId); this._victoryTransitionId = null; }
@@ -117,6 +127,9 @@ export class GameManager {
     this._setState(GAME_STATES.PLAYING);
   }
 
+  /**
+   * Handles init entities.
+   */
   _initEntities() {
     this._player        = this._createPlayer();
     this._enemies       = this._spawnEnemies();
@@ -127,18 +140,44 @@ export class GameManager {
     this._effects       = [];
   }
 
+  /**
+   * Handles create player.
+   */
   _createPlayer()       { return createPlayer(this._level.content); }
+  /**
+   * Handles spawn enemies.
+   */
   _spawnEnemies()       { return spawnEnemies(this._level.content); }
+  /**
+   * Handles spawn pickups.
+   */
   _spawnPickups()       { return spawnPickups(this._level.content); }
+  /**
+   * Handles spawn interactables.
+   */
   _spawnInteractables() { return spawnInteractables(this._level.content); }
+  /**
+   * Handles spawn hazards.
+   */
   _spawnHazards()       { return spawnHazards(this._level.content); }
+  /**
+   * Handles spawn props.
+   */
   _spawnProps()         { return spawnProps(this._level.content); }
 
+  /**
+   * Handles set state.
+   * @param {object} next Input parameter.
+   */
   _setState(next) {
     this.state = next;
     if (next === GAME_STATES.PLAYING) audioManager.playMusic('assets/audio/music/level01.ogg');
   }
 
+  /**
+   * Handles loop.
+   * @param {number} timestamp Input parameter.
+   */
   _loop(timestamp) {
     if (!this._loopStarted) {
       this._loopStarted = true;
@@ -157,6 +196,10 @@ export class GameManager {
     this._rafId = requestAnimationFrame(this._loop);
   }
 
+  /**
+   * Handles update.
+   * @param {number} dt Input parameter.
+   */
   _update(dt) {
     switch (this.state) {
       case GAME_STATES.START:
@@ -178,6 +221,10 @@ export class GameManager {
     }
   }
 
+  /**
+   * Handles update playing.
+   * @param {number} dt Input parameter.
+   */
   _updatePlaying(dt) {
     if (this._victoryPoseTimer > 0) {
       this._victoryPoseTimer -= dt;
@@ -193,23 +240,19 @@ export class GameManager {
       }
       return;
     }
-
     if (inputManager.pausePressed) {
       this._pauseScreen.reset();
       this.state = GAME_STATES.PAUSED;
       return;
     }
-
     this._levelTimer += dt;
     this._player.update(dt, inputManager, this._level.tileMap);
-
     for (const enemy of this._enemies) {
       if (enemy.active) enemy.update(dt, this._level.tileMap);
     }
     const groundY = this._level.tileMap.height - this._level.tileMap.height % TILE_SIZE;
     for (const hz of this._hazards) hz.update?.(dt, this._player, groundY);
     for (const pickup of this._pickups) { if (pickup.active) pickup.update(dt); }
-
     this._checkStomp();
     this._checkRollKill();
     if (!this._player.dying) {
@@ -218,11 +261,9 @@ export class GameManager {
       this._checkInteractables();
       this._checkHazards();
     }
-
     this._hud.update(dt);
     for (const fx of this._effects) fx.update(dt);
     this._effects = this._effects.filter(fx => fx.active);
-
     this._camera.follow(this._player);
     const target = this._player.state === 'lookUp' ? -CAM_LOOKUP_OFFSET : 0;
     this._camLookOffset += (target - this._camLookOffset) * Math.min(CAM_LERP_SPEED * dt, 1);
@@ -230,14 +271,14 @@ export class GameManager {
     this._camera.clamp(this._level.width, this._level.height);
   }
 
+  /**
+   * Handles draw.
+   */
   _draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
     this.ctx.fillStyle = '#1a1220';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
     this.ctx.imageSmoothingEnabled = false;
-
     switch (this.state) {
       case GAME_STATES.START:
         this._startScreen.draw(this.ctx);
@@ -246,7 +287,6 @@ export class GameManager {
         this._drawWorld();
         break;
       case GAME_STATES.PAUSED:
-
         this._drawWorld();
         this._pauseScreen.draw(this.ctx);
         break;
@@ -259,25 +299,22 @@ export class GameManager {
     }
   }
 
+  /**
+   * Handles draw world.
+   */
   _drawWorld() {
 
     this._parallax?.draw(this.ctx, this._camera.x);
-
     this.ctx.save();
     this._camera.applyTransform(this.ctx);
-
     this._level.tileMap?.draw(this.ctx, this._camera);
-
     this._drawProps('back');
-
     for (const hz of this._hazards) {
       hz.draw(this.ctx, this._camera, imageCache);
     }
-
     for (const obj of this._interactables) {
       obj.draw(this.ctx, this._camera, imageCache);
     }
-
     this._player?.draw(this.ctx, this._camera, imageCache);
     for (const enemy of this._enemies) {
       if (enemy.active) enemy.draw(this.ctx, this._camera, imageCache);
@@ -285,15 +322,11 @@ export class GameManager {
     for (const fx of this._effects) {
       if (fx.active) fx.draw(this.ctx, this._camera, imageCache);
     }
-
     for (const pickup of this._pickups) {
       if (pickup.active) pickup.draw(this.ctx, this._camera, imageCache);
     }
-
     this._drawProps('front');
-
     this.ctx.restore();
-
     const lightGrd = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     lightGrd.addColorStop(0, 'rgba(255,240,180,0.08)');
     lightGrd.addColorStop(1, 'rgba(0,0,0,0.08)');
@@ -301,23 +334,23 @@ export class GameManager {
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.ctx.fillStyle = 'rgba(255,230,150,0.03)';
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     this._hud.draw(this.ctx, this.gameState);
   }
 
+  /**
+   * Handles draw props.
+   * @param {object} layer Input parameter.
+   */
   _drawProps(layer) {
     const ctx = this.ctx;
     for (const prop of this._props) {
       if (prop.layer !== layer) continue;
       const img = imageCache.get(prop.key);
       if (!img) continue;
-
       const w = img.naturalWidth  * prop.scaleX;
       const h = img.naturalHeight * prop.scaleY;
-
       ctx.save();
       if (prop.alpha !== 1) ctx.globalAlpha = prop.alpha;
-
       if (prop.flipX || prop.flipY) {
         const sx = prop.flipX ? -1 : 1;
         const sy = prop.flipY ? -1 : 1;
@@ -330,43 +363,64 @@ export class GameManager {
       } else {
         ctx.drawImage(img, prop.x, prop.y, w, h);
       }
-
       ctx.restore();
     }
   }
 
+  /**
+   * Handles check stomp.
+   */
   _checkStomp() {
     checkStomp({ player: this._player, enemies: this._enemies, effects: this._effects });
   }
+  /**
+   * Handles check roll kill.
+   */
   _checkRollKill() {
     checkRollKill({ player: this._player, enemies: this._enemies, effects: this._effects });
   }
+  /**
+   * Handles check pickups.
+   */
   _checkPickups() {
     checkPickups({ player: this._player, pickups: this._pickups, gameState: this.gameState, hud: this._hud, camera: this._camera });
   }
+  /**
+   * Handles check interactables.
+   */
   _checkInteractables() {
     const alreadyPosed = this._victoryPoseTimer > 0;
     if (alreadyPosed) return;
     checkInteractables({ player: this._player, interactables: this._interactables, onVictory: () => this._startVictorySequence() });
   }
+  /**
+   * Handles start victory sequence.
+   */
   _startVictorySequence() {
     this._player.startVictoryPose();
     this._victoryPoseTimer = 0.65;
     this._finalLevelTime   = this._levelTimer;
   }
+  /**
+   * Handles check hazards.
+   */
   _checkHazards() {
     checkHazards({ player: this._player, hazards: this._hazards, gameState: this.gameState, hud: this._hud, camera: this._camera, onDeath: () => this._handlePlayerDeath() });
   }
+  /**
+   * Handles check enemy damage.
+   */
   _checkEnemyDamage() {
     checkEnemyDamage({ player: this._player, enemies: this._enemies, gameState: this.gameState, hud: this._hud, camera: this._camera, onDeath: () => this._handlePlayerDeath() });
   }
 
+  /**
+   * Handles handle player death.
+   */
   _handlePlayerDeath() {
     this._player.startDying();
     audioManager.playSfx('assets/audio/sfx/deathSound.mp3', { volume: SFX_VOLUME.death });
-
     audioManager.fadeOutMusic(300);
-
     this._deathTimeoutId = setTimeout(() => {
       this._deathTimeoutId = null;
       this._gameOverScreen.show();
@@ -374,6 +428,9 @@ export class GameManager {
     }, 400);
   }
 
+  /**
+   * Handles draw loading screen.
+   */
   _drawLoadingScreen() {
     const { ctx } = this;
     ctx.fillStyle = '#0a0a1a';
@@ -385,6 +442,9 @@ export class GameManager {
     ctx.fillText('Loading…', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   }
 
+  /**
+   * Handles toggle fullscreen.
+   */
   _toggleFullscreen() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
       const req = this.container.requestFullscreen
@@ -396,3 +456,4 @@ export class GameManager {
     }
   }
 }
+// #endregion

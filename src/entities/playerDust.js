@@ -1,13 +1,14 @@
+// #region Constants
 /**
- * Staubpartikel-System für den Spieler (Sprung, Landung, Roll-Effekte).
+ * Dust particle system for the player (jump, landing, roll effects).
  * @module playerDust
  */
-
 const DUST_POOL_SIZE = 24;
+// #endregion
 
+// #region Public Methods
 /**
- * Erstellt einen neuen Partikel-Pool.
- * @returns {object[]}
+ * Handles make dust pool.
  */
 export function makeDustPool() {
   return Array.from({ length: DUST_POOL_SIZE }, () => ({
@@ -17,10 +18,10 @@ export function makeDustPool() {
 }
 
 /**
- * Spawnt Staubpartikel an einer Bodenposition.
+ * Spawns dust particles at a ground position.
  * @param {object[]} pool
- * @param {number} cx       - Mittelpunkt X
- * @param {number} groundY  - Boden-Y
+ * @param {number} cx       - Center X
+ * @param {number} groundY  - Ground Y
  * @param {number} [count=5]
  */
 export function spawnDust(pool, cx, groundY, count = 5) {
@@ -43,7 +44,7 @@ export function spawnDust(pool, cx, groundY, count = 5) {
 }
 
 /**
- * Aktualisiert alle aktiven Partikel.
+ * Updates all active particles.
  * @param {object[]} pool
  * @param {number} dt
  */
@@ -59,7 +60,7 @@ export function updateDust(pool, dt) {
 }
 
 /**
- * Zeichnet alle aktiven Partikel.
+ * Draws all active particles.
  * @param {object[]} pool
  * @param {CanvasRenderingContext2D} ctx
  */
@@ -78,3 +79,4 @@ export function drawDust(pool, ctx) {
   }
   ctx.restore();
 }
+// #endregion

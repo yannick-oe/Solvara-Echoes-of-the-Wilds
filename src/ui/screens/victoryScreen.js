@@ -1,12 +1,16 @@
+// #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { t } from '../../core/localization.js';
 import { imageCache } from '../../core/imageCache.js';
 import { drawWoodPanel } from '../canvasUtils.js';
 import {
+
   easeOutBack, easeOutQuad, formatTime,
   makePool, initAtmoParticle, initSparkParticle,
 } from '../victoryParticles.js';
+// #endregion
 
+// #region Constants
 const CX      = CANVAS_WIDTH  / 2;
 const CY      = CANVAS_HEIGHT / 2;
 const STAR_CY = 176;
@@ -14,22 +18,18 @@ const PANEL_W = 280;
 const PANEL_H = 124;
 const PANEL_X = CX - PANEL_W / 2;
 const PANEL_Y = 236;
-
 const BLOCK_Y = 262;
 const ROW_H   = 24;
 const DIV_Y1  = BLOCK_Y - 12;
 const DIV_Y2  = BLOCK_Y + 3 * ROW_H + 12;
-
 const HINT1_Y = 392;
 const ATMO_Y  = 428;
-
 const FONT_TITLE = 'bold 52px serif';
 const FONT_LABEL = 'bold 12px monospace';
 const FONT_VALUE = 'bold 13px monospace';
 const FONT_STAR  = '58px sans-serif';
 const FONT_HINT  = '13px monospace';
 const FONT_HINT2 = '11px monospace';
-
 const T_TITLE_DUR = 0.55;
 const T_STAR_0    = 0.70;
 const T_STAR_GAP  = 0.22;
@@ -37,13 +37,19 @@ const T_STAR_DUR  = 0.30;
 const T_STATS_IN  = T_STAR_0 + 3 * T_STAR_GAP + T_STAR_DUR + 0.20;
 const T_STATS_DUR = 0.35;
 const T_HINTS_IN  = T_STATS_IN + T_STATS_DUR + 0.10;
-
 const ATMO_POOL = 55;
 const ATMO_RATE = 0.14;
 const SPARK_MAX = 12;
+// #endregion
 
+// #region Class Definition
 export class VictoryScreen {
 
+  /**
+   * Creates a new instance.
+   * @param {object} param1 Composite input parameter.
+   * @param {object} onMainMenu } Input parameter.
+   */
   constructor({ onRestart, onMainMenu }) {
     this._onRestart  = onRestart;
     this._onMainMenu = onMainMenu;
@@ -58,9 +64,9 @@ export class VictoryScreen {
   }
 
   /**
-   * Zeigt den Siegesschirm mit den übergebenen Spieldaten.
-   * @param {object}  gameState  - Aktueller Spiel-Status (hearts, score, gems, starCoins)
-   * @param {number}  levelTime  - Verstrichene Level-Zeit in Sekunden
+   * Shows the victory screen with the provided gameplay data.
+   * @param {object}  gameState  - Current game state (hearts, score, gems, starCoins)
+   * @param {number}  levelTime  - Elapsed level time in seconds
    */
   show(gameState, levelTime) {
     this._data = {
@@ -77,19 +83,21 @@ export class VictoryScreen {
     for (const p of this._particles) p.active = false;
   }
 
+  /**
+   * Handles update.
+   * @param {number} dt Input parameter.
+   */
   update(dt) {
     if (!this._data) return;
     this._time      += dt;
     this._hintBlink += dt;
     this._atmoTimer += dt;
-
     if (this._atmoTimer >= ATMO_RATE) {
       this._atmoTimer = 0;
       for (const p of this._particles) {
         if (!p.active) { initAtmoParticle(p, CANVAS_WIDTH, CANVAS_HEIGHT); break; }
       }
     }
-
     for (let i = 0; i < 3; i++) {
       const tStart = T_STAR_0 + i * T_STAR_GAP;
       if (!this._starPopped[i] && this._time >= tStart + 0.06) {
@@ -106,7 +114,6 @@ export class VictoryScreen {
         }
       }
     }
-
     for (const p of this._particles) {
       if (!p.active) continue;
       p.x    += p.vx * dt;
@@ -117,6 +124,10 @@ export class VictoryScreen {
     }
   }
 
+  /**
+   * Handles handle input.
+   * @param {object} input Input parameter.
+   */
   handleInput(input) {
     if (!this._data) return;
     if (this._time < 0.5) return;
@@ -124,8 +135,11 @@ export class VictoryScreen {
     if (input.jumpPressed || input.enterPressed) this._onRestart();
   }
 
+  /**
+   * Handles draw.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   draw(ctx) {
-
     if (!this._data) {
       const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
       sky.addColorStop(0, '#2a4a62');
@@ -134,7 +148,6 @@ export class VictoryScreen {
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       return;
     }
-
     this._drawBackground(ctx);
     this._drawParticles(ctx);
     this._drawVignette(ctx);
@@ -144,22 +157,23 @@ export class VictoryScreen {
     this._drawHints(ctx);
   }
 
+  /**
+   * Handles draw background.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawBackground(ctx) {
-
     const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     sky.addColorStop(0,   '#2a4a62');
     sky.addColorStop(0.5, '#5a8aa4');
     sky.addColorStop(1,   '#7aac8c');
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     const bgBack = imageCache.get('BG_FOREST_BACK');
     if (bgBack) {
       const scale = CANVAS_HEIGHT / bgBack.naturalHeight;
       const drawW = Math.round(bgBack.naturalWidth * scale);
       ctx.drawImage(bgBack, 0, 0, drawW, CANVAS_HEIGHT);
     }
-
     const bgMiddle = imageCache.get('BG_FOREST_MIDDLE');
     if (bgMiddle) {
       const drawH = Math.round(CANVAS_HEIGHT * 0.55);
@@ -170,7 +184,6 @@ export class VictoryScreen {
         ctx.drawImage(bgMiddle, Math.floor(x), drawY, drawW, drawH);
       }
     }
-
     const sun = ctx.createRadialGradient(CX, -20, 0, CX, 60, 380);
     sun.addColorStop(0,    'rgba(255,235,130,0.22)');
     sun.addColorStop(0.55, 'rgba(255,210,80,0.08)');
@@ -179,8 +192,11 @@ export class VictoryScreen {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
+  /**
+   * Handles draw vignette.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawVignette(ctx) {
-
     const grd = ctx.createRadialGradient(
       CX, CY * 1.0, CANVAS_HEIGHT * 0.20,
       CX, CY,       CANVAS_HEIGHT * 0.82,
@@ -191,66 +207,62 @@ export class VictoryScreen {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
+  /**
+   * Handles draw title.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawTitle(ctx) {
     const tEased = easeOutQuad(Math.min(this._time / T_TITLE_DUR, 1.0));
-
     ctx.save();
     ctx.globalAlpha = tEased;
     ctx.translate(CX, 118);
     ctx.scale(0.92 + tEased * 0.08, 0.92 + tEased * 0.08);
-
     const glow = 0.72 + Math.sin(this._time * 1.6) * 0.12;
     ctx.shadowColor = `rgba(255,228,60,${glow})`;
     ctx.shadowBlur  = 36;
-
     ctx.font         = FONT_TITLE;
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'alphabetic';
-
     ctx.strokeStyle = 'rgba(50,25,0,0.75)';
     ctx.lineWidth   = 5;
     ctx.lineJoin    = 'round';
     ctx.strokeText(t('levelComplete'), 0, 0);
-
     const grad = ctx.createLinearGradient(0, -52, 0, 0);
     grad.addColorStop(0,    '#fffce8');
     grad.addColorStop(0.35, '#ffe44d');
     grad.addColorStop(1,    '#d48a00');
     ctx.fillStyle = grad;
     ctx.fillText(t('levelComplete'), 0, 0);
-
     ctx.restore();
   }
 
+  /**
+   * Handles draw stars.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawStars(ctx) {
-
     const bloom = ctx.createRadialGradient(CX, STAR_CY, 0, CX, STAR_CY, 170);
     bloom.addColorStop(0,    'rgba(255,220,60,0.16)');
     bloom.addColorStop(0.55, 'rgba(255,185,40,0.06)');
     bloom.addColorStop(1,    'rgba(0,0,0,0)');
     ctx.fillStyle = bloom;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     const spacing = 90;
     for (let i = 0; i < 3; i++) {
       const tStart = T_STAR_0 + i * T_STAR_GAP;
       const tRaw   = Math.max(0, Math.min((this._time - tStart) / T_STAR_DUR, 1.0));
       if (tRaw <= 0) continue;
-
       const filled = this._data.starCoins[i] === true;
       const tEased = filled ? easeOutBack(tRaw) : easeOutQuad(tRaw);
       const alpha  = Math.min(tRaw * 2.8, 1.0);
       const cx     = Math.round(CX + (i - 1) * spacing);
-
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.translate(cx, STAR_CY);
       ctx.scale(tEased, tEased);
-
       ctx.font         = FONT_STAR;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
-
       if (filled) {
         const pulse = 0.55 + Math.sin(this._time * 2.0 + i * 0.5) * 0.18;
         ctx.shadowColor = `rgba(255,220,0,${pulse})`;
@@ -262,41 +274,37 @@ export class VictoryScreen {
         ctx.fillStyle   = '#b0a080';
         ctx.fillText('☆', 0, 0);
       }
-
       ctx.restore();
     }
   }
 
+  /**
+   * Handles draw stats panel.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawStatsPanel(ctx) {
     const elapsed = this._time - T_STATS_IN;
     if (elapsed <= 0) return;
     const alpha = easeOutQuad(Math.min(elapsed / T_STATS_DUR, 1.0));
-
     const rows = [
       [t('livesRemaining'), `×${this._data.hearts}`],
       [t('score'),          String(this._data.score).padStart(5, '0')],
       [t('gems'),           `×${this._data.gems}`],
       [t('time'),           formatTime(this._levelTime)],
     ];
-
     ctx.save();
     ctx.globalAlpha = alpha;
-
     drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
-
     ctx.lineJoin = 'round';
-
     ctx.strokeStyle = 'rgba(220,175,90,0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(PANEL_X + 14,           DIV_Y1);
     ctx.lineTo(PANEL_X + PANEL_W - 14,  DIV_Y1);
     ctx.stroke();
-
     ctx.textBaseline = 'middle';
     for (let i = 0; i < rows.length; i++) {
       const y = BLOCK_Y + i * ROW_H;
-
       ctx.font        = FONT_LABEL;
       ctx.textAlign   = 'right';
       ctx.strokeStyle = 'rgba(20,10,2,0.70)';
@@ -304,34 +312,33 @@ export class VictoryScreen {
       ctx.strokeText(rows[i][0], CX - 10, y);
       ctx.fillStyle   = '#d8b882';
       ctx.fillText(rows[i][0], CX - 10, y);
-
       ctx.font        = FONT_VALUE;
       ctx.textAlign   = 'left';
       ctx.strokeText(rows[i][1], CX + 14, y);
       ctx.fillStyle   = '#fff8e0';
       ctx.fillText(rows[i][1], CX + 14, y);
     }
-
     ctx.strokeStyle = 'rgba(220,175,90,0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(PANEL_X + 14,           DIV_Y2);
     ctx.lineTo(PANEL_X + PANEL_W - 14,  DIV_Y2);
     ctx.stroke();
-
     ctx.restore();
   }
 
+  /**
+   * Handles draw hints.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawHints(ctx) {
     const elapsed = this._time - T_HINTS_IN;
     if (elapsed <= 0) return;
     const fadeIn = easeOutQuad(Math.min(elapsed / 0.4, 1.0));
-
     ctx.save();
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineJoin     = 'round';
-
     const blink = 0.62 + Math.sin(this._hintBlink * 2.2) * 0.38;
     ctx.globalAlpha = fadeIn * blink;
     ctx.font        = FONT_HINT;
@@ -340,7 +347,6 @@ export class VictoryScreen {
     ctx.strokeText(t('continueHint'), CX, HINT1_Y);
     ctx.fillStyle   = '#fff8d8';
     ctx.fillText(t('continueHint'), CX, HINT1_Y);
-
     ctx.globalAlpha = fadeIn * 0.45;
     ctx.font        = FONT_HINT2;
     ctx.strokeStyle = 'rgba(20,10,2,0.55)';
@@ -348,7 +354,6 @@ export class VictoryScreen {
     ctx.strokeText(t('menuHint'), CX, HINT1_Y + 16);
     ctx.fillStyle   = '#c8aa70';
     ctx.fillText(t('menuHint'), CX, HINT1_Y + 16);
-
     const atmoPulse = 0.35 + Math.sin(this._time * 0.85) * 0.14;
     ctx.globalAlpha = fadeIn * atmoPulse;
     ctx.font        = FONT_HINT2;
@@ -356,16 +361,18 @@ export class VictoryScreen {
     ctx.strokeText(t('nextPathAwaits'), CX, ATMO_Y);
     ctx.fillStyle   = '#a89258';
     ctx.fillText(t('nextPathAwaits'), CX, ATMO_Y);
-
     ctx.restore();
   }
 
+  /**
+   * Handles draw particles.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawParticles(ctx) {
     ctx.save();
     for (const p of this._particles) {
       if (!p.active) continue;
       const lifeF = p.life / p.maxLife;
-
       const a = p.baseA * (lifeF < 0.25 ? lifeF / 0.25 : lifeF > 0.85 ? (1 - lifeF) / 0.15 : 1.0);
       ctx.globalAlpha = Math.max(0, a);
       ctx.fillStyle   = p.color;
@@ -377,5 +384,5 @@ export class VictoryScreen {
     }
     ctx.restore();
   }
-
 }
+// #endregion

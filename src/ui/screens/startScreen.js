@@ -1,52 +1,58 @@
+// #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { currentLang, t } from '../../core/localization.js';
 import { drawWoodPanel } from '../canvasUtils.js';
 import {
+
   OPTIONS_IDS,
   handleOptionsInput,
   drawOptionsContent,
   drawControlsContent,
 } from '../optionsPanel.js';
 import { drawBackground, drawTitleBanner, drawVignette } from '../startMenuDeco.js';
+// #endregion
 
+// #region Constants
 const MENU_IDS = ['start', 'options', 'controls', 'credits'];
-
 const CX            = CANVAS_WIDTH  / 2;
 const CY            = CANVAS_HEIGHT / 2;
-
 const TITLE_Y       = 66;
 const SUBTITLE_Y    = 110;
-
 const WOOD_W = 420;
 const WOOD_H = 240;
 const WOOD_X = (CANVAS_WIDTH  - WOOD_W) / 2;
 const WOOD_Y = 148;
-
 const FOOTER_Y = WOOD_Y + WOOD_H + 22;
-
 const PANEL_W = 480;
 const PANEL_H = 380;
 const PANEL_X = (CANVAS_WIDTH  - PANEL_W) / 2;
 const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;
+// #endregion
 
+// #region Class Definition
 export class StartScreen {
 
+  /**
+   * Creates a new instance.
+   * @param {object} onStart Input parameter.
+   */
   constructor(onStart) {
     this._onStart = onStart;
     this._reset();
   }
 
+  /**
+   * Handles reset.
+   */
   _reset() {
     this._started       = false;
     this._selectedIndex = 0;
     this._subScreen     = null;
     this._optionIndex   = 0;
-
     this._prevUp    = false;
     this._prevDown  = false;
     this._prevLeft  = false;
     this._prevRight = false;
-
     this._fireflies = Array.from({ length: 12 }, () => ({
       x:     Math.random() * CANVAS_WIDTH,
       y:     40 + Math.random() * (CANVAS_HEIGHT - 80),
@@ -59,14 +65,12 @@ export class StartScreen {
     this._lastDrawTime = null;
   }
 
-
-  /** Setzt den Startscreen-Zustand zurück (Auswahl, Sub-Panel, Gluehwürmchen). */
+  /** Resets the start screen state (selection, sub-panel, fireflies). */
   reset() { this._reset(); }
 
-
   /**
-   * Verarbeitet Tastatureingaben im Startmenü.
-   * @param {object} input - Aktueller Input-State
+   * Handles keyboard input in the start menu.
+   * @param {object} input
    */
   handleInput(input) {
 
@@ -74,15 +78,12 @@ export class StartScreen {
       if (this._subScreen === 'options') {
         this._handleOptionsInput(input);
       } else {
-
         if (input.backPressed) {
           this._subScreen = null;
         }
       }
       return;
     }
-
-
     const upNow   = input.up;
     const downNow = input.down;
     if (upNow && !this._prevUp) {
@@ -94,19 +95,23 @@ export class StartScreen {
     }
     this._prevUp   = upNow;
     this._prevDown = downNow;
-
     this._prevLeft  = input.left;
     this._prevRight = input.right;
-
-
     if (input.enterPressed || input.jumpPressed) {
       this._activate(MENU_IDS[this._selectedIndex]);
     }
   }
 
-
+  /**
+   * Handles handle options input.
+   * @param {object} input Input parameter.
+   */
   _handleOptionsInput(input) { handleOptionsInput(this, input); }
 
+  /**
+   * Handles activate.
+   * @param {string} id Input parameter.
+   */
   _activate(id) {
     switch (id) {
       case 'start':
@@ -127,11 +132,8 @@ export class StartScreen {
     }
   }
 
-
-
-
   /**
-   * Zeichnet den gesamten Startscreen inkl. Hintergrund, Menü und Sub-Panels.
+   * Draws the entire start screen including background, menu, and sub-panels.
    * @param {CanvasRenderingContext2D} ctx
    */
   draw(ctx) {
@@ -140,20 +142,15 @@ export class StartScreen {
       ? Math.min(now - this._lastDrawTime, 0.05)
       : 0;
     this._lastDrawTime = now;
-
-
     for (const ff of this._fireflies) {
       ff.x = ((ff.x + ff.vx * dt) % CANVAS_WIDTH  + CANVAS_WIDTH)  % CANVAS_WIDTH;
       ff.y = ((ff.y + ff.vy * dt) % CANVAS_HEIGHT + CANVAS_HEIGHT) % CANVAS_HEIGHT;
     }
-
     this._drawBackground(ctx);
     this._drawFireflies(ctx, now);
     this._drawVignette(ctx);
     this._drawTitle(ctx, now);
-
     if (this._subScreen !== null) {
-
       ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       this._drawSubPanel(ctx);
@@ -162,16 +159,21 @@ export class StartScreen {
     }
   }
 
+  /**
+   * Handles draw background.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawBackground(ctx) { drawBackground(ctx); }
 
+  /**
+   * Handles draw title.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {object} now Input parameter.
+   */
   _drawTitle(ctx, now) {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-
-
     this._drawTitleBanner(ctx);
-
-
     const blur = 12 + Math.sin(now * 2.0) * 4;
     ctx.save();
     ctx.shadowColor   = 'rgba(240, 192, 0, 0.85)';
@@ -180,8 +182,6 @@ export class StartScreen {
     ctx.font          = 'bold 46px serif';
     ctx.fillText('Solvara', CX, TITLE_Y);
     ctx.restore();
-
-
     ctx.save();
     ctx.shadowColor   = 'rgba(0, 0, 0, 0.90)';
     ctx.shadowBlur    = 4;
@@ -191,15 +191,15 @@ export class StartScreen {
     ctx.restore();
   }
 
+  /**
+   * Handles draw menu.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {object} now Input parameter.
+   */
   _drawMenu(ctx, now) {
-
     drawWoodPanel(ctx, WOOD_X, WOOD_Y, WOOD_W, WOOD_H);
-
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-
-
-
     const s  = WOOD_Y + 11;
     const p1 = WOOD_Y + Math.floor(WOOD_H / 4);
     const p2 = WOOD_Y + Math.floor(WOOD_H / 2);
@@ -211,16 +211,11 @@ export class StartScreen {
       Math.round((p2 + p3) / 2),
       Math.round((p3 + b ) / 2),
     ];
-
     MENU_IDS.forEach((id, i) => {
       const y        = ZONE_Y[i];
       const selected = i === this._selectedIndex;
-
-
       const label = t(id);
-
       if (selected) {
-
         const hl = ctx.createLinearGradient(WOOD_X, y, WOOD_X + WOOD_W, y);
         hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
         hl.addColorStop(0.12, 'rgba(20, 10, 4, 0.55)');
@@ -228,7 +223,6 @@ export class StartScreen {
         hl.addColorStop(1,    'rgba(20, 10, 4, 0.00)');
         ctx.fillStyle = hl;
         ctx.fillRect(WOOD_X, y - 16, WOOD_W, 32);
-
         ctx.save();
         ctx.shadowColor = 'rgba(240,192,0,0.6)';
         ctx.shadowBlur  = 8;
@@ -238,14 +232,11 @@ export class StartScreen {
         ctx.fillText('▶', WOOD_X + 20, y);
         ctx.restore();
       }
-
       ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
       ctx.font      = selected ? 'bold 16px monospace' : '14px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(label, CX + 8, y);
     });
-
-
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.7)';
     ctx.shadowBlur  = 4;
@@ -256,14 +247,14 @@ export class StartScreen {
     ctx.restore();
   }
 
+  /**
+   * Handles draw sub panel.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawSubPanel(ctx) {
-
     drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, false);
-
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-
-
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.5)';
     ctx.shadowBlur  = 10;
@@ -271,7 +262,6 @@ export class StartScreen {
     ctx.font        = 'bold 22px serif';
     ctx.fillText(t(this._subScreen), CX, PANEL_Y + 32);
     ctx.restore();
-
     if (this._subScreen === 'options') {
       this._drawOptionsContent(ctx);
     } else if (this._subScreen === 'controls') {
@@ -279,31 +269,38 @@ export class StartScreen {
     } else {
       this._drawCreditsContent(ctx);
     }
-
-
     ctx.font      = '11px monospace';
     ctx.fillStyle = '#c8b090';
     ctx.textAlign = 'center';
     ctx.fillText(t('returnHint'), CX, PANEL_Y + PANEL_H - 20);
   }
 
+  /**
+   * Handles draw options content.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawOptionsContent(ctx) {
     drawOptionsContent(ctx, this._optionIndex, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, CX);
   }
 
+  /**
+   * Handles draw controls content.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawControlsContent(ctx) {
     drawControlsContent(ctx, PANEL_X, PANEL_Y, PANEL_W);
   }
 
+  /**
+   * Handles draw credits content.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawCreditsContent(ctx) {
     ctx.textBaseline = 'middle';
-
-
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Game Design & Programming', CX, PANEL_Y + 140);
-
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
     ctx.shadowBlur  = 6;
@@ -312,22 +309,17 @@ export class StartScreen {
     ctx.textAlign   = 'center';
     ctx.fillText('Yannick', CX, PANEL_Y + 166);
     ctx.restore();
-
-
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(PANEL_X + 120, PANEL_Y + 195);
     ctx.lineTo(PANEL_X + 360, PANEL_Y + 195);
     ctx.stroke();
-
-
     const leftX  = CX - 95;
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Pixel Assets', leftX, PANEL_Y + 230);
-
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
     ctx.shadowBlur  = 6;
@@ -336,13 +328,11 @@ export class StartScreen {
     ctx.textAlign   = 'center';
     ctx.fillText('Anismuz', leftX, PANEL_Y + 256);
     ctx.restore();
-
     const rightX = CX + 115;
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Music', rightX, PANEL_Y + 230);
-
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
     ctx.shadowBlur  = 6;
@@ -353,12 +343,18 @@ export class StartScreen {
     ctx.restore();
   }
 
+  /**
+   * Handles draw title banner.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawTitleBanner(ctx) { drawTitleBanner(ctx, CX, TITLE_Y); }
 
 
-
-
-
+  /**
+   * Handles draw fireflies.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {object} now Input parameter.
+   */
   _drawFireflies(ctx, now) {
     for (const ff of this._fireflies) {
       const alpha = 0.22 + Math.abs(Math.sin(now * 1.5 + ff.phase)) * 0.48;
@@ -375,6 +371,10 @@ export class StartScreen {
     }
   }
 
-
+  /**
+   * Handles draw vignette.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
   _drawVignette(ctx) { drawVignette(ctx, CX, CY); }
 }
+// #endregion

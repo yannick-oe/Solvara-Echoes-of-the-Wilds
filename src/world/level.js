@@ -1,8 +1,14 @@
+// #region Imports
 import { TileMap }   from './tileMap.js';
 import { TILE_SIZE } from '../core/constants.js';
 import { imageCache } from '../core/imageCache.js';
+// #endregion
 
+// #region Class Definition
 export class Level {
+  /**
+   * Creates a new instance.
+   */
   constructor() {
     /** @type {TileMap|null} */
     this.tileMap  = null;
@@ -12,8 +18,8 @@ export class Level {
   }
 
   /**
-   * Lädt die Level-JSON-Datei und erstellt die TileMap.
-   * Muss nach imageCache.preload() aufgerufen werden.
+   * Loads the level JSON file and creates the TileMap.
+   * Must be called after imageCache.preload().
    * @param {string} jsonPath
    */
   async load(jsonPath) {
@@ -22,16 +28,16 @@ export class Level {
     this.tileMap   = new TileMap(this._data, imageCache.get('TILESET'));
   }
 
-  /** Weltbreite in Pixeln (TILE_SIZE-basiert). */
+  /** World width in pixels (TILE_SIZE-based). */
   get width()  { return this._data ? this._data.meta.columns * TILE_SIZE : 0; }
 
-  /** Welthöhe in Pixeln (TILE_SIZE-basiert). */
+  /** World height in pixels (TILE_SIZE-based). */
   get height() { return this._data ? this._data.meta.rows    * TILE_SIZE : 0; }
 
   /**
-   * Liefert den `content`-Block aus der Level-JSON.
-   * Enthält playerSpawn, enemies, pickups, hazards, interactables.
-   * @returns {object|null}
+   * Returns the `content` block from the level JSON.
+   * Contains playerSpawn, enemies, pickups, hazards, and interactables.
    */
   get content() { return this._data?.content ?? null; }
 }
+// #endregion

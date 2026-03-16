@@ -1,32 +1,53 @@
+// #region Imports
 import { GAME_STATES } from '../core/constants.js';
+// #endregion
 
+// #region Constants
 const BTN    = 56;
 const BTN_SM = 40;
-
 const SAI = 'env(safe-area-inset-bottom, 0px)';
+// #endregion
 
+// #region Class Definition
+/**
+ * Handles is touch device.
+ */
 export function isTouchDevice() {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 }
 
+/**
+ * Handles is mobile layout.
+ */
 export function isMobileLayout() {
   return isTouchDevice() &&
          Math.max(window.screen.width, window.screen.height) <= 900;
 }
 
+/**
+ * Handles is portrait mobile.
+ */
 export function isPortraitMobile() {
   return isMobileLayout() && window.innerWidth < window.innerHeight;
 }
 
+/**
+ * Handles should show touch controls.
+ * @param {string} state Input parameter.
+ */
 export function shouldShowTouchControls(state) {
   return isMobileLayout() &&
          !isPortraitMobile() &&
          (state === GAME_STATES.PLAYING || state === GAME_STATES.PAUSED);
 }
-
 export class TouchControls {
 
-
+  /**
+   * Creates a new instance.
+   * @param {object} container Input parameter.
+   * @param {object} inputManager Input parameter.
+   * @param {string} getState Input parameter.
+   */
   constructor(container, inputManager, getState) {
     this._container    = container;
     this._inputManager = inputManager;
@@ -40,10 +61,9 @@ export class TouchControls {
     this._onResize     = null;
   }
 
-
-
-
-
+  /**
+   * Handles init.
+   */
   init() {
     if (!isMobileLayout()) return;
     this._injectStyles();
@@ -54,21 +74,22 @@ export class TouchControls {
     window.addEventListener('resize', this._onResize);
   }
 
-
-
+  /**
+   * Handles set game state.
+   * @param {string} state Input parameter.
+   */
   setGameState(state) {
     if (state === this._gameState) return;
     const wasVisible = shouldShowTouchControls(this._gameState);
     this._gameState  = state;
     const isVisible  = shouldShowTouchControls(state);
-
-
     if (wasVisible && !isVisible) this._clearAllInputFlags();
-
     this._updateVisibility();
   }
 
-
+  /**
+   * Handles destroy.
+   */
   destroy() {
     this._clearAllInputFlags();
     this._layer?.remove();
@@ -78,10 +99,9 @@ export class TouchControls {
     if (this._onResize) window.removeEventListener('resize', this._onResize);
   }
 
-
-
-
-
+  /**
+   * Handles inject styles.
+   */
   _injectStyles() {
     if (document.getElementById('tc-styles')) return;
     const s = document.createElement('style');
@@ -96,7 +116,9 @@ export class TouchControls {
     document.head.appendChild(s);
   }
 
-
+  /**
+   * Handles build layer.
+   */
   _buildLayer() {
     const el = document.createElement('div');
     el.id    = 'touchLayer';
@@ -113,36 +135,33 @@ export class TouchControls {
     this._layer = el;
   }
 
-
-
+  /**
+   * Handles build buttons.
+   */
   _buildButtons() {
-
     this._makeBtn('◄', 'dir-left',  'left',  { left: 10,  bottom: 75  });
     this._makeBtn('▲', 'dir-up',    'up',    { left: 74,  bottom: 139 });
     this._makeBtn('▼', 'dir-down',  'down',  { left: 74,  bottom: 11  });
     this._makeBtn('►', 'dir-right', 'right', { left: 138, bottom: 75  });
-
-
     this._makeBtn('↷', 'act-roll',  'roll',  { right: 80, bottom: 11  });
     this._makeBtn('✦', 'act-jump',  'jump',  { right: 14, bottom: 11  });
-
-
     this._makePauseBtn({ top: 10, right: 10 });
   }
 
-
-
-
-
+  /**
+   * Handles make btn.
+   * @param {string} label Input parameter.
+   * @param {string} id Input parameter.
+   * @param {object} action Input parameter.
+   * @param {object} pos Input parameter.
+   */
   _makeBtn(label, id, action, pos) {
     const btn = this._createEl(label, id, pos, BTN,  true);
     const im  = this._inputManager;
-
     const onDown = e => {
       e.preventDefault();
       btn.setPointerCapture(e.pointerId);
       btn.classList.add('tc-active');
-
       if (action === 'jump') {
         if (!im.jump) im.jumpPressed = true;
         im.jump = true;
@@ -150,11 +169,9 @@ export class TouchControls {
         im.rollPressed = true;
       } else {
         im[action] = true;
-
         if (action === 'up') im.mobileUpActive = true;
       }
     };
-
     const onUp = () => {
       btn.classList.remove('tc-active');
       if (action === 'jump') {
@@ -163,58 +180,58 @@ export class TouchControls {
         im[action] = false;
         if (action === 'up') im.mobileUpActive = false;
       }
-
     };
-
     btn.addEventListener('pointerdown',        onDown);
     btn.addEventListener('pointerup',          onUp);
     btn.addEventListener('pointercancel',      onUp);
     btn.addEventListener('lostpointercapture', onUp);
     btn.addEventListener('contextmenu',        e => e.preventDefault());
-
     this._layer.appendChild(btn);
     this._buttons.push(btn);
   }
 
-
+  /**
+   * Handles make pause btn.
+   * @param {object} pos Input parameter.
+   */
   _makePauseBtn(pos) {
     const btn = this._createEl('⏸', 'act-pause', pos, BTN_SM,  false);
     const im  = this._inputManager;
-
     btn.addEventListener('pointerdown', e => {
       e.preventDefault();
       btn.setPointerCapture(e.pointerId);
       btn.classList.add('tc-active');
       im.pausePressed = true;
     });
-
     const onUp = () => btn.classList.remove('tc-active');
     btn.addEventListener('pointerup',          onUp);
     btn.addEventListener('pointercancel',      onUp);
     btn.addEventListener('lostpointercapture', onUp);
     btn.addEventListener('contextmenu',        e => e.preventDefault());
-
     this._layer.appendChild(btn);
     this._buttons.push(btn);
   }
 
-
-
+  /**
+   * Handles create el.
+   * @param {string} label Input parameter.
+   * @param {string} id Input parameter.
+   * @param {object} pos Input parameter.
+   * @param {number} size Input parameter.
+   * @param {object} withSAI Input parameter.
+   */
   _createEl(label, id, pos, size, withSAI = false) {
     const btn = document.createElement('button');
     btn.id        = `tc-${id}`;
     btn.className = 'tc-btn';
     btn.textContent = label;
     btn.setAttribute('aria-label', id.replace(/-/g, ' '));
-
-
     const posCSS = Object.entries(pos).map(([k, v]) => {
       if (k === 'bottom' && withSAI) {
         return `bottom: calc(${v}px + ${SAI})`;
       }
       return `${k}: ${v}px`;
     }).join('; ');
-
     btn.style.cssText = `
       position: fixed;
       ${posCSS};
@@ -240,20 +257,20 @@ export class TouchControls {
       box-shadow: 0 2px 10px rgba(0,0,0,0.60), inset 0 0 0 1px rgba(240,200,100,0.10);
       transition: background 0.07s, border-color 0.07s;
     `;
-
     return btn;
   }
 
-
-
-
+  /**
+   * Handles update visibility.
+   */
   _updateVisibility() {
     if (!this._layer) return;
     this._layer.style.display = shouldShowTouchControls(this._gameState) ? 'block' : 'none';
   }
 
-
-
+  /**
+   * Handles clear all input flags.
+   */
   _clearAllInputFlags() {
     const im = this._inputManager;
     im.left         = false;
@@ -265,10 +282,9 @@ export class TouchControls {
     for (const btn of this._buttons) btn.classList.remove('tc-active');
   }
 
-
-
-
-
+  /**
+   * Handles attach doc tap.
+   */
   _attachDocTap() {
     this._onDocTap = e => {
       const state = this._getState();
@@ -283,3 +299,4 @@ export class TouchControls {
     document.addEventListener('touchstart', this._onDocTap, { passive: true });
   }
 }
+// #endregion

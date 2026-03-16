@@ -18,7 +18,6 @@
       overflow: hidden;
     }
 
-    /* Container zentriert das Spiel */
     #gameContainer {
       position: absolute;
       inset: 0;
@@ -27,7 +26,6 @@
       justify-content: center;
     }
 
-    /* Glow hinter dem Spiel für Tiefe */
     #gameContainer::before {
       content: "";
       position: absolute;
@@ -40,38 +38,23 @@
       z-index: 0;
     }
 
-    /* Der eigentliche Spielrahmen */
     canvas {
       position: relative;
       z-index: 1;
-
       width: 720px;
       height: 480px;
-
       image-rendering: pixelated;
       image-rendering: crisp-edges;
-
       border-radius: 12px;
-
-      /* Holzrahmen */
       border: 14px solid #3b2515;
-
-      /* Mehrschichtiger Rahmen + Tiefe */
       box-shadow:
         inset 0 0 0 3px #b58a45,
-        /* goldene Zierkante */
         inset 0 0 0 6px #6b4425,
-        /* Holzstruktur */
         inset 0 0 0 10px #2a1a0f,
-        /* dunkle Innenkante */
         0 20px 60px rgba(0, 0, 0, 0.75);
-      /* Drop Shadow */
-
-      /* Touch-Scroll auf Canvas verhindern */
       touch-action: none;
     }
 
-    /* Fullscreen */
     :fullscreen canvas,
     :-webkit-full-screen canvas {
       width: 100vw;
@@ -81,24 +64,20 @@
       box-shadow: none;
     }
 
-    /* ── Mobile: Kein Hintergrundglow ────────────────────────────── */
     @media (pointer: coarse) {
       #gameContainer::before {
         display: none;
       }
     }
 
-    /* ── Mobile Landscape: Canvas füllt gesamten Viewport ──────────── */
     @media (pointer: coarse) and (orientation: landscape) {
       #gameContainer {
-        /* Am sichtbaren Viewport verankern – verhindert Versatz durch Browser-Chrome */
         position: fixed;
       }
 
       canvas {
-        /* Maximale Größe bei 3:2 Seitenverhältnis ohne Verzerrung */
-        width: min(100vw, 150vh);    /* Fallback für ältere Browser */
-        width: min(100vw, 150dvh);   /* dvh = dynamic VH, kein Browser-Chrome */
+        width: min(100vw, 150vh);
+        width: min(100vw, 150dvh);
         height: auto;
         aspect-ratio: 3 / 2;
         border: none;
@@ -107,14 +86,12 @@
       }
     }
 
-    /* ── Touch-Button: gedrückter Zustand ─────────────────────────── */
     .tc-btn.tc-active {
       background: rgba(155, 115, 26, 0.78) !important;
       border-color: rgba(240, 200, 78, 0.95) !important;
       color: rgba(255, 248, 168, 1.0) !important;
     }
 
-    /* ── Hochformat-Sperrbildschirm ────────────────────────────────── */
     #rotateOverlay {
       display: none;
       position: fixed;
@@ -139,14 +116,23 @@
     }
 
     @keyframes rotatePulse {
-      0%, 100% { opacity: 1.0;   transform: rotate(0deg);   }
-      50%       { opacity: 0.65; transform: rotate(90deg); }
+
+      0%,
+      100% {
+        opacity: 1.0;
+        transform: rotate(0deg);
+      }
+
+      50% {
+        opacity: 0.65;
+        transform: rotate(90deg);
+      }
     }
 
     #rotateOverlay .rotate-main {
       font-size: 20px;
       font-weight: bold;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
     }
 
     #rotateOverlay .rotate-sub {
@@ -167,7 +153,6 @@
     <canvas id="gameCanvas" width="720" height="480"></canvas>
   </div>
 
-  <!-- Hochformat-Sperrbildschirm (wird per CSS bei portrait + coarse-pointer eingeblendet) -->
   <div id="rotateOverlay" role="alert" aria-live="polite">
     <div class="rotate-icon">↻</div>
     <div class="rotate-main">Rotate device to play</div>

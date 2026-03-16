@@ -1,10 +1,4 @@
-/**
- * Zentrale Lautstärke-Konfiguration für alle Gameplay-SFX.
- * Alle playSfx()-Aufrufe referenzieren diese Werte – Balancing nur hier ändern.
- *
- * Werte sind relative Multiplikatoren auf den globalen sfxVolume-Wert des AudioManagers.
- * Gültige Spanne: 0.0 – 1.5  (AudioElement-Hardware-Maximum: 1.0)
- */
+// #region Constants
 export const SFX_VOLUME = {
   jump:      0.1,
   enemyKill: 0.9,
@@ -16,3 +10,4 @@ export const SFX_VOLUME = {
   switch:    0.5,
   roll:      0.4,
 };
+// #endregion

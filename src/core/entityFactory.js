@@ -1,7 +1,9 @@
 /**
- * Erstellt und spawnt alle Spielwelt-Entitäten aus den Level-Daten.
+ * Creates and spawns all game-world entities from level data.
  * @module entityFactory
  */
+
+// #region Imports
 import { TILE_SIZE } from './constants.js';
 import { Player }    from '../entities/player.js';
 import { AntEnemy }  from '../entities/enemies/ant.js';
@@ -15,11 +17,16 @@ import { Switch }    from '../entities/interactables/switch.js';
 import { FloorSpike }   from '../entities/hazards/floorSpike.js';
 import { CeilingSpike } from '../entities/hazards/ceilingSpike.js';
 import { PROP_REGISTRY } from '../config/propConfig.js';
+// #endregion
 
 /**
- * Erzeugt den Spieler an der Spawn-Position aus dem Level.
+ * Creates the player at the spawn position from the level.
  * @param {object} levelContent
- * @returns {Player}
+ */
+// #region Public Methods
+/**
+ * Handles create player.
+ * @param {object} levelContent Input parameter.
  */
 export function createPlayer(levelContent) {
   const spawn = levelContent?.playerSpawn;
@@ -29,9 +36,8 @@ export function createPlayer(levelContent) {
 }
 
 /**
- * Erzeugt alle Feinde aus den Level-Daten.
+ * Creates all enemies from level data.
  * @param {object} levelContent
- * @returns {Array}
  */
 export function spawnEnemies(levelContent) {
   const defs = levelContent?.enemies ?? [];
@@ -46,9 +52,8 @@ export function spawnEnemies(levelContent) {
 }
 
 /**
- * Erzeugt alle Sammelobjekte aus den Level-Daten.
+ * Creates all collectibles from level data.
  * @param {object} levelContent
- * @returns {Array}
  */
 export function spawnPickups(levelContent) {
   const defs = levelContent?.pickups ?? [];
@@ -63,9 +68,8 @@ export function spawnPickups(levelContent) {
 }
 
 /**
- * Erzeugt Türen und Schalter aus den Level-Daten.
+ * Creates doors and switches from level data.
  * @param {object} levelContent
- * @returns {Array}
  */
 export function spawnInteractables(levelContent) {
   const defs  = levelContent?.interactables ?? [];
@@ -83,9 +87,8 @@ export function spawnInteractables(levelContent) {
 }
 
 /**
- * Erzeugt alle Gefahren (Stacheln usw.) aus den Level-Daten.
+ * Creates all hazards (spikes, etc.) from level data.
  * @param {object} levelContent
- * @returns {Array}
  */
 export function spawnHazards(levelContent) {
   const defs = levelContent?.hazards ?? [];
@@ -102,9 +105,8 @@ export function spawnHazards(levelContent) {
 }
 
 /**
- * Erzeugt alle Dekorations-Props aus den Level-Daten.
+ * Creates all decorative props from level data.
  * @param {object} levelContent
- * @returns {Array}
  */
 export function spawnProps(levelContent) {
   const defs = levelContent?.props ?? [];
@@ -126,3 +128,4 @@ export function spawnProps(levelContent) {
     };
   }).filter(Boolean);
 }
+// #endregion

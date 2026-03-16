@@ -1,20 +1,13 @@
-/**
- * Dekorations-Helferfunktionen für den StartScreen:
- * Hintergrund, Titel-Banner und Vignette.
- */
-
+// #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
 import { imageCache } from '../core/imageCache.js';
 import { rrect } from './canvasUtils.js';
+// #endregion
 
-// ---------------------------------------------------------------------------
-// Hintergrund
-// ---------------------------------------------------------------------------
-
+// #region Public Methods
 /**
- * Zeichnet den Himmels-Verlauf und die Wald-Hintergrundebenen.
- *
- * @param {CanvasRenderingContext2D} ctx
+ * Handles draw background.
+ * @param {CanvasRenderingContext2D} ctx Input parameter.
  */
 export function drawBackground(ctx) {
   const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -23,14 +16,12 @@ export function drawBackground(ctx) {
   sky.addColorStop(1,   '#6a9c7c');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
   const bgBack = imageCache.get('BG_FOREST_BACK');
   if (bgBack) {
     const scale = CANVAS_HEIGHT / bgBack.naturalHeight;
     const drawW = Math.round(bgBack.naturalWidth * scale);
     ctx.drawImage(bgBack, 0, 0, drawW, CANVAS_HEIGHT);
   }
-
   const bgMiddle = imageCache.get('BG_FOREST_MIDDLE');
   if (bgMiddle) {
     const drawH = Math.round(CANVAS_HEIGHT * 0.58);
@@ -43,16 +34,12 @@ export function drawBackground(ctx) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Titel-Banner
-// ---------------------------------------------------------------------------
-
 /**
- * Zeichnet den verzierten Rahmen hinter dem Spieltitel.
+ * Draws the ornate frame behind the game title.
  *
  * @param {CanvasRenderingContext2D} ctx
- * @param {number} cx      - Horizontaler Mittelpunkt der Leinwand
- * @param {number} titleY  - Y-Position des Titelschriftzugs
+ * @param {number} cx      - Horizontal center of the canvas
+ * @param {number} titleY  - Y position of the title text
  */
 export function drawTitleBanner(ctx, cx, titleY) {
   const bw = 380;
@@ -60,16 +47,12 @@ export function drawTitleBanner(ctx, cx, titleY) {
   const bx = cx - bw / 2;
   const by = titleY - 42;
   const r  = 6;
-
-  // Äußeres Leuchten
   const glow = ctx.createRadialGradient(cx, by + bh / 2, 8, cx, by + bh / 2, 230);
   glow.addColorStop(0,    'rgba(220, 155, 35, 0.20)');
   glow.addColorStop(0.45, 'rgba(180,  95, 10, 0.09)');
   glow.addColorStop(1,    'rgba(0,     0,  0, 0.00)');
   ctx.fillStyle = glow;
   ctx.fillRect(bx - 60, by - 32, bw + 120, bh + 64);
-
-  // Schatten
   ctx.save();
   ctx.shadowColor   = 'rgba(0,0,0,0.75)';
   ctx.shadowBlur    = 18;
@@ -78,13 +61,9 @@ export function drawTitleBanner(ctx, cx, titleY) {
   rrect(ctx, bx, by, bw, bh, r);
   ctx.fill();
   ctx.restore();
-
-  // Grundfläche
   ctx.fillStyle = '#4a2f1a';
   rrect(ctx, bx, by, bw, bh, r);
   ctx.fill();
-
-  // Holzmaserung-Verlauf
   const g = ctx.createLinearGradient(bx, by, bx, by + bh);
   g.addColorStop(0,    'rgba(22, 10, 3, 0.50)');
   g.addColorStop(0.30, 'rgba(100, 60, 22, 0.38)');
@@ -93,20 +72,14 @@ export function drawTitleBanner(ctx, cx, titleY) {
   rrect(ctx, bx, by, bw, bh, r);
   ctx.fillStyle = g;
   ctx.fill();
-
-  // Äußerer Rand
   ctx.strokeStyle = '#3b2615';
   ctx.lineWidth   = 3;
   rrect(ctx, bx, by, bw, bh, r);
   ctx.stroke();
-
-  // Innerer Zier-Rand
   ctx.strokeStyle = 'rgba(195, 148, 78, 0.28)';
   ctx.lineWidth   = 1;
   rrect(ctx, bx + 4, by + 4, bw - 8, bh - 8, Math.max(r - 2, 2));
   ctx.stroke();
-
-  // Eckornamente
   const corners = [
     [bx + 7,      by + 7     ],
     [bx + bw - 7, by + 7     ],
@@ -128,16 +101,12 @@ export function drawTitleBanner(ctx, cx, titleY) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Vignette
-// ---------------------------------------------------------------------------
-
 /**
- * Zeichnet eine dunkle radiale Randabdunklung über die gesamte Leinwand.
+ * Draws a dark radial edge vignette over the entire canvas.
  *
  * @param {CanvasRenderingContext2D} ctx
- * @param {number} cx  - Horizontaler Mittelpunkt
- * @param {number} cy  - Vertikaler Mittelpunkt
+ * @param {number} cx  - Horizontal center
+ * @param {number} cy  - Vertical center
  */
 export function drawVignette(ctx, cx, cy) {
   const grd = ctx.createRadialGradient(
@@ -149,3 +118,4 @@ export function drawVignette(ctx, cx, cy) {
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
+// #endregion

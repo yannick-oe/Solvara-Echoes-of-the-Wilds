@@ -1,7 +1,9 @@
+// #region Imports
 import { Entity }        from './entity.js';
 import { audioManager }  from '../core/audioManager.js';
 import { SFX_VOLUME }    from '../config/audioConfig.js';
 import {
+
   ROLL_CHARGE_TIME,
   INVUL_DURATION, HURT_DURATION, BLINK_INTERVAL,
   KNOCKBACK_X, KNOCKBACK_Y,
@@ -18,31 +20,36 @@ import {
   detectWallGrab, handleWallGrab,
   startRoll, exitRoll, handleRoll,
 } from './playerMovement.js';
+// #endregion
 
+// #region Constants
 const PLAYER_W = 32;
 const PLAYER_H = 48;
-
 const DRAW_W  = 88;
 const DRAW_H  = 88;
 const DRAW_OX = Math.round((PLAYER_W - DRAW_W) / 2);
 const DRAW_OY = PLAYER_H - DRAW_H;
-
 const FALL_FRAME = 1;
+// #endregion
+
+// #region Class Definition
 export class Player extends Entity {
 
+  /**
+   * Creates a new instance.
+   * @param {number} x Input parameter.
+   * @param {number} y Input parameter.
+   */
   constructor(x, y) {
     super(x, y, PLAYER_W, PLAYER_H);
     this.facingRight = true;
     this.onGround    = false;
-
     this.state      = 'idle';
     this.frameIndex = 0;
     this.frameTimer = 0;
-
     this._invulTimer = 0;
     this._hurtTimer  = 0;
     this.dying       = false;
-
     this._wallGrabSide = 0;
     this._wallLockSide = 0;
     this._onLadder           = false;
@@ -65,10 +72,10 @@ export class Player extends Entity {
   }
 
   /**
-   * Aktualisiert den Spieler-Zustand.
-   * @param {number}  dt       - Delta-Zeit in Sekunden
-   * @param {object}  input    - Aktueller Input-State
-   * @param {object}  tileMap  - TileMap-Instanz für Kollisionsabfragen
+   * Updates the player state.
+   * @param {number}  dt 
+   * @param {object}  input
+   * @param {object}  tileMap
    */
   update(dt, input, tileMap) {
     if (this.dying) {
@@ -79,24 +86,18 @@ export class Player extends Entity {
       updateDust(this._dustPool, dt);
       return;
     }
-
     this._tickTimers(dt);
     this._squashTick(dt);
-
     if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
     else if (this._jumpBuffer > 0) this._jumpBuffer = Math.max(0, this._jumpBuffer - dt);
-
     const overlapLadder = this._hurtTimer <= 0 &&
       tileMap.isOnLadder(this.x, this.y, this.w, this.h);
-
     this._validateAtLadderTop(tileMap);
-
     if (!this._onLadder && overlapLadder &&
         this._ladderExitCooldown <= 0 && (input.up || input.down)) {
       this._atLadderTop = false;
       enterLadder(this);
     }
-
     if (this._onLadder) {
       if (!overlapLadder) {
         if (this.velY <= 0) {
@@ -111,28 +112,22 @@ export class Player extends Entity {
         this._jumpBuffer = 0;
       }
     }
-
     if (this._onLadder) {
       handleLadder(this, dt, input, tileMap);
       updateAnim(this, dt, input);
       updateDust(this._dustPool, dt);
       return;
     }
-
     this._tryStartRoll(dt, input);
-
     if (this._rolling) {
       handleRoll(this, dt, input, tileMap);
       updateAnim(this, dt, input);
       updateDust(this._dustPool, dt);
       return;
     }
-
     if (this.onGround) this._coyoteTimer = COYOTE_TIME;
     else               this._coyoteTimer = Math.max(0, this._coyoteTimer - dt);
-
     if (this._hurtTimer <= 0) detectWallGrab(this, tileMap, input);
-
     const effectiveLookUp = input.lookUp ||
       (!overlapLadder && !this._atLadderTop && !!input.mobileUpActive);
 
@@ -141,15 +136,13 @@ export class Player extends Entity {
     } else {
       this._handleFreeMovement(dt, input, tileMap, effectiveLookUp, overlapLadder);
     }
-
     updateAnim(this, dt, input, effectiveLookUp);
     updateDust(this._dustPool, dt);
   }
 
   /**
-   * Verursacht Schaden am Spieler durch eine Feindberührung.
-   * @param {number} enemyCenterX - X-Mittelpunkt des Feindes (bestimmt Rückstoß-Richtung)
-   * @returns {boolean} true, wenn Schaden erfolgreich verarbeitet wurde
+   * Applies damage to the player from enemy contact.
+   * @param {number} enemyCenterX - X center of the enemy (determines knockback direction)
    */
   takeDamage(enemyCenterX) {
     if (this._invulTimer > 0 || this.dying) return false;
@@ -158,7 +151,6 @@ export class Player extends Entity {
     this.velY        = KNOCKBACK_Y;
     this._hurtTimer  = HURT_DURATION;
     this._invulTimer = INVUL_DURATION;
-
     this._wallGrabSide = 0;
     this._atLadderTop  = false;
     exitLadder(this);
@@ -166,7 +158,7 @@ export class Player extends Entity {
     return true;
   }
 
-  /** Versetzt den Spieler in den Sterbe-Zustand (letzte Berührung). */
+  /** Sets the player into the dying state (final hit). */
   startDying() {
     this.dying       = true;
     this.state       = 'hurt2';
@@ -180,7 +172,7 @@ export class Player extends Entity {
     exitRoll(this);
   }
 
-  /** Versetzt den Spieler in die Sieges-Pose am Ziel. */
+  /** Sets the player into the victory pose at the goal. */
   startVictoryPose() {
     this.state      = 'victory';
     this.frameIndex = 0;
@@ -192,46 +184,39 @@ export class Player extends Entity {
     exitRoll(this);
   }
 
-  /** Gibt true zurück, wenn der Spieler gerade rollt */
+  /** Returns true when the player is currently rolling */
   isRolling() { return this._rolling; }
 
-  /** Trifft beim Rollen auf ein Hindernis – Geschwindigkeit reduzieren */
+  /** Called when rolling into an obstacle - reduces speed */
   rollHit() {
     this._rollSpeed *= 0.75;
     spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h / 2, 5);
   }
 
   /**
-   * Zeichnet den Spieler (Partikel + Sprite).
+   * Draws the player (particles + sprite).
    * @param {CanvasRenderingContext2D} ctx
    * @param {object} _cam
    * @param {object} imageCache
    */
   draw(ctx, _cam, imageCache) {
     drawDust(this._dustPool, ctx);
-
     if (!this.dying) {
       if (this._invulTimer > 0 && Math.floor(this._invulTimer / BLINK_INTERVAL) % 2 === 0) return;
     }
-
     const anim = ANIM[this.state];
     let fi = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
-
     if (this.state === 'wallGrab') {
       fi = this._wallPushOffTimer > 0 ? 1 : 0;
     }
-
     let flipX = !this.facingRight;
     if (this.state === 'wallGrab') {
       flipX = this._wallGrabSide < 0;
     }
-
     const img = imageCache.get(`${anim.prefix}_${fi}`);
     if (!img) return;
-
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
-
     if (this._squashScale !== 1.0) {
       const squashH = DRAW_H * this._squashScale;
       const squashY = dy + (DRAW_H - squashH);
@@ -255,11 +240,6 @@ export class Player extends Entity {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Private Hilfsmethoden
-  // ---------------------------------------------------------------------------
-
-  /** Alle Countdown-Timer dekrementieren */
   _tickTimers(dt) {
     if (this._invulTimer       > 0) this._invulTimer       = Math.max(0, this._invulTimer       - dt);
     if (this._hurtTimer        > 0) this._hurtTimer        = Math.max(0, this._hurtTimer        - dt);
@@ -269,7 +249,6 @@ export class Player extends Entity {
     if (this._stepTimer        > 0) this._stepTimer        = Math.max(0, this._stepTimer        - dt);
   }
 
-  /** Squash-&-Stretch-Animation auf Landung (Timer-basiert) */
   _squashTick(dt) {
     if (this._squashTimer > 0) {
       this._squashTimer = Math.max(0, this._squashTimer - dt);
@@ -279,7 +258,6 @@ export class Player extends Entity {
     }
   }
 
-  /** Veraltetes atLadderTop-Flag bereinigen, wenn Spieler nicht mehr auf der Leiter steht */
   _validateAtLadderTop(tileMap) {
     if (!this._atLadderTop || this._onLadder) return;
     const ts  = TILE_SIZE;
@@ -290,7 +268,6 @@ export class Player extends Entity {
     }
   }
 
-  /** Roll starten, wenn Bedingungen erfüllt sind */
   _tryStartRoll(dt, input) {
     if (!this.onGround || this._rolling || this._hurtTimer > 0) return;
     if (input.rollPressed) {
@@ -306,10 +283,8 @@ export class Player extends Entity {
     }
   }
 
-  /** Standard-Plattformer-Bewegung (Laufen, Springen, Gravitation, Footsteps) */
   _handleFreeMovement(dt, input, tileMap, effectiveLookUp, _overlapLadder) {
     if (this._hurtTimer <= 0) {
-      // Horizontale Bewegung
       if (input.left) {
         this.velX        = -PLAYER_SPEED;
         this.facingRight = false;
@@ -320,8 +295,6 @@ export class Player extends Entity {
         this.velX = 0;
       }
       if (this.onGround && (input.down || effectiveLookUp)) this.velX = 0;
-
-      // Drop-through One-Way-Plattformen
       if (this.onGround && input.down && this._jumpBuffer > 0 && this._dropThroughTimer <= 0) {
         const _ts   = TILE_SIZE;
         const _fRow = Math.floor((this.y + this.h) / _ts);
@@ -337,8 +310,6 @@ export class Player extends Entity {
           }
         }
       }
-
-      // Springen
       const canJump = this.onGround || this._coyoteTimer > 0;
       if (this._jumpBuffer > 0 && canJump) {
         this.velY         = JUMP_FORCE;
@@ -350,22 +321,14 @@ export class Player extends Entity {
         spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
       }
     }
-
-    // Gravitation
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
-
-    // X-Bewegung + Kollision
     this.x += this.velX * dt;
     resolveX(this, tileMap);
-
-    // Y-Bewegung + Kollision
     const wasGrounded = this.onGround;
     this.onGround   = false;
     this._prevFeetY = this.y + this.h;
     this.y         += this.velY * dt;
     resolveY(this, tileMap);
-
-    // Leiter-Top-Einrasten nach Austritt
     if (this._atLadderTop && !this.onGround) {
       const _ts   = TILE_SIZE;
       const _col  = Math.floor((this.x + this.w / 2) / _ts);
@@ -378,8 +341,6 @@ export class Player extends Entity {
         this._atLadderTop = false;
       }
     }
-
-    // Landungs-Feedback
     if (!wasGrounded && this.onGround) {
       const landSfx = tileMap.getLandingSound?.(this.x + this.w / 2, this.y + this.h);
       if (landSfx) audioManager.playSfx(landSfx, { volume: SFX_VOLUME.landing });
@@ -389,8 +350,6 @@ export class Player extends Entity {
       this._wallLockSide = 0;
       spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
     }
-
-    // Schritt-Sound
     if (this.onGround && this._hurtTimer <= 0 && Math.abs(this.velX) > 20 && this._stepTimer <= 0) {
       const stepSfx = tileMap.getFootstepSound?.(this.x + this.w / 2, this.y + this.h);
       if (stepSfx) audioManager.playSfx(stepSfx, { volume: SFX_VOLUME.footstep });
@@ -398,3 +357,4 @@ export class Player extends Entity {
     }
   }
 }
+// #endregion

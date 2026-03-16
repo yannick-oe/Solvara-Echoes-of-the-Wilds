@@ -1,34 +1,38 @@
 /**
- * Gemeinsam genutztes Options- und Steuerungs-Panel für StartScreen und PauseScreen.
+ * Shared options and controls panel for StartScreen and PauseScreen.
  */
 
+// #region Imports
 import { currentLang, setLang, t, LANGS } from '../core/localization.js';
 import { audioManager } from '../core/audioManager.js';
 import { rrect } from './canvasUtils.js';
+// #endregion
 
-/** @type {string[]} Reihenfolge der Options-Zeilen */
+// #region Constants
+/** @type {string[]} Order of option rows */
 export const OPTIONS_IDS = ['masterVolume', 'musicVolume', 'sfxVolumeMaster', 'language'];
-
-// ---------------------------------------------------------------------------
-// Input-Handler
-// ---------------------------------------------------------------------------
-
 /**
- * Verarbeitet Tastatureingaben im Options-Sub-Panel.
- * Mutiert `screen._optionIndex`, `screen._prevUp`, `screen._prevDown`,
- * `screen._prevLeft`, `screen._prevRight` und `screen._subScreen`.
+ * Handles keyboard input in the options sub-panel.
+ * Mutates `screen._optionIndex`, `screen._prevUp`, `screen._prevDown`,
+ * `screen._prevLeft`, `screen._prevRight`, and `screen._subScreen`.
  *
- * @param {object} screen  - Bildschirmobjekt mit den genannten Feldern
- * @param {object} input   - aktueller Input-State
+ * @param {object} screen  - Screen object with the listed fields
+ * @param {object} input   - current input state
+ */
+// #endregion
+
+// #region Public Methods
+/**
+ * Handles handle options input.
+ * @param {object} screen Input parameter.
+ * @param {object} input Input parameter.
  */
 export function handleOptionsInput(screen, input) {
   if (input.backPressed) { screen._subScreen = null; return; }
-
   const upNow    = input.up;
   const downNow  = input.down;
   const leftNow  = input.left;
   const rightNow = input.right;
-
   if (upNow && !screen._prevUp) {
     screen._optionIndex = (screen._optionIndex - 1 + OPTIONS_IDS.length) % OPTIONS_IDS.length;
   }
@@ -37,14 +41,11 @@ export function handleOptionsInput(screen, input) {
   }
   screen._prevUp   = upNow;
   screen._prevDown = downNow;
-
   const row = OPTIONS_IDS[screen._optionIndex];
-
   const leftEdge  = leftNow  && !screen._prevLeft;
   const rightEdge = rightNow && !screen._prevRight;
   screen._prevLeft  = leftNow;
   screen._prevRight = rightNow;
-
   if (row === 'masterVolume') {
     if (leftEdge)  audioManager.setMasterVolume(audioManager.masterVolume - 0.1);
     if (rightEdge) audioManager.setMasterVolume(audioManager.masterVolume + 0.1);
@@ -62,30 +63,23 @@ export function handleOptionsInput(screen, input) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Options-Zeichnung
-// ---------------------------------------------------------------------------
-
 /**
- * Zeichnet den Inhalt des Options-Panels (Lautstärke-Regler + Sprache).
+ * Draws the contents of the options panel (volume sliders + language).
  *
  * @param {CanvasRenderingContext2D} ctx
- * @param {number}                  optionIndex  - aktuell ausgewählte Zeile
+ * @param {number}                  optionIndex
  * @param {number}                  panelX
  * @param {number}                  panelY
  * @param {number}                  panelW
- * @param {number}                  panelH       - (aktuell nicht genutzt, für spätere Erweiterungen)
- * @param {number}                  cx           - horizontaler Mittelpunkt der Leinwand
+ * @param {number}                  panelH
+ * @param {number}                  cx
  */
 export function drawOptionsContent(ctx, optionIndex, panelX, panelY, panelW, _panelH, cx) {
   const rowY0   = panelY + 78;
   const rowStep = 62;
-
   OPTIONS_IDS.forEach((id, i) => {
     const y        = rowY0 + i * rowStep;
     const selected = i === optionIndex;
-
-    // Zeilen-Highlight
     if (selected) {
       const hl = ctx.createLinearGradient(panelX, y, panelX + panelW, y);
       hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
@@ -95,14 +89,11 @@ export function drawOptionsContent(ctx, optionIndex, panelX, panelY, panelW, _pa
       ctx.fillStyle = hl;
       ctx.fillRect(panelX, y - 28, panelW, 56);
     }
-
-    // Beschriftung links
     ctx.fillStyle    = selected ? '#fff4c0' : '#f6e3c3';
     ctx.font         = selected ? 'bold 13px monospace' : '12px monospace';
     ctx.textAlign    = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(t(id), panelX + 28, y - 10);
-
     if (id === 'masterVolume' || id === 'musicVolume' || id === 'sfxVolumeMaster') {
       _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx);
     } else if (id === 'language') {
@@ -111,7 +102,6 @@ export function drawOptionsContent(ctx, optionIndex, panelX, panelY, panelW, _pa
   });
 }
 
-/** @private */
 function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   const vol = id === 'masterVolume'    ? audioManager.masterVolume
             : id === 'musicVolume'     ? audioManager.musicVolume
@@ -121,19 +111,13 @@ function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   const barY  = y + 8;
   const barH  = 10;
   const steps = 10;
-
-  // Prozent-Anzeige rechts
   ctx.fillStyle = selected ? '#fff4c0' : '#d6c7a2';
   ctx.font      = selected ? 'bold 12px monospace' : '11px monospace';
   ctx.textAlign = 'right';
   ctx.fillText(Math.round(vol * 100) + '%', panelX + panelW - 28, y - 10);
-
-  // Hintergrundleiste
   ctx.fillStyle = 'rgba(20, 10, 4, 0.55)';
   rrect(ctx, barX, barY, barW, barH, 4);
   ctx.fill();
-
-  // Füllfarbe
   const fillW = Math.round(barW * vol);
   if (fillW > 4) {
     const grd = ctx.createLinearGradient(barX, barY, barX + fillW, barY);
@@ -144,8 +128,6 @@ function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
     ctx.fillStyle = grd;
     ctx.fill();
   }
-
-  // Tick-Markierungen
   ctx.strokeStyle = 'rgba(255,220,120,0.25)';
   ctx.lineWidth   = 1;
   for (let s = 1; s < steps; s++) {
@@ -155,8 +137,6 @@ function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
     ctx.lineTo(tx, barY + barH - 2);
     ctx.stroke();
   }
-
-  // Knopf
   const kx = barX + Math.round(barW * vol);
   ctx.fillStyle = selected ? '#f0c040' : '#c8a060';
   ctx.beginPath();
@@ -174,7 +154,6 @@ function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   }
 }
 
-/** @private */
 function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
   const langDisplay = currentLang === 'en' ? 'English' : 'Deutsch';
   ctx.save();
@@ -187,12 +166,8 @@ function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
   ctx.restore();
 }
 
-// ---------------------------------------------------------------------------
-// Steuerungsübersicht
-// ---------------------------------------------------------------------------
-
 /**
- * Zeichnet den Inhalt des Steuerungs-Panels (Tastenbelegung).
+ * Draws the contents of the controls panel (key bindings).
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} panelX
@@ -201,19 +176,15 @@ function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
  */
 export function drawControlsContent(ctx, panelX, panelY, panelW) {
   ctx.textBaseline = 'middle';
-
   const midY    = panelY + 184;
   const b1Start = panelY + 88;
   const b1Step  = 26;
-
-  /** @type {[string, string][]} */
   const b1Rows = [
     [t('move'),   'Arrow Keys / WASD'],
     [t('jump'),   'Space'],
     [t('crouch'), 'S / ↓'],
     [t('roll'),   'S + ← / →'],
   ];
-
   b1Rows.forEach(([label, keys], i) => {
     const y = b1Start + i * b1Step;
     ctx.fillStyle = '#f6e3c3';
@@ -224,19 +195,14 @@ export function drawControlsContent(ctx, panelX, panelY, panelW) {
     ctx.textAlign = 'right';
     ctx.fillText(keys, panelX + panelW - 30, y);
   });
-
-  // Trennlinie
   ctx.strokeStyle = 'rgba(59, 38, 21, 0.35)';
   ctx.lineWidth   = 1;
   ctx.beginPath();
   ctx.moveTo(panelX + 30,         midY);
   ctx.lineTo(panelX + panelW - 30, midY);
   ctx.stroke();
-
   const b2Start = panelY + 205;
   const b2Step  = 26;
-
-  /** @type {[string, string][]} */
   const b2Rows = [
     [t('climb'),      'W / S  ↑ / ↓'],
     [t('lookUp'),     'E'],
@@ -244,7 +210,6 @@ export function drawControlsContent(ctx, panelX, panelY, panelW) {
     [t('fullscreen'), 'F'],
     [t('back'),       'Q'],
   ];
-
   b2Rows.forEach(([label, keys], i) => {
     const y = b2Start + i * b2Step;
     ctx.fillStyle = '#f6e3c3';
@@ -256,3 +221,4 @@ export function drawControlsContent(ctx, panelX, panelY, panelW) {
     ctx.fillText(keys, panelX + panelW - 30, y);
   });
 }
+// #endregion

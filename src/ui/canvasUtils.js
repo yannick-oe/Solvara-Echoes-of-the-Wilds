@@ -2,16 +2,15 @@
  * Shared Canvas 2D drawing utilities used across UI screens and HUD.
  * @module canvasUtils
  */
-
+// #region Public Methods
 /**
- * Draws a rounded rectangle path on the given context.
- * Does NOT call fill() or stroke() — caller is responsible.
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
- * @param {number} r - Corner radius
+ * Handles rrect.
+ * @param {CanvasRenderingContext2D} ctx Input parameter.
+ * @param {number} x Input parameter.
+ * @param {number} y Input parameter.
+ * @param {number} w Input parameter.
+ * @param {number} h Input parameter.
+ * @param {number} r Input parameter.
  */
 export function rrect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -38,8 +37,6 @@ export function rrect(ctx, x, y, w, h, r) {
  */
 export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   const r = 8;
-
-  // Drop shadow
   ctx.save();
   ctx.shadowColor   = 'rgba(0, 0, 0, 0.70)';
   ctx.shadowBlur    = 14;
@@ -49,13 +46,9 @@ export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   rrect(ctx, x, y, w, h, r);
   ctx.fill();
   ctx.restore();
-
-  // Base fill
   ctx.fillStyle = '#7a5433';
   rrect(ctx, x, y, w, h, r);
   ctx.fill();
-
-  // Wood grain gradient
   const grain = ctx.createLinearGradient(x, y, x, y + h);
   grain.addColorStop(0,    'rgba(40,  20,  5,  0.60)');
   grain.addColorStop(0.10, 'rgba(195, 138, 68, 0.40)');
@@ -65,14 +58,10 @@ export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   rrect(ctx, x, y, w, h, r);
   ctx.fillStyle = grain;
   ctx.fill();
-
-  // Top/bottom edge darken
   ctx.fillStyle = 'rgba(28, 14, 4, 0.52)';
   ctx.fillRect(x + r, y, w - r * 2, 11);
   ctx.fillStyle = 'rgba(28, 14, 4, 0.58)';
   ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
-
-  // Horizontal plank lines
   if (drawPlanks) {
     ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
     ctx.lineWidth   = 1;
@@ -85,20 +74,14 @@ export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
       ctx.stroke();
     }
   }
-
-  // Outer border
   ctx.strokeStyle = '#3b2615';
   ctx.lineWidth   = 4;
   rrect(ctx, x, y, w, h, r);
   ctx.stroke();
-
-  // Inner gold highlight
   ctx.strokeStyle = 'rgba(220, 175, 100, 0.22)';
   ctx.lineWidth   = 1;
   rrect(ctx, x + 5, y + 5, w - 10, h - 10, Math.max(r - 3, 2));
   ctx.stroke();
-
-  // Corner diamond nails
   _drawCornerNails(ctx, x, y, w, h);
 }
 
@@ -160,5 +143,4 @@ export function drawHudPanel(ctx, x, y, w, h) {
   ctx.stroke();
   ctx.restore();
 }
-
-
+// #endregion

@@ -1,4 +1,8 @@
+// #region Class Definition
 class InputManager {
+  /**
+   * Creates a new instance.
+   */
   constructor() {
     this.left          = false;
     this.right         = false;
@@ -19,16 +23,25 @@ class InputManager {
     this._onKeyUp   = this._onKeyUp.bind(this);
   }
 
+  /**
+   * Handles init.
+   */
   init() {
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('keyup',   this._onKeyUp);
   }
 
+  /**
+   * Handles destroy.
+   */
   destroy() {
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup',   this._onKeyUp);
   }
 
+  /**
+   * Handles reset frame state.
+   */
   resetFrameState() {
     this.jumpPressed  = false;
     this.enterPressed = false;
@@ -39,6 +52,11 @@ class InputManager {
     this.rollPressed  = false;
   }
 
+  /**
+   * Handles set touch.
+   * @param {object} action Input parameter.
+   * @param {number} value Input parameter.
+   */
   setTouch(action, value) {
     if (action === 'jump' && value && !this.jump) {
       this.jumpPressed = true;
@@ -50,6 +68,10 @@ class InputManager {
     this[action] = value;
   }
 
+  /**
+   * Handles on key down.
+   * @param {object} e Input parameter.
+   */
   _onKeyDown(e) {
 
     if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
@@ -58,8 +80,17 @@ class InputManager {
     this._apply(e.code, true);
   }
 
+  /**
+   * Handles on key up.
+   * @param {object} e Input parameter.
+   */
   _onKeyUp(e) { this._apply(e.code, false); }
 
+  /**
+   * Handles apply.
+   * @param {string} code Input parameter.
+   * @param {number} value Input parameter.
+   */
   _apply(code, value) {
     switch (code) {
       case 'ArrowLeft':  case 'KeyA':
@@ -100,5 +131,5 @@ class InputManager {
     }
   }
 }
-
 export const inputManager = new InputManager();
+// #endregion

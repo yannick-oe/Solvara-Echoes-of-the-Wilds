@@ -1,7 +1,4 @@
-/**
- * Kollisions-Checks zwischen Spieler, Feinden, Gefahren und Sammelobjekten.
- * @module collisionManager
- */
+// #region Imports
 import { CeilingSpike } from '../entities/hazards/ceilingSpike.js';
 import { Switch }       from '../entities/interactables/switch.js';
 import { Door }         from '../entities/interactables/door.js';
@@ -11,10 +8,14 @@ import { Cherry }       from '../entities/pickups/cherry.js';
 import { DeathEffect }  from '../entities/effects/deathEffect.js';
 import { audioManager } from './audioManager.js';
 import { SFX_VOLUME }   from '../config/audioConfig.js';
+// #endregion
 
+// #region Public Methods
 /**
- * Prüft, ob der Spieler auf einen Feind springt (Stomp).
- * @param {object} ctx - { player, enemies, effects, audioManager }
+ * Handles check stomp.
+ * @param {object} param1 Composite input parameter.
+ * @param {Array} enemies Input parameter.
+ * @param {object} effects } Input parameter.
  */
 export function checkStomp({ player, enemies, effects }) {
   if (player.velY <= 0) return;
@@ -33,7 +34,7 @@ export function checkStomp({ player, enemies, effects }) {
 }
 
 /**
- * Prüft Roll-Treffer gegen Feinde.
+ * Checks roll hits against enemies.
  * @param {object} ctx - { player, enemies, effects }
  */
 export function checkRollKill({ player, enemies, effects }) {
@@ -49,7 +50,7 @@ export function checkRollKill({ player, enemies, effects }) {
 }
 
 /**
- * Prüft Aufsammeln von Pickups.
+ * Checks pickup collection.
  * @param {object} ctx - { player, pickups, gameState, hud, camera }
  */
 export function checkPickups({ player, pickups, gameState, hud, camera }) {
@@ -73,9 +74,8 @@ export function checkPickups({ player, pickups, gameState, hud, camera }) {
 }
 
 /**
- * Prüft Interaktionen mit Schaltern und Türen.
+ * Checks interactions with switches and doors.
  * @param {object} ctx - { player, interactables, onVictory }
- * @returns {boolean} true, wenn Siegbedingung ausgelöst wurde
  */
 export function checkInteractables({ player, interactables, onVictory }) {
   for (const obj of interactables) {
@@ -94,7 +94,7 @@ export function checkInteractables({ player, interactables, onVictory }) {
 }
 
 /**
- * Prüft Kollision mit Gefahren (tödlich bei Berührung).
+ * Checks collisions with hazards (lethal on contact).
  * @param {object} ctx - { player, hazards, gameState, hud, camera, onDeath }
  */
 export function checkHazards({ player, hazards, gameState, hud, camera, onDeath }) {
@@ -111,7 +111,7 @@ export function checkHazards({ player, hazards, gameState, hud, camera, onDeath 
 }
 
 /**
- * Prüft Schaden durch Feindkontakt.
+ * Checks damage from enemy contact.
  * @param {object} ctx - { player, enemies, gameState, hud, camera, onDeath }
  */
 export function checkEnemyDamage({ player, enemies, gameState, hud, camera, onDeath }) {
@@ -133,3 +133,4 @@ export function checkEnemyDamage({ player, enemies, gameState, hud, camera, onDe
     break;
   }
 }
+// #endregion

@@ -1,16 +1,7 @@
+// #region Public Methods
 /**
- * Partikel-Hilfsfunktionen und Easing für den VictoryScreen.
- */
-
-// ---------------------------------------------------------------------------
-// Easing
-// ---------------------------------------------------------------------------
-
-/**
- * Formatiert Sekunden als MM:SS.
- *
- * @param {number} seconds
- * @returns {string}
+ * Handles format time.
+ * @param {number} seconds Input parameter.
  */
 export function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
@@ -27,15 +18,10 @@ export function easeOutBack(x) {
 /** @param {number} x */
 export function easeOutQuad(x) { return 1 - (1 - x) * (1 - x); }
 
-// ---------------------------------------------------------------------------
-// Partikel-Pool
-// ---------------------------------------------------------------------------
-
 /**
- * Erstellt einen Partikel-Pool mit inaktiven Einträgen.
+ * Creates a particle pool with inactive entries.
  *
  * @param {number} size
- * @returns {object[]}
  */
 export function makePool(size) {
   const pool = [];
@@ -47,7 +33,7 @@ export function makePool(size) {
 }
 
 /**
- * Initialisiert ein Atmosphären-Partikel (langsam aufsteigend).
+ * Initializes an atmosphere particle (slowly rising).
  *
  * @param {object} p
  * @param {number} canvasWidth
@@ -68,7 +54,7 @@ export function initAtmoParticle(p, canvasWidth, canvasHeight) {
 }
 
 /**
- * Initialisiert ein Funken-Partikel (explodiert von cx/cy aus).
+ * Initializes a spark particle (explodes from cx/cy).
  *
  * @param {object} p
  * @param {number} cx
@@ -88,3 +74,4 @@ export function initSparkParticle(p, cx, cy) {
   p.baseA   = 1;
   p.color   = Math.random() < 0.55 ? '#ffd700' : '#ffe88f';
 }
+// #endregion
