@@ -77,7 +77,15 @@ export class GameManager {
       onBackToStart: () => { audioManager.playMusic('assets/audio/music/startMenu.ogg'); this._startScreen.reset(); this.state = GAME_STATES.START; },
     });
 
-    this._touchControls = new TouchControls(container, inputManager, () => this.state);
+    this._touchControls = new TouchControls(
+      container,
+      inputManager,
+      () => this.state,
+      () => ({
+        startSubOpen: this._startScreen.isSubPanelOpen(),
+        pauseSubOpen: this._pauseScreen.isSubPanelOpen(),
+      })
+    );
 
     this._loop = this._loop.bind(this);
   }

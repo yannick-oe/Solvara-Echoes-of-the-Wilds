@@ -47,14 +47,20 @@ export class TouchControls {
    * @param {object} container Input parameter.
    * @param {object} inputManager Input parameter.
    * @param {string} getState Input parameter.
+   * @param {object} getMobileUiFlags Input parameter.
    */
-  constructor(container, inputManager, getState) {
+  constructor(container, inputManager, getState, getMobileUiFlags = () => ({ startSubOpen: false, pauseSubOpen: false })) {
     this._container    = container;
     this._inputManager = inputManager;
     this._getState     = getState;
+    this._getMobileUiFlags = getMobileUiFlags;
 
     this._layer        = null;
     this._buttons      = [];
+    this._gameplayButtons = [];
+    this._pauseBtn = null;
+    this._fullscreenBtn = null;
+    this._backBtn = null;
     this._gameState    = null;
 
     this._onDocTap     = null;
@@ -146,6 +152,8 @@ export class TouchControls {
     this._makeBtn('↷', 'act-roll',  'roll',  { right: 80, bottom: 11  });
     this._makeBtn('✦', 'act-jump',  'jump',  { right: 14, bottom: 11  });
     this._makePauseBtn({ top: 10, right: 10 });
+    this._makeFullscreenBtn({ top: 10, right: 58 });
+    this._makeBackBtn({ top: 10, left: 10 });
   }
 
   /**
@@ -188,6 +196,7 @@ export class TouchControls {
     btn.addEventListener('contextmenu',        e => e.preventDefault());
     this._layer.appendChild(btn);
     this._buttons.push(btn);
+    this._gameplayButtons.push(btn);
   }
 
   /**
@@ -195,7 +204,7 @@ export class TouchControls {
    * @param {object} pos Input parameter.
    */
   _makePauseBtn(pos) {
-    const btn = this._createEl('⏸', 'act-pause', pos, BTN_SM,  false);
+    const btn = this._createEl('⚙', 'act-pause', pos, BTN_SM,  false);
     const im  = this._inputManager;
     btn.addEventListener('pointerdown', e => {
       e.preventDefault();
@@ -210,6 +219,60 @@ export class TouchControls {
     btn.addEventListener('contextmenu',        e => e.preventDefault());
     this._layer.appendChild(btn);
     this._buttons.push(btn);
+    this._pauseBtn = btn;
+  }
+
+  /**
+   * Creates the dedicated mobile fullscreen button.
+   * @param {object} pos Input parameter.
+   */
+  _makeFullscreenBtn(pos) {
+    const btn = this._createEl('⛶', 'act-fullscreen', pos, BTN_SM, false);
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      btn.setPointerCapture(e.pointerId);
+      btn.classList.add('tc-active');
+      this._requestFullscreen();
+    });
+    const onUp = () => btn.classList.remove('tc-active');
+    btn.addEventListener('pointerup', onUp);
+    btn.addEventListener('pointercancel', onUp);
+    btn.addEventListener('lostpointercapture', onUp);
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    this._layer.appendChild(btn);
+    this._buttons.push(btn);
+    this._fullscreenBtn = btn;
+  }
+
+  /**
+   * Creates the mobile-only touch back button for subpanels.
+   * @param {object} pos Input parameter.
+   */
+  _makeBackBtn(pos) {
+    const btn = this._createEl('↩', 'act-back', pos, BTN_SM, false);
+    const im = this._inputManager;
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      btn.setPointerCapture(e.pointerId);
+      btn.classList.add('tc-active');
+      im.backPressed = true;
+    });
+    const onUp = () => btn.classList.remove('tc-active');
+    btn.addEventListener('pointerup', onUp);
+    btn.addEventListener('pointercancel', onUp);
+    btn.addEventListener('lostpointercapture', onUp);
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    this._layer.appendChild(btn);
+    this._buttons.push(btn);
+    this._backBtn = btn;
+  }
+
+  /**
+   * Requests fullscreen on the game container when supported.
+   */
+  _requestFullscreen() {
+    const req = this._container.requestFullscreen ?? this._container.webkitRequestFullscreen;
+    req?.call(this._container)?.catch?.(() => {});
   }
 
   /**
@@ -265,7 +328,29 @@ export class TouchControls {
    */
   _updateVisibility() {
     if (!this._layer) return;
-    this._layer.style.display = shouldShowTouchControls(this._gameState) ? 'block' : 'none';
+
+    const mobileLandscape = isMobileLayout() && !isPortraitMobile();
+    this._layer.style.display = mobileLandscape ? 'block' : 'none';
+    if (!mobileLandscape) return;
+
+    const gameplayVisible = shouldShowTouchControls(this._gameState);
+    const flags = this._getMobileUiFlags();
+    const showBack = (this._gameState === GAME_STATES.START && flags.startSubOpen)
+      || (this._gameState === GAME_STATES.PAUSED && flags.pauseSubOpen);
+
+    for (const btn of this._gameplayButtons) {
+      btn.style.display = gameplayVisible ? 'flex' : 'none';
+    }
+
+    if (this._pauseBtn) {
+      this._pauseBtn.style.display = gameplayVisible ? 'flex' : 'none';
+    }
+    if (this._fullscreenBtn) {
+      this._fullscreenBtn.style.display = 'flex';
+    }
+    if (this._backBtn) {
+      this._backBtn.style.display = showBack ? 'flex' : 'none';
+    }
   }
 
   /**

@@ -60,6 +60,13 @@ export class PauseScreen {
   reset() { this._reset(); }
 
   /**
+   * Returns whether a subpanel is currently open.
+   */
+  isSubPanelOpen() {
+    return this._subScreen !== null;
+  }
+
+  /**
    * Handles handle input.
    * @param {object} input Input parameter.
    */

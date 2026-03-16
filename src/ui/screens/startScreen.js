@@ -69,6 +69,13 @@ export class StartScreen {
   reset() { this._reset(); }
 
   /**
+   * Returns whether a subpanel is currently open.
+   */
+  isSubPanelOpen() {
+    return this._subScreen !== null;
+  }
+
+  /**
    * Handles keyboard input in the start menu.
    * @param {object} input
    */
