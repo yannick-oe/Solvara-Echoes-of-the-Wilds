@@ -1,14 +1,12 @@
 // #region Imports
-import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT, CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from './constants.js';
+import { GAME_STATES, CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from './constants.js';
 import { imageCache } from './imageCache.js';
 import { Hud }         from '../ui/hud.js';
 import { audioManager } from './audioManager.js';
 import { inputManager } from './input.js';
-import { intervalManager } from './intervalManager.js';
 import { Camera } from './camera.js';
 import { ASSET_ENTRIES } from '../config/assetPaths.js';
 import { PROP_ASSET_ENTRIES } from '../config/propConfig.js';
-import { SFX_VOLUME }   from '../config/audioConfig.js';
 import { Level } from '../world/level.js';
 import { Parallax } from '../world/parallax.js';
 import { StartScreen } from '../ui/screens/startScreen.js';
@@ -16,8 +14,12 @@ import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
 import { VictoryScreen } from '../ui/screens/victoryScreen.js';
 import { PauseScreen } from '../ui/screens/pauseScreen.js';
 import { TouchControls } from '../ui/touchControls.js';
-import { createPlayer, spawnEnemies, spawnPickups, spawnInteractables, spawnHazards, spawnProps } from './entityFactory.js';
-import { checkStomp, checkRollKill, checkPickups, checkInteractables, checkHazards, checkEnemyDamage } from './collisionManager.js';
+import {
+  createGameState,
+  initEntities,
+  restartGameSession,
+} from './gameLifecycle.js';
+import { runInteractionChecks } from './gameInteractionChecks.js';
 // #endregion
 
 // #region Constants
@@ -26,19 +28,6 @@ const CAM_LERP_SPEED    = 6;
 // #endregion
 
 // #region Class Definition
-/**
- * Handles create game state.
- */
-function createGameState() {
-  return {
-    hearts:         PLAYER_START_HEARTS,
-    heartsMax:      5,
-    score:          0,
-    gemsCollected:  0,
-    starCoins:      new Array(STAR_COIN_COUNT).fill(false),
-  };
-}
-
 export class GameManager {
   /**
    * Creates a new instance.
@@ -101,7 +90,7 @@ export class GameManager {
     await imageCache.preload(ASSET_ENTRIES);
     await imageCache.preload(PROP_ASSET_ENTRIES);
     await this._level.load('assets/data/levels/level_01.json');
-    this._initEntities();
+    initEntities(this);
     this._camera.y = 0;
     this._parallax = new Parallax([
       { img: imageCache.get('BG_FOREST_BACK'),   speed: 0.15 },
@@ -117,61 +106,7 @@ export class GameManager {
 
   /** Resets the current level and restarts the PLAYING phase. */
   restart() {
-    if (this._deathTimeoutId !== null)      { clearTimeout(this._deathTimeoutId);      this._deathTimeoutId = null; }
-    if (this._victoryTransitionId !== null) { clearTimeout(this._victoryTransitionId); this._victoryTransitionId = null; }
-    intervalManager.stopAll();
-    this._levelTimer = this._victoryPoseTimer = this._finalLevelTime = 0;
-    this.gameState   = createGameState();
-    this._initEntities();
-    this._camera.x = this._camera.y = this._camLookOffset = 0;
-    this._setState(GAME_STATES.PLAYING);
-  }
-
-  /**
-   * Handles init entities.
-   */
-  _initEntities() {
-    this._player        = this._createPlayer();
-    this._enemies       = this._spawnEnemies();
-    this._pickups       = this._spawnPickups();
-    this._interactables = this._spawnInteractables();
-    this._hazards       = this._spawnHazards();
-    this._props         = this._spawnProps();
-    this._effects       = [];
-  }
-
-  /**
-   * Handles create player.
-   */
-  _createPlayer()       { return createPlayer(this._level.content); }
-  /**
-   * Handles spawn enemies.
-   */
-  _spawnEnemies()       { return spawnEnemies(this._level.content); }
-  /**
-   * Handles spawn pickups.
-   */
-  _spawnPickups()       { return spawnPickups(this._level.content); }
-  /**
-   * Handles spawn interactables.
-   */
-  _spawnInteractables() { return spawnInteractables(this._level.content); }
-  /**
-   * Handles spawn hazards.
-   */
-  _spawnHazards()       { return spawnHazards(this._level.content); }
-  /**
-   * Handles spawn props.
-   */
-  _spawnProps()         { return spawnProps(this._level.content); }
-
-  /**
-   * Handles set state.
-   * @param {object} next Input parameter.
-   */
-  _setState(next) {
-    this.state = next;
-    if (next === GAME_STATES.PLAYING) audioManager.playMusic('assets/audio/music/level01.ogg');
+    restartGameSession(this);
   }
 
   /**
@@ -253,14 +188,7 @@ export class GameManager {
     const groundY = this._level.tileMap.height - this._level.tileMap.height % TILE_SIZE;
     for (const hz of this._hazards) hz.update?.(dt, this._player, groundY);
     for (const pickup of this._pickups) { if (pickup.active) pickup.update(dt); }
-    this._checkStomp();
-    this._checkRollKill();
-    if (!this._player.dying) {
-      this._checkEnemyDamage();
-      this._checkPickups();
-      this._checkInteractables();
-      this._checkHazards();
-    }
+    runInteractionChecks(this);
     this._hud.update(dt);
     for (const fx of this._effects) fx.update(dt);
     this._effects = this._effects.filter(fx => fx.active);
@@ -365,67 +293,6 @@ export class GameManager {
       }
       ctx.restore();
     }
-  }
-
-  /**
-   * Handles check stomp.
-   */
-  _checkStomp() {
-    checkStomp({ player: this._player, enemies: this._enemies, effects: this._effects });
-  }
-  /**
-   * Handles check roll kill.
-   */
-  _checkRollKill() {
-    checkRollKill({ player: this._player, enemies: this._enemies, effects: this._effects });
-  }
-  /**
-   * Handles check pickups.
-   */
-  _checkPickups() {
-    checkPickups({ player: this._player, pickups: this._pickups, gameState: this.gameState, hud: this._hud, camera: this._camera });
-  }
-  /**
-   * Handles check interactables.
-   */
-  _checkInteractables() {
-    const alreadyPosed = this._victoryPoseTimer > 0;
-    if (alreadyPosed) return;
-    checkInteractables({ player: this._player, interactables: this._interactables, onVictory: () => this._startVictorySequence() });
-  }
-  /**
-   * Handles start victory sequence.
-   */
-  _startVictorySequence() {
-    this._player.startVictoryPose();
-    this._victoryPoseTimer = 0.65;
-    this._finalLevelTime   = this._levelTimer;
-  }
-  /**
-   * Handles check hazards.
-   */
-  _checkHazards() {
-    checkHazards({ player: this._player, hazards: this._hazards, gameState: this.gameState, hud: this._hud, camera: this._camera, onDeath: () => this._handlePlayerDeath() });
-  }
-  /**
-   * Handles check enemy damage.
-   */
-  _checkEnemyDamage() {
-    checkEnemyDamage({ player: this._player, enemies: this._enemies, gameState: this.gameState, hud: this._hud, camera: this._camera, onDeath: () => this._handlePlayerDeath() });
-  }
-
-  /**
-   * Handles handle player death.
-   */
-  _handlePlayerDeath() {
-    this._player.startDying();
-    audioManager.playSfx('assets/audio/sfx/deathSound.mp3', { volume: SFX_VOLUME.death });
-    audioManager.fadeOutMusic(300);
-    this._deathTimeoutId = setTimeout(() => {
-      this._deathTimeoutId = null;
-      this._gameOverScreen.show();
-      this._setState(GAME_STATES.GAMEOVER);
-    }, 400);
   }
 
   /**
