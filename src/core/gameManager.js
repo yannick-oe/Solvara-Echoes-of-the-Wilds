@@ -122,21 +122,50 @@ export class GameManager {
    * @param {number} timestamp Input parameter.
    */
   _loop(timestamp) {
-    if (!this._loopStarted) {
-      this._loopStarted = true;
-      this._lastTime = timestamp;
-      this._rafId = requestAnimationFrame(this._loop);
-      return;
-    }
-    const dt = Math.min((timestamp - this._lastTime) / 1000, 0.05);
-    this._lastTime = timestamp;
-    if (inputManager.fullscreenPressed) this._toggleFullscreen();
+    if (this._handleFirstFrame(timestamp)) return;
+    const dt = this._computeDelta(timestamp);
+    this._handleFullscreenToggle();
     this._update(dt);
     this._draw();
+    this._postFrame();
+    this._rafId = requestAnimationFrame(this._loop);
+  }
+
+  /**
+   * Handles first animation frame bootstrap.
+   * @param {number} timestamp Input parameter.
+   */
+  _handleFirstFrame(timestamp) {
+    if (this._loopStarted) return false;
+    this._loopStarted = true;
+    this._lastTime = timestamp;
+    this._rafId = requestAnimationFrame(this._loop);
+    return true;
+  }
+
+  /**
+   * Computes clamped frame delta.
+   * @param {number} timestamp Input parameter.
+   */
+  _computeDelta(timestamp) {
+    const dt = Math.min((timestamp - this._lastTime) / 1000, 0.05);
+    this._lastTime = timestamp;
+    return dt;
+  }
+
+  /**
+   * Handles fullscreen toggle input.
+   */
+  _handleFullscreenToggle() {
+    if (inputManager.fullscreenPressed) this._toggleFullscreen();
+  }
+
+  /**
+   * Runs post-frame bookkeeping.
+   */
+  _postFrame() {
     this._touchControls.setGameState(this.state);
     inputManager.resetFrameState();
-
-    this._rafId = requestAnimationFrame(this._loop);
   }
 
   /**
@@ -169,40 +198,115 @@ export class GameManager {
    * @param {number} dt Input parameter.
    */
   _updatePlaying(dt) {
-    if (this._victoryPoseTimer > 0) {
-      this._victoryPoseTimer -= dt;
-      if (this._victoryPoseTimer <= 0) {
-        this._victoryPoseTimer = 0;
-        audioManager.fadeOutMusic(220);
-        this._victoryTransitionId = setTimeout(() => {
-          this._victoryTransitionId = null;
-          audioManager.playSting('assets/audio/music/victory.mp3');
-          this._victoryScreen.show(this.gameState, this._finalLevelTime);
-          this.state = GAME_STATES.VICTORY;
-        }, 280);
-      }
-      return;
-    }
-    if (inputManager.pausePressed) {
-      this._pauseScreen.reset();
-      this.state = GAME_STATES.PAUSED;
-      return;
-    }
+    if (this._tickVictoryTransition(dt)) return;
+    if (this._handlePausePressed()) return;
+    this._runPlayingUpdates(dt);
+  }
+
+  /**
+   * Handles victory pose countdown and transition.
+   * @param {number} dt Input parameter.
+   */
+  _tickVictoryTransition(dt) {
+    if (this._victoryPoseTimer <= 0) return false;
+    this._victoryPoseTimer -= dt;
+    if (this._victoryPoseTimer > 0) return true;
+    this._victoryPoseTimer = 0;
+    audioManager.fadeOutMusic(220);
+    this._queueVictoryScreen();
+    return true;
+  }
+
+  /**
+   * Queues victory screen transition after pose delay.
+   */
+  _queueVictoryScreen() {
+    this._victoryTransitionId = setTimeout(() => {
+      this._victoryTransitionId = null;
+      audioManager.playSting('assets/audio/music/victory.mp3');
+      this._victoryScreen.show(this.gameState, this._finalLevelTime);
+      this.state = GAME_STATES.VICTORY;
+    }, 280);
+  }
+
+  /**
+   * Handles pause button press while playing.
+   */
+  _handlePausePressed() {
+    if (!inputManager.pausePressed) return false;
+    this._pauseScreen.reset();
+    this.state = GAME_STATES.PAUSED;
+    return true;
+  }
+
+  /**
+   * Runs gameplay world updates for active frame.
+   * @param {number} dt Input parameter.
+   */
+  _runPlayingUpdates(dt) {
     this._levelTimer += dt;
-    this._player.update(dt, inputManager, this._level.tileMap);
-    for (const enemy of this._enemies) {
-      if (enemy.active) enemy.update(dt, this._level.tileMap);
-    }
-    const groundY = this._level.tileMap.height - this._level.tileMap.height % TILE_SIZE;
-    for (const hz of this._hazards) hz.update?.(dt, this._player, groundY);
-    for (const pickup of this._pickups) { if (pickup.active) pickup.update(dt); }
+    this._updateWorldEntities(dt);
     runInteractionChecks(this);
+    this._updateEffectsAndHud(dt);
+    this._updateCamera(dt);
+  }
+
+  /**
+   * Updates all world entities in playing state.
+   * @param {number} dt Input parameter.
+   */
+  _updateWorldEntities(dt) {
+    this._player.update(dt, inputManager, this._level.tileMap);
+    this._updateEnemies(dt);
+    this._updateHazards(dt);
+    this._updatePickups(dt);
+  }
+
+  /**
+   * Updates enemy entities.
+   * @param {number} dt Input parameter.
+   */
+  _updateEnemies(dt) {
+    for (const enemy of this._enemies) if (enemy.active) enemy.update(dt, this._level.tileMap);
+  }
+
+  /**
+   * Updates hazards with ground reference.
+   * @param {number} dt Input parameter.
+   */
+  _updateHazards(dt) {
+    const mapH = this._level.tileMap.height;
+    const groundY = mapH - mapH % TILE_SIZE;
+    for (const hz of this._hazards) hz.update?.(dt, this._player, groundY);
+  }
+
+  /**
+   * Updates animated pickups.
+   * @param {number} dt Input parameter.
+   */
+  _updatePickups(dt) {
+    for (const pickup of this._pickups) if (pickup.active) pickup.update(dt);
+  }
+
+  /**
+   * Updates HUD and transient effects.
+   * @param {number} dt Input parameter.
+   */
+  _updateEffectsAndHud(dt) {
     this._hud.update(dt);
     for (const fx of this._effects) fx.update(dt);
     this._effects = this._effects.filter(fx => fx.active);
+  }
+
+  /**
+   * Updates camera follow and look-up offset.
+   * @param {number} dt Input parameter.
+   */
+  _updateCamera(dt) {
     this._camera.follow(this._player);
     const target = this._player.state === 'lookUp' ? -CAM_LOOKUP_OFFSET : 0;
-    this._camLookOffset += (target - this._camLookOffset) * Math.min(CAM_LERP_SPEED * dt, 1);
+    const lerp = Math.min(CAM_LERP_SPEED * dt, 1);
+    this._camLookOffset += (target - this._camLookOffset) * lerp;
     this._camera.y += this._camLookOffset;
     this._camera.clamp(this._level.width, this._level.height);
   }
@@ -239,30 +343,43 @@ export class GameManager {
    * Handles draw world.
    */
   _drawWorld() {
-
     this._parallax?.draw(this.ctx, this._camera.x);
     this.ctx.save();
     this._camera.applyTransform(this.ctx);
     this._level.tileMap?.draw(this.ctx, this._camera);
     this._drawProps('back');
-    for (const hz of this._hazards) {
-      hz.draw(this.ctx, this._camera, imageCache);
-    }
-    for (const obj of this._interactables) {
-      obj.draw(this.ctx, this._camera, imageCache);
-    }
+    this._drawEntityGroup(this._hazards);
+    this._drawEntityGroup(this._interactables);
     this._player?.draw(this.ctx, this._camera, imageCache);
-    for (const enemy of this._enemies) {
-      if (enemy.active) enemy.draw(this.ctx, this._camera, imageCache);
-    }
-    for (const fx of this._effects) {
-      if (fx.active) fx.draw(this.ctx, this._camera, imageCache);
-    }
-    for (const pickup of this._pickups) {
-      if (pickup.active) pickup.draw(this.ctx, this._camera, imageCache);
-    }
+    this._drawActiveEntityGroup(this._enemies);
+    this._drawActiveEntityGroup(this._effects);
+    this._drawActiveEntityGroup(this._pickups);
     this._drawProps('front');
     this.ctx.restore();
+    this._drawLightingOverlay();
+    this._hud.draw(this.ctx, this.gameState);
+  }
+
+  /**
+   * Draws all entities in collection.
+   * @param {Array} entities Input parameter.
+   */
+  _drawEntityGroup(entities) {
+    for (const entity of entities) entity.draw(this.ctx, this._camera, imageCache);
+  }
+
+  /**
+   * Draws only active entities in collection.
+   * @param {Array} entities Input parameter.
+   */
+  _drawActiveEntityGroup(entities) {
+    for (const entity of entities) if (entity.active) entity.draw(this.ctx, this._camera, imageCache);
+  }
+
+  /**
+   * Draws warm lighting overlay above world pass.
+   */
+  _drawLightingOverlay() {
     const lightGrd = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     lightGrd.addColorStop(0, 'rgba(255,240,180,0.08)');
     lightGrd.addColorStop(1, 'rgba(0,0,0,0.08)');
@@ -270,7 +387,6 @@ export class GameManager {
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.ctx.fillStyle = 'rgba(255,230,150,0.03)';
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    this._hud.draw(this.ctx, this.gameState);
   }
 
   /**

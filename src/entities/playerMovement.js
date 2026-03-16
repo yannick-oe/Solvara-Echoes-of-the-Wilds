@@ -50,43 +50,12 @@ export function exitLadder(player) {
  */
 export function handleLadder(player, dt, input, tileMap) {
   const ts = TILE_SIZE;
-  const midCol   = Math.floor((player.x + player.w / 2) / ts);
-  const ladderCX = midCol * ts + ts / 2;
-  player.x      += (ladderCX - player.w / 2 - player.x) * Math.min(8 * dt, 1);
-  player._climbMoving = false;
-  if (input.up) {
-    player.velY         = -CLIMB_SPEED;
-    player._climbMoving = true;
-  } else if (input.down) {
-    player.velY         =  CLIMB_SPEED;
-    player._climbMoving = true;
-  } else {
-    player.velY = 0;
-  }
+  snapPlayerToLadderCenter(player, dt, ts);
+  applyLadderInput(player, input);
   player.velX = 0;
-  player.y   += player.velY * dt;
-  const probeY    = player.y + player.h;
-  const bottomRow = Math.floor(probeY / ts);
-  const col       = Math.floor((player.x + player.w / 2) / ts);
-  if (player.velY >= 0 && tileMap.isSolid(col, bottomRow)) {
-    player.y        = bottomRow * ts - player.h;
-    player.velY     = 0;
-    player.onGround = true;
-    exitLadder(player);
-    return;
-  }
-  const topRow = Math.floor(player.y / ts);
-  if (player.velY < 0 && !tileMap.isLadder(col, topRow)) {
-    player.y    = (topRow + 1) * ts - player.h;
-    player.velY = 0;
-    if (tileMap.isSolid(col, topRow)) {
-      player.y = topRow * ts - player.h;
-    }
-    player.onGround            = true;
-    player._atLadderTop        = true;
-    player._ladderExitCooldown = 0.15;
-    exitLadder(player);
-  }
+  player.y += player.velY * dt;
+  if (tryExitLadderAtBottom(player, tileMap, ts)) return;
+  tryExitLadderAtTop(player, tileMap, ts);
 }
 
 /**
@@ -96,43 +65,10 @@ export function handleLadder(player, dt, input, tileMap) {
  * @param {object} input
  */
 export function detectWallGrab(player, tileMap, input) {
-  if (player.onGround) {
-    player._wallGrabSide = 0;
-    return;
-  }
-  const ts = TILE_SIZE;
-  if (input.right && player._wallGrabSide !== -1 && player._wallLockSide !== 1) {
-    const checkCol  = Math.floor((player.x + player.w) / ts);
-    const topRow    = Math.floor(player.y / ts);
-    const bottomRow = Math.floor((player.y + player.h - 1) / ts);
-    for (let row = topRow; row <= bottomRow; row++) {
-      if (tileMap.isSolid(checkCol, row)) {
-        player._wallGrabSide = 1;
-        player._wallLockSide = 0;
-        player.facingRight   = true;
-        return;
-      }
-    }
-  }
-  if (input.left && player._wallGrabSide !== 1 && player._wallLockSide !== -1) {
-    const checkCol  = Math.floor((player.x - 1) / ts);
-    const topRow    = Math.floor(player.y / ts);
-    const bottomRow = Math.floor((player.y + player.h - 1) / ts);
-    for (let row = topRow; row <= bottomRow; row++) {
-      if (tileMap.isSolid(checkCol, row)) {
-        player._wallGrabSide = -1;
-        player._wallLockSide = 0;
-        player.facingRight   = false;
-        return;
-      }
-    }
-  }
-  if (player._wallGrabSide !== 0) {
-    const stillTouch = isAgainstWall(player, tileMap, player._wallGrabSide);
-    const stillPress = (player._wallGrabSide > 0 && input.right) ||
-                       (player._wallGrabSide < 0 && input.left);
-    if (!stillTouch || !stillPress) player._wallGrabSide = 0;
-  }
+  if (player.onGround) return clearWallGrab(player);
+  if (tryGrabRightWall(player, tileMap, input)) return;
+  if (tryGrabLeftWall(player, tileMap, input)) return;
+  clearWallGrabIfReleased(player, tileMap, input);
 }
 
 /**
@@ -162,31 +98,10 @@ export function isAgainstWall(player, tileMap, side) {
  * @param {import('../world/tileMap.js').TileMap} tileMap
  */
 export function handleWallGrab(player, dt, input, tileMap) {
-  player.velX = 0;
-  if (player.velY < 0) player.velY = 0;
-  player.velY = Math.min(player.velY + WALL_SLIDE_GRAVITY * dt, WALL_SLIDE_MAX_SPEED);
-  const wasGrounded = player.onGround;
-  player.onGround   = false;
-  player._prevFeetY = player.y + player.h;
-  player.y         += player.velY * dt;
-  resolveY(player, tileMap);
-  if (!wasGrounded && player.onGround) {
-    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
-    player._wallLockSide = 0;
-    player._wallGrabSide = 0;
-    return;
-  }
-  if (player._jumpBuffer > 0) {
-    const jumpDir           = -player._wallGrabSide;
-    player.velX             = jumpDir * WALL_JUMP_X;
-    player.velY             = WALL_JUMP_Y;
-    player.facingRight      = jumpDir > 0;
-    player._wallLockSide    = player._wallGrabSide;
-    player._wallPushOffTimer = 0.10;
-    player._wallGrabSide    = 0;
-    player._jumpBuffer      = 0;
-    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h / 2, 4);
-  }
+  applyWallSlideVelocity(player, dt);
+  const wasGrounded = stepWallSlide(player, dt, tileMap);
+  if (landedFromWallSlide(player, wasGrounded)) return;
+  applyWallJumpIfBuffered(player);
 }
 
 /**
@@ -224,40 +139,268 @@ export function exitRoll(player) {
  * @param {import('../world/tileMap.js').TileMap} tileMap
  */
 export function handleRoll(player, dt, input, tileMap) {
-  if (player._jumpBuffer > 0 && player.onGround) {
-    player.velY        = JUMP_FORCE;
-    player.onGround    = false;
-    player._jumpBuffer = 0;
-    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
-    exitRoll(player);
-    return;
-  }
-  player._rollSpeed = Math.max(0, player._rollSpeed - ROLL_FRICTION * dt);
-  if (player._rollSpeed < ROLL_MIN_SPEED) {
-    exitRoll(player);
-    return;
-  }
-  if (player.onGround && player._rollSpeed > ROLL_SPEED_INIT * 0.4) {
-    if (Math.random() < 0.25) {
-      spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 1);
-    }
-  }
-  player.velX = player._rollDir * player._rollSpeed;
-  player.x   += player.velX * dt;
-  resolveX(player, tileMap);
-  if (player.velX === 0) {
-    exitRoll(player);
-    return;
-  }
-  player.velY = Math.min(player.velY + GRAVITY * dt, MAX_FALL_SPEED);
-  const wasGrounded  = player.onGround;
-  player.onGround    = false;
-  player._prevFeetY  = player.y + player.h;
-  player.y          += player.velY * dt;
+  if (tryRollJump(player)) return;
+  if (!tickRollSpeed(player, dt)) return;
+  maybeSpawnRollTrail(player);
+  if (!stepRollX(player, dt, tileMap)) return;
+  stepRollY(player, dt, tileMap);
+}
+
+/**
+ * Snaps player horizontally to ladder center.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ * @param {number} ts Input parameter.
+ */
+function snapPlayerToLadderCenter(player, dt, ts) {
+  const midCol = Math.floor((player.x + player.w / 2) / ts);
+  const ladderCX = midCol * ts + ts / 2;
+  player.x += (ladderCX - player.w / 2 - player.x) * Math.min(8 * dt, 1);
+}
+
+/**
+ * Applies vertical ladder input.
+ * @param {object} player Input parameter.
+ * @param {object} input Input parameter.
+ */
+function applyLadderInput(player, input) {
+  player._climbMoving = false;
+  if (input.up) return setLadderVelocity(player, -CLIMB_SPEED);
+  if (input.down) return setLadderVelocity(player, CLIMB_SPEED);
+  player.velY = 0;
+}
+
+/**
+ * Sets ladder climb velocity and movement flag.
+ * @param {object} player Input parameter.
+ * @param {number} velY Input parameter.
+ */
+function setLadderVelocity(player, velY) {
+  player.velY = velY;
+  player._climbMoving = true;
+}
+
+/**
+ * Tries to exit ladder at solid floor.
+ * @param {object} player Input parameter.
+ * @param {object} tileMap Input parameter.
+ * @param {number} ts Input parameter.
+ */
+function tryExitLadderAtBottom(player, tileMap, ts) {
+  const col = Math.floor((player.x + player.w / 2) / ts);
+  const bottomRow = Math.floor((player.y + player.h) / ts);
+  if (player.velY < 0 || !tileMap.isSolid(col, bottomRow)) return false;
+  player.y = bottomRow * ts - player.h;
+  player.velY = 0;
+  player.onGround = true;
+  exitLadder(player);
+  return true;
+}
+
+/**
+ * Tries to exit ladder at top end.
+ * @param {object} player Input parameter.
+ * @param {object} tileMap Input parameter.
+ * @param {number} ts Input parameter.
+ */
+function tryExitLadderAtTop(player, tileMap, ts) {
+  const col = Math.floor((player.x + player.w / 2) / ts);
+  const topRow = Math.floor(player.y / ts);
+  if (player.velY >= 0 || tileMap.isLadder(col, topRow)) return;
+  player.y = (topRow + 1) * ts - player.h;
+  if (tileMap.isSolid(col, topRow)) player.y = topRow * ts - player.h;
+  player.velY = 0;
+  player.onGround = true;
+  player._atLadderTop = true;
+  player._ladderExitCooldown = 0.15;
+  exitLadder(player);
+}
+
+/**
+ * Clears wall grab state.
+ * @param {object} player Input parameter.
+ */
+function clearWallGrab(player) {
+  player._wallGrabSide = 0;
+}
+
+/**
+ * Tries grabbing right wall.
+ * @param {object} player Input parameter.
+ * @param {object} tileMap Input parameter.
+ * @param {object} input Input parameter.
+ */
+function tryGrabRightWall(player, tileMap, input) {
+  if (!input.right || player._wallGrabSide === -1 || player._wallLockSide === 1) return false;
+  return tryGrabWallSide(player, tileMap, 1);
+}
+
+/**
+ * Tries grabbing left wall.
+ * @param {object} player Input parameter.
+ * @param {object} tileMap Input parameter.
+ * @param {object} input Input parameter.
+ */
+function tryGrabLeftWall(player, tileMap, input) {
+  if (!input.left || player._wallGrabSide === 1 || player._wallLockSide === -1) return false;
+  return tryGrabWallSide(player, tileMap, -1);
+}
+
+/**
+ * Attempts wall grab on one side.
+ * @param {object} player Input parameter.
+ * @param {object} tileMap Input parameter.
+ * @param {number} side Input parameter.
+ */
+function tryGrabWallSide(player, tileMap, side) {
+  if (!isAgainstWall(player, tileMap, side)) return false;
+  player._wallGrabSide = side;
+  player._wallLockSide = 0;
+  player.facingRight = side > 0;
+  return true;
+}
+
+/**
+ * Clears wall grab when no longer touching or pressing.
+ * @param {object} player Input parameter.
+ * @param {object} tileMap Input parameter.
+ * @param {object} input Input parameter.
+ */
+function clearWallGrabIfReleased(player, tileMap, input) {
+  if (player._wallGrabSide === 0) return;
+  const stillTouch = isAgainstWall(player, tileMap, player._wallGrabSide);
+  const stillPress = player._wallGrabSide > 0 ? input.right : input.left;
+  if (!stillTouch || !stillPress) player._wallGrabSide = 0;
+}
+
+/**
+ * Applies wall-slide gravity and horizontal lock.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ */
+function applyWallSlideVelocity(player, dt) {
+  player.velX = 0;
+  if (player.velY < 0) player.velY = 0;
+  player.velY = Math.min(player.velY + WALL_SLIDE_GRAVITY * dt, WALL_SLIDE_MAX_SPEED);
+}
+
+/**
+ * Steps wall-slide motion and resolves vertical collisions.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ * @param {object} tileMap Input parameter.
+ */
+function stepWallSlide(player, dt, tileMap) {
+  const wasGrounded = player.onGround;
+  player.onGround = false;
+  player._prevFeetY = player.y + player.h;
+  player.y += player.velY * dt;
   resolveY(player, tileMap);
-  if (!wasGrounded && player.onGround) {
-    spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
-    player._wallLockSide = 0;
-  }
+  return wasGrounded;
+}
+
+/**
+ * Handles landing result from wall slide.
+ * @param {object} player Input parameter.
+ * @param {boolean} wasGrounded Input parameter.
+ */
+function landedFromWallSlide(player, wasGrounded) {
+  if (wasGrounded || !player.onGround) return false;
+  spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
+  player._wallLockSide = 0;
+  player._wallGrabSide = 0;
+  return true;
+}
+
+/**
+ * Applies buffered wall jump from grab state.
+ * @param {object} player Input parameter.
+ */
+function applyWallJumpIfBuffered(player) {
+  if (player._jumpBuffer <= 0) return;
+  const jumpDir = -player._wallGrabSide;
+  player.velX = jumpDir * WALL_JUMP_X;
+  player.velY = WALL_JUMP_Y;
+  player.facingRight = jumpDir > 0;
+  player._wallLockSide = player._wallGrabSide;
+  player._wallPushOffTimer = 0.10;
+  player._wallGrabSide = 0;
+  player._jumpBuffer = 0;
+  spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h / 2, 4);
+}
+
+/**
+ * Tries jump cancel from rolling state.
+ * @param {object} player Input parameter.
+ */
+function tryRollJump(player) {
+  if (player._jumpBuffer <= 0 || !player.onGround) return false;
+  player.velY = JUMP_FORCE;
+  player.onGround = false;
+  player._jumpBuffer = 0;
+  spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
+  exitRoll(player);
+  return true;
+}
+
+/**
+ * Updates roll speed and exits when too slow.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ */
+function tickRollSpeed(player, dt) {
+  player._rollSpeed = Math.max(0, player._rollSpeed - ROLL_FRICTION * dt);
+  if (player._rollSpeed >= ROLL_MIN_SPEED) return true;
+  exitRoll(player);
+  return false;
+}
+
+/**
+ * Spawns occasional dust trail while fast rolling.
+ * @param {object} player Input parameter.
+ */
+function maybeSpawnRollTrail(player) {
+  if (!player.onGround || player._rollSpeed <= ROLL_SPEED_INIT * 0.4) return;
+  if (Math.random() < 0.25) spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 1);
+}
+
+/**
+ * Steps roll horizontal movement and resolves wall collision.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ * @param {object} tileMap Input parameter.
+ */
+function stepRollX(player, dt, tileMap) {
+  player.velX = player._rollDir * player._rollSpeed;
+  player.x += player.velX * dt;
+  resolveX(player, tileMap);
+  if (player.velX !== 0) return true;
+  exitRoll(player);
+  return false;
+}
+
+/**
+ * Steps roll vertical movement and resolves landing.
+ * @param {object} player Input parameter.
+ * @param {number} dt Input parameter.
+ * @param {object} tileMap Input parameter.
+ */
+function stepRollY(player, dt, tileMap) {
+  player.velY = Math.min(player.velY + GRAVITY * dt, MAX_FALL_SPEED);
+  const wasGrounded = player.onGround;
+  player.onGround = false;
+  player._prevFeetY = player.y + player.h;
+  player.y += player.velY * dt;
+  resolveY(player, tileMap);
+  if (!wasGrounded && player.onGround) resetAfterRollLanding(player);
+}
+
+/**
+ * Resets wall lock and spawns landing dust after roll landing.
+ * @param {object} player Input parameter.
+ */
+function resetAfterRollLanding(player) {
+  spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
+  player._wallLockSide = 0;
 }
 // #endregion

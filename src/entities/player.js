@@ -78,53 +78,14 @@ export class Player extends Entity {
    * @param {object}  tileMap
    */
   update(dt, input, tileMap) {
-    if (this.dying) {
-      this.velY  = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
-      this.y    += this.velY * dt;
-      this.x    += this.velX * dt;
-      this.velX *= Math.max(0, 1 - 4 * dt);
-      updateDust(this._dustPool, dt);
-      return;
-    }
+    if (this._updateDying(dt)) return;
     this._tickTimers(dt);
     this._squashTick(dt);
-    if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
-    else if (this._jumpBuffer > 0) this._jumpBuffer = Math.max(0, this._jumpBuffer - dt);
-    const overlapLadder = this._hurtTimer <= 0 &&
-      tileMap.isOnLadder(this.x, this.y, this.w, this.h);
-    this._validateAtLadderTop(tileMap);
-    if (!this._onLadder && overlapLadder &&
-        this._ladderExitCooldown <= 0 && (input.up || input.down)) {
-      this._atLadderTop = false;
-      enterLadder(this);
-    }
-    if (this._onLadder) {
-      if (!overlapLadder) {
-        if (this.velY <= 0) {
-          this.velY         = 0;
-          this._atLadderTop = true;
-          this._ladderExitCooldown = 0.2;
-        }
-        exitLadder(this);
-      } else if (input.jumpPressed) {
-        exitLadder(this);
-        this.velY        = JUMP_FORCE;
-        this._jumpBuffer = 0;
-      }
-    }
-    if (this._onLadder) {
-      handleLadder(this, dt, input, tileMap);
-      updateAnim(this, dt, input);
-      updateDust(this._dustPool, dt);
-      return;
-    }
+    this._tickJumpBuffer(dt, input);
+    const overlapLadder = this._prepareLadderState(input, tileMap);
+    if (this._handleLadderPhase(dt, input, tileMap)) return;
     this._tryStartRoll(dt, input);
-    if (this._rolling) {
-      handleRoll(this, dt, input, tileMap);
-      updateAnim(this, dt, input);
-      updateDust(this._dustPool, dt);
-      return;
-    }
+    if (this._handleRollPhase(dt, input, tileMap)) return;
     if (this.onGround) this._coyoteTimer = COYOTE_TIME;
     else               this._coyoteTimer = Math.max(0, this._coyoteTimer - dt);
     if (this._hurtTimer <= 0) detectWallGrab(this, tileMap, input);
@@ -138,6 +99,99 @@ export class Player extends Entity {
     }
     updateAnim(this, dt, input, effectiveLookUp);
     updateDust(this._dustPool, dt);
+  }
+
+  /**
+   * Updates physics while dying and returns whether normal update should stop.
+   * @param {number} dt Input parameter.
+   */
+  _updateDying(dt) {
+    if (!this.dying) return false;
+    this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+    this.y += this.velY * dt;
+    this.x += this.velX * dt;
+    this.velX *= Math.max(0, 1 - 4 * dt);
+    updateDust(this._dustPool, dt);
+    return true;
+  }
+
+  /**
+   * Ticks jump input buffer.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   */
+  _tickJumpBuffer(dt, input) {
+    if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
+    else if (this._jumpBuffer > 0) this._jumpBuffer = Math.max(0, this._jumpBuffer - dt);
+  }
+
+  /**
+   * Prepares ladder enter/exit state and returns overlap flag.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _prepareLadderState(input, tileMap) {
+    const overlapLadder = this._hurtTimer <= 0 && tileMap.isOnLadder(this.x, this.y, this.w, this.h);
+    this._validateAtLadderTop(tileMap);
+    if (!this._onLadder && overlapLadder && this._ladderExitCooldown <= 0 && (input.up || input.down)) {
+      this._atLadderTop = false;
+      enterLadder(this);
+    }
+    this._applyLadderExitRules(input, overlapLadder);
+    return overlapLadder;
+  }
+
+  /**
+   * Applies ladder exit and jump-off rules.
+   * @param {object} input Input parameter.
+   * @param {boolean} overlapLadder Input parameter.
+   */
+  _applyLadderExitRules(input, overlapLadder) {
+    if (!this._onLadder) return;
+    if (!overlapLadder) return this._exitLadderAtTopEdge();
+    if (!input.jumpPressed) return;
+    exitLadder(this);
+    this.velY = JUMP_FORCE;
+    this._jumpBuffer = 0;
+  }
+
+  /**
+   * Exits ladder when player leaves climbable tiles at top.
+   */
+  _exitLadderAtTopEdge() {
+    if (this.velY > 0) return exitLadder(this);
+    this.velY = 0;
+    this._atLadderTop = true;
+    this._ladderExitCooldown = 0.2;
+    exitLadder(this);
+  }
+
+  /**
+   * Handles ladder movement phase.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _handleLadderPhase(dt, input, tileMap) {
+    if (!this._onLadder) return false;
+    handleLadder(this, dt, input, tileMap);
+    updateAnim(this, dt, input);
+    updateDust(this._dustPool, dt);
+    return true;
+  }
+
+  /**
+   * Handles rolling phase.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _handleRollPhase(dt, input, tileMap) {
+    if (!this._rolling) return false;
+    handleRoll(this, dt, input, tileMap);
+    updateAnim(this, dt, input);
+    updateDust(this._dustPool, dt);
+    return true;
   }
 
   /**
@@ -201,43 +255,73 @@ export class Player extends Entity {
    */
   draw(ctx, _cam, imageCache) {
     drawDust(this._dustPool, ctx);
-    if (!this.dying) {
-      if (this._invulTimer > 0 && Math.floor(this._invulTimer / BLINK_INTERVAL) % 2 === 0) return;
-    }
+    if (this._shouldSkipDraw()) return;
     const anim = ANIM[this.state];
-    let fi = this.state === 'fall' ? FALL_FRAME : this.frameIndex;
-    if (this.state === 'wallGrab') {
-      fi = this._wallPushOffTimer > 0 ? 1 : 0;
-    }
-    let flipX = !this.facingRight;
-    if (this.state === 'wallGrab') {
-      flipX = this._wallGrabSide < 0;
-    }
+    const fi = this._getFrameIndex();
+    const flipX = this._shouldFlipSprite();
     const img = imageCache.get(`${anim.prefix}_${fi}`);
     if (!img) return;
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
-    if (this._squashScale !== 1.0) {
-      const squashH = DRAW_H * this._squashScale;
-      const squashY = dy + (DRAW_H - squashH);
-      if (!flipX) {
-        ctx.drawImage(img, dx, squashY, DRAW_W, squashH);
-      } else {
-        ctx.save();
-        ctx.translate(dx + DRAW_W, squashY);
-        ctx.scale(-1, 1);
-        ctx.drawImage(img, 0, 0, DRAW_W, squashH);
-        ctx.restore();
-      }
-    } else if (!flipX) {
-      ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
-    } else {
-      ctx.save();
-      ctx.translate(dx + DRAW_W, dy);
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
-      ctx.restore();
-    }
+    if (this._squashScale !== 1.0) return this._drawSquashed(ctx, img, dx, dy, flipX);
+    this._drawSprite(ctx, img, dx, dy, flipX, DRAW_H);
+  }
+
+  /**
+   * Returns true when invulnerability blink should skip draw.
+   */
+  _shouldSkipDraw() {
+    if (this.dying || this._invulTimer <= 0) return false;
+    return Math.floor(this._invulTimer / BLINK_INTERVAL) % 2 === 0;
+  }
+
+  /**
+   * Returns current frame index for active state.
+   */
+  _getFrameIndex() {
+    if (this.state === 'fall') return FALL_FRAME;
+    if (this.state === 'wallGrab') return this._wallPushOffTimer > 0 ? 1 : 0;
+    return this.frameIndex;
+  }
+
+  /**
+   * Returns whether sprite should be rendered mirrored.
+   */
+  _shouldFlipSprite() {
+    if (this.state === 'wallGrab') return this._wallGrabSide < 0;
+    return !this.facingRight;
+  }
+
+  /**
+   * Draws squash/stretch frame.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {object} img Input parameter.
+   * @param {number} dx Input parameter.
+   * @param {number} dy Input parameter.
+   * @param {boolean} flipX Input parameter.
+   */
+  _drawSquashed(ctx, img, dx, dy, flipX) {
+    const squashH = DRAW_H * this._squashScale;
+    const squashY = dy + (DRAW_H - squashH);
+    this._drawSprite(ctx, img, dx, squashY, flipX, squashH);
+  }
+
+  /**
+   * Draws sprite either normal or mirrored.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {object} img Input parameter.
+   * @param {number} dx Input parameter.
+   * @param {number} dy Input parameter.
+   * @param {boolean} flipX Input parameter.
+   * @param {number} drawH Input parameter.
+   */
+  _drawSprite(ctx, img, dx, dy, flipX, drawH) {
+    if (!flipX) return ctx.drawImage(img, dx, dy, DRAW_W, drawH);
+    ctx.save();
+    ctx.translate(dx + DRAW_W, dy);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, 0, DRAW_W, drawH);
+    ctx.restore();
   }
 
   /**
@@ -309,43 +393,7 @@ export class Player extends Entity {
    * @param {boolean} _overlapLadder Input parameter.
    */
   _handleFreeMovement(dt, input, tileMap, effectiveLookUp, _overlapLadder) {
-    if (this._hurtTimer <= 0) {
-      if (input.left) {
-        this.velX        = -PLAYER_SPEED;
-        this.facingRight = false;
-      } else if (input.right) {
-        this.velX        = PLAYER_SPEED;
-        this.facingRight = true;
-      } else {
-        this.velX = 0;
-      }
-      if (this.onGround && (input.down || effectiveLookUp)) this.velX = 0;
-      if (this.onGround && input.down && this._jumpBuffer > 0 && this._dropThroughTimer <= 0) {
-        const _ts   = TILE_SIZE;
-        const _fRow = Math.floor((this.y + this.h) / _ts);
-        const _lCol = Math.floor(this.x / _ts);
-        const _rCol = Math.floor((this.x + this.w - 1) / _ts);
-        for (let _c = _lCol; _c <= _rCol; _c++) {
-          if (tileMap.isOneWay(_c, _fRow)) {
-            this._dropThroughTimer = 0.18;
-            this._jumpBuffer       = 0;
-            this.onGround          = false;
-            this._coyoteTimer      = 0;
-            break;
-          }
-        }
-      }
-      const canJump = this.onGround || this._coyoteTimer > 0;
-      if (this._jumpBuffer > 0 && canJump) {
-        this.velY         = JUMP_FORCE;
-        this.onGround     = false;
-        this._coyoteTimer = 0;
-        this._jumpBuffer  = 0;
-        this._atLadderTop = false;
-        audioManager.playSfx('assets/audio/sfx/jumpSound.mp3', { volume: SFX_VOLUME.jump });
-        spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
-      }
-    }
+    this._applyGroundInput(input, tileMap, effectiveLookUp);
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
     this.x += this.velX * dt;
     resolveX(this, tileMap);
@@ -366,20 +414,113 @@ export class Player extends Entity {
         this._atLadderTop = false;
       }
     }
-    if (!wasGrounded && this.onGround) {
-      const landSfx = tileMap.getLandingSound?.(this.x + this.w / 2, this.y + this.h);
-      if (landSfx) audioManager.playSfx(landSfx, { volume: SFX_VOLUME.landing });
-      this._squashTimer  = 0.10;
-      this._squashScale  = 0.92;
-      this._stepTimer    = 0.20;
-      this._wallLockSide = 0;
-      spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
-    }
-    if (this.onGround && this._hurtTimer <= 0 && Math.abs(this.velX) > 20 && this._stepTimer <= 0) {
-      const stepSfx = tileMap.getFootstepSound?.(this.x + this.w / 2, this.y + this.h);
-      if (stepSfx) audioManager.playSfx(stepSfx, { volume: SFX_VOLUME.footstep });
-      this._stepTimer = 0.30;
-    }
+    this._handleLandingFeedback(tileMap, wasGrounded);
+    this._handleFootstepFeedback(tileMap);
+  }
+
+  /**
+   * Applies directional input, drop-through and jump logic.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   * @param {boolean} effectiveLookUp Input parameter.
+   */
+  _applyGroundInput(input, tileMap, effectiveLookUp) {
+    if (this._hurtTimer > 0) return;
+    this._applyHorizontalInput(input);
+    if (this.onGround && (input.down || effectiveLookUp)) this.velX = 0;
+    this._tryDropThroughOneWay(input, tileMap);
+    this._tryJump();
+  }
+
+  /**
+   * Applies horizontal movement and facing direction.
+   * @param {object} input Input parameter.
+   */
+  _applyHorizontalInput(input) {
+    if (input.left) return this._setHorizontal(-PLAYER_SPEED, false);
+    if (input.right) return this._setHorizontal(PLAYER_SPEED, true);
+    this.velX = 0;
+  }
+
+  /**
+   * Sets horizontal velocity and facing direction.
+   * @param {number} vx Input parameter.
+   * @param {boolean} facingRight Input parameter.
+   */
+  _setHorizontal(vx, facingRight) {
+    this.velX = vx;
+    this.facingRight = facingRight;
+  }
+
+  /**
+   * Handles drop-through from one-way platforms.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _tryDropThroughOneWay(input, tileMap) {
+    if (!this.onGround || !input.down || this._jumpBuffer <= 0 || this._dropThroughTimer > 0) return;
+    const hasOneWay = this._isStandingOnOneWay(tileMap);
+    if (!hasOneWay) return;
+    this._dropThroughTimer = 0.18;
+    this._jumpBuffer = 0;
+    this.onGround = false;
+    this._coyoteTimer = 0;
+  }
+
+  /**
+   * Returns whether player feet overlap one-way tiles.
+   * @param {object} tileMap Input parameter.
+   */
+  _isStandingOnOneWay(tileMap) {
+    const ts = TILE_SIZE;
+    const row = Math.floor((this.y + this.h) / ts);
+    const left = Math.floor(this.x / ts);
+    const right = Math.floor((this.x + this.w - 1) / ts);
+    for (let col = left; col <= right; col++) if (tileMap.isOneWay(col, row)) return true;
+    return false;
+  }
+
+  /**
+   * Handles buffered jump execution.
+   */
+  _tryJump() {
+    const canJump = this.onGround || this._coyoteTimer > 0;
+    if (this._jumpBuffer <= 0 || !canJump) return;
+    this.velY = JUMP_FORCE;
+    this.onGround = false;
+    this._coyoteTimer = 0;
+    this._jumpBuffer = 0;
+    this._atLadderTop = false;
+    audioManager.playSfx('assets/audio/sfx/jumpSound.mp3', { volume: SFX_VOLUME.jump });
+    spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
+  }
+
+  /**
+   * Handles landing sound, squash and dust feedback.
+   * @param {object} tileMap Input parameter.
+   * @param {boolean} wasGrounded Input parameter.
+   */
+  _handleLandingFeedback(tileMap, wasGrounded) {
+    if (wasGrounded || !this.onGround) return;
+    const landSfx = tileMap.getLandingSound?.(this.x + this.w / 2, this.y + this.h);
+    if (landSfx) audioManager.playSfx(landSfx, { volume: SFX_VOLUME.landing });
+    this._squashTimer = 0.10;
+    this._squashScale = 0.92;
+    this._stepTimer = 0.20;
+    this._wallLockSide = 0;
+    spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 6);
+  }
+
+  /**
+   * Handles footstep audio feedback while grounded.
+   * @param {object} tileMap Input parameter.
+   */
+  _handleFootstepFeedback(tileMap) {
+    const canStep = this.onGround && this._hurtTimer <= 0 && Math.abs(this.velX) > 20 && this._stepTimer <= 0;
+    if (!canStep) return;
+    const stepSfx = tileMap.getFootstepSound?.(this.x + this.w / 2, this.y + this.h);
+    if (stepSfx) audioManager.playSfx(stepSfx, { volume: SFX_VOLUME.footstep });
+    this._stepTimer = 0.30;
   }
 }
 // #endregion

@@ -20,15 +20,8 @@ import { SFX_VOLUME }   from '../config/audioConfig.js';
 export function checkStomp({ player, enemies, effects }) {
   if (player.velY <= 0) return;
   for (const enemy of enemies) {
-    if (!enemy.active || enemy.dead) continue;
-    const overlapX = player.x < enemy.x + enemy.w && player.x + player.w > enemy.x;
-    const overlapY = player.y < enemy.y + enemy.h && player.y + player.h > enemy.y;
-    if (!overlapX || !overlapY) continue;
-    if (player.y + player.h > enemy.y + enemy.h / 3) continue;
-
-    enemy.stompDie();
-    if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
-    effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
+    if (!canStompEnemy(player, enemy)) continue;
+    killEnemy(enemy, effects);
     player.velY = -400;
   }
 }
@@ -40,11 +33,8 @@ export function checkStomp({ player, enemies, effects }) {
 export function checkRollKill({ player, enemies, effects }) {
   if (!player.isRolling()) return;
   for (const enemy of enemies) {
-    if (!enemy.active || enemy.dead) continue;
-    if (!player.intersects(enemy)) continue;
-    enemy.stompDie();
-    if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
-    effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
+    if (!isActiveEnemy(enemy) || !player.intersects(enemy)) continue;
+    killEnemy(enemy, effects);
     player.rollHit();
   }
 }
@@ -55,21 +45,9 @@ export function checkRollKill({ player, enemies, effects }) {
  */
 export function checkPickups({ player, pickups, gameState, hud, camera }) {
   for (const pickup of pickups) {
-    if (!pickup.active) continue;
-    if (!player.intersects(pickup)) continue;
+    if (!pickup.active || !player.intersects(pickup)) continue;
     pickup.collect(player, gameState);
-    const sx = pickup.x + pickup.w / 2 - camera.x;
-    const sy = pickup.y + pickup.h / 2 - camera.y;
-    if (pickup instanceof StarCoin) {
-      audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3', { volume: SFX_VOLUME.pickup });
-      hud.notify('starCoin', sx, sy, pickup.slotIndex);
-    } else if (pickup instanceof Gem) {
-      audioManager.playSfx('assets/audio/sfx/pickupGem.mp3', { volume: SFX_VOLUME.pickup });
-      hud.notify('gem', sx, sy);
-    } else if (pickup instanceof Cherry) {
-      audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3', { volume: SFX_VOLUME.pickup });
-      hud.notify('heal', sx, sy);
-    }
+    notifyPickup(pickup, hud, camera);
   }
 }
 
@@ -117,20 +95,124 @@ export function checkHazards({ player, hazards, gameState, hud, camera, onDeath 
 export function checkEnemyDamage({ player, enemies, gameState, hud, camera, onDeath }) {
   if (player.dying || player.isRolling()) return;
   for (const enemy of enemies) {
-    if (!enemy.active || enemy.dead) continue;
-    if (!player.intersects(enemy)) continue;
-    if (player.velY > 0 && player.y + player.h <= enemy.y + enemy.h / 3) continue;
-    const tookDamage = player.takeDamage(enemy.x + enemy.w / 2);
-    if (!tookDamage) break;
-    gameState.hearts--;
-    hud.notify('damage', player.x + player.w / 2 - camera.x, player.y - camera.y);
-    if (gameState.hearts <= 0) {
-      gameState.hearts = 0;
-      onDeath?.();
-    } else {
-      audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
-    }
+    if (!shouldEnemyDealDamage(player, enemy)) continue;
+    if (!applyEnemyDamage(player, enemy, gameState, hud, camera, onDeath)) break;
     break;
   }
+}
+
+/**
+ * Returns whether enemy is active and alive.
+ * @param {object} enemy Input parameter.
+ */
+function isActiveEnemy(enemy) {
+  return enemy.active && !enemy.dead;
+}
+
+/**
+ * Returns whether player can stomp enemy.
+ * @param {object} player Input parameter.
+ * @param {object} enemy Input parameter.
+ */
+function canStompEnemy(player, enemy) {
+  if (!isActiveEnemy(enemy)) return false;
+  if (!player.intersects(enemy)) return false;
+  return player.y + player.h <= enemy.y + enemy.h / 3;
+}
+
+/**
+ * Kills enemy, plays sound, and spawns death effect.
+ * @param {object} enemy Input parameter.
+ * @param {Array} effects Input parameter.
+ */
+function killEnemy(enemy, effects) {
+  enemy.stompDie();
+  if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
+  effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
+}
+
+/**
+ * Sends pickup feedback and audio.
+ * @param {object} pickup Input parameter.
+ * @param {object} hud Input parameter.
+ * @param {object} camera Input parameter.
+ */
+function notifyPickup(pickup, hud, camera) {
+  const sx = pickup.x + pickup.w / 2 - camera.x;
+  const sy = pickup.y + pickup.h / 2 - camera.y;
+  if (pickup instanceof StarCoin) return notifyStarCoin(pickup, hud, sx, sy);
+  if (pickup instanceof Gem) return notifyGem(hud, sx, sy);
+  if (pickup instanceof Cherry) notifyCherry(hud, sx, sy);
+}
+
+/**
+ * Sends star coin pickup feedback.
+ * @param {object} pickup Input parameter.
+ * @param {object} hud Input parameter.
+ * @param {number} sx Input parameter.
+ * @param {number} sy Input parameter.
+ */
+function notifyStarCoin(pickup, hud, sx, sy) {
+  audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3', { volume: SFX_VOLUME.pickup });
+  hud.notify('starCoin', sx, sy, pickup.slotIndex);
+}
+
+/**
+ * Sends gem pickup feedback.
+ * @param {object} hud Input parameter.
+ * @param {number} sx Input parameter.
+ * @param {number} sy Input parameter.
+ */
+function notifyGem(hud, sx, sy) {
+  audioManager.playSfx('assets/audio/sfx/pickupGem.mp3', { volume: SFX_VOLUME.pickup });
+  hud.notify('gem', sx, sy);
+}
+
+/**
+ * Sends cherry pickup feedback.
+ * @param {object} hud Input parameter.
+ * @param {number} sx Input parameter.
+ * @param {number} sy Input parameter.
+ */
+function notifyCherry(hud, sx, sy) {
+  audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3', { volume: SFX_VOLUME.pickup });
+  hud.notify('heal', sx, sy);
+}
+
+/**
+ * Returns whether enemy should damage player.
+ * @param {object} player Input parameter.
+ * @param {object} enemy Input parameter.
+ */
+function shouldEnemyDealDamage(player, enemy) {
+  if (!isActiveEnemy(enemy) || !player.intersects(enemy)) return false;
+  return !(player.velY > 0 && player.y + player.h <= enemy.y + enemy.h / 3);
+}
+
+/**
+ * Applies enemy contact damage and feedback.
+ * @param {object} player Input parameter.
+ * @param {object} enemy Input parameter.
+ * @param {object} gameState Input parameter.
+ * @param {object} hud Input parameter.
+ * @param {object} camera Input parameter.
+ * @param {Function} onDeath Input parameter.
+ */
+function applyEnemyDamage(player, enemy, gameState, hud, camera, onDeath) {
+  if (!player.takeDamage(enemy.x + enemy.w / 2)) return false;
+  gameState.hearts--;
+  hud.notify('damage', player.x + player.w / 2 - camera.x, player.y - camera.y);
+  if (gameState.hearts > 0) return playHurtSfx();
+  gameState.hearts = 0;
+  onDeath?.();
+  return true;
+}
+
+/**
+ * Plays hurt sound and returns continue flag.
+ */
+function playHurtSfx() {
+  audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
+  return true;
 }
 // #endregion

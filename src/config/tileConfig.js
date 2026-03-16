@@ -1,141 +1,216 @@
 // #region Constants
-export const TILE_REGISTRY = {
+const LEGACY_TILE_REGISTRY = {
 
-  g:    { txCol:  1, txRow:  1, pass: false, category: 'ground',   label: 'Gras-Boden'             },
-  dg:   { txCol:  3, txRow:  1, pass: false, category: 'ground',   label: 'Erde hell'              },
-  dv:   { txCol:  5, txRow:  1, pass: false, category: 'ground',   label: 'Erde mittel'            },
-  d:    { txCol:  7, txRow:  1, pass: false, category: 'ground',   label: 'Dunkle Erde'            },
-  srr:  { txCol:  9, txRow:  1, pass: false,  category: 'slope',    label: 'Schräge R Anstieg'      },
-  src:  { txCol: 10, txRow:  1, pass: false,  category: 'slope',    label: 'Schräge R Kurve'        },
-  sc:   { txCol: 11, txRow:  1, pass: false, category: 'ground',   label: 'Boden Mitte'            },
-  st:   { txCol: 13, txRow:  1, pass: false, category: 'ground',   label: 'Stein'                  },
-  sta:  { txCol: 14, txRow:  1, pass: false, category: 'ground',   label: 'Stein Variante'         },
-  sd:   { txCol: 16, txRow:  1, pass: false, category: 'ground',   label: 'Stein dunkel'           },
-  sda:  { txCol: 17, txRow:  1, pass: false, category: 'ground',   label: 'Stein dunkel Variante'  },
-  srg:  { txCol: 20, txRow:  1, pass: true,  category: 'slope',    label: 'Schräge R Gradient'     },
-  srt:  { txCol: 19, txRow:  1, pass: true,  category: 'slope',    label: 'Schräge R Spitze'       },
-  slg:  { txCol: 22, txRow:  1, pass: true,  category: 'slope',    label: 'Schräge L Gradient'     },
-  slt:  { txCol: 23, txRow:  1, pass: true,  category: 'slope',    label: 'Schräge L Spitze'       },
-  stf:  { txCol: 13, txRow:  2, pass: false, category: 'ground',   label: 'Stein Füllung'          },
-  staf: { txCol: 14, txRow:  2, pass: false, category: 'ground',   label: 'Stein Var. Füllung'     },
-  sdf:  { txCol: 16, txRow:  2, pass: false, category: 'ground',   label: 'Stein dunkel Füllung'   },
-  sdaf: { txCol: 17, txRow:  2, pass: false, category: 'ground',   label: 'Stein dkl Var. Füllung' },
-  srfb: { txCol: 19, txRow:  2, pass: false, category: 'slope',    label: 'Schräge R Füllung'      },
-  srfm: { txCol: 20, txRow:  2, pass: false, category: 'slope',    label: 'Schräge R Füllung Mitte'},
-  slfm: { txCol: 22, txRow:  2, pass: false, category: 'slope',    label: 'Schräge L Füllung Mitte'},
-  slfb: { txCol: 23, txRow:  2, pass: false, category: 'slope',    label: 'Schräge L Füllung'      },
-  g2:   { txCol:  1, txRow:  3, pass: false, category: 'ground',   label: 'Gras-Boden Var. 2'      },
-  di:   { txCol:  3, txRow:  3, pass: false, category: 'ground',   label: 'Erde Innen'             },
-  dv2:  { txCol:  5, txRow:  3, pass: false, category: 'ground',   label: 'Erde Variante 2'        },
-  d2:   { txCol:  7, txRow:  3, pass: false, category: 'ground',   label: 'Dunkle Erde 2'          },
-  src2: { txCol:  8, txRow:  3, pass: true,  category: 'slope',    label: 'Schräge R Ecke 2'       },
-  slc2: { txCol: 10, txRow:  3, pass: true,  category: 'slope',    label: 'Schräge L Ecke 2'       },
-  de:   { txCol: 11, txRow:  3, pass: false, category: 'ground',   label: 'Erde Kante'             },
-  stt:  { txCol: 14, txRow:  4, pass: false, category: 'ground',   label: 'Stein Oberfläche'       },
-  sdt:  { txCol: 16, txRow:  4, pass: false, category: 'ground',   label: 'Stein dkl. Oberfläche'  },
-  srh:  { txCol: 20, txRow:  4, pass: true,  category: 'slope',    label: 'Halb-Schräge R'         },
-  slh:  { txCol: 22, txRow:  4, pass: true,  category: 'slope',    label: 'Halb-Schräge L'         },
-  gf:   { txCol:  1, txRow:  5, pass: false, category: 'ground',   label: 'Gras Tiefe'             },
-  df:   { txCol:  3, txRow:  5, pass: false, category: 'ground',   label: 'Erde Füllung'           },
-  dvf:  { txCol:  5, txRow:  5, pass: false, category: 'ground',   label: 'Erde Var. Füllung'      },
-  ddf:  { txCol:  7, txRow:  5, pass: false, category: 'ground',   label: 'Dunkle Erde Füllung'    },
-  p:    { txCol:  8, txRow:  5, pass: false, oneWay: true, category: 'platform', label: 'Plattform'       },
-  pa:   { txCol:  9, txRow:  5, pass: false, oneWay: true, category: 'platform', label: 'Plattform Alt'   },
-  stb:  { txCol: 14, txRow:  5, pass: false, category: 'ground',   label: 'Stein Unterfläche'      },
-  sdb:  { txCol: 16, txRow:  5, pass: false, category: 'ground',   label: 'Stein dkl. Unterfläche' },
-  srs:  { txCol: 20, txRow:  5, pass: false, category: 'slope',    label: 'Schräge R Keil'         },
-  sls:  { txCol: 22, txRow:  5, pass: false, category: 'slope',    label: 'Schräge L Keil'         },
-  gtl:  { txCol:  1, txRow:  7, pass: true,  category: 'deco',     label: 'Gras-Büschel L'         },
-  gtr:  { txCol:  3, txRow:  7, pass: true,  category: 'deco',     label: 'Gras-Büschel R'         },
-  ll2:  { txCol:  5, txRow:  7, pass: false, category: 'ground',   label: 'Holzblock L'            },
-  lr2:  { txCol:  7, txRow:  7, pass: false, category: 'ground',   label: 'Holzblock R'            },
-  dcl:  { txCol:  9, txRow:  7, pass: true,  category: 'deco',     label: 'Deko Ecke L'            },
-  dcr:  { txCol: 11, txRow:  7, pass: true,  category: 'deco',     label: 'Deko Ecke R'            },
-  ab:   { txCol: 15, txRow:  7, pass: false, category: 'arch',     label: 'Bogenpfeiler A'         },
-  ab2:  { txCol: 17, txRow:  7, pass: false, category: 'arch',     label: 'Bogenpfeiler B'         },
-  ab3:  { txCol: 19, txRow:  7, pass: false, category: 'arch',     label: 'Bogenpfeiler C'         },
-  pt:   { txCol: 15, txRow:  9, pass: false, category: 'arch',     label: 'Säule oben'             },
-  pm:   { txCol: 17, txRow:  9, pass: false, category: 'arch',     label: 'Säule Mitte'            },
-  pb:   { txCol: 19, txRow:  9, pass: false, category: 'arch',     label: 'Säule unten'            },
-  atl:      { txCol:  1, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben L'          },
-  atm:      { txCol:  2, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte L'    },
-  atr:      { txCol:  4, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte R'    },
-  ate:      { txCol:  5, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben R'          },
-  atlCave:  { txCol:  1, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben L (Höhle)',       bgFill: '#2f2540' },
-  atmCave:  { txCol:  2, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte L (Höhle)', bgFill: '#2f2540' },
-  atrCave:  { txCol:  4, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben Mitte R (Höhle)', bgFill: '#2f2540' },
-  ateCave:  { txCol:  5, txRow: 10, pass: false,  category: 'arch', label: 'Bogen oben R (Höhle)',       bgFill: '#2f2540' },
-  l:    { txCol:  7, txRow: 10, pass: true,  ladder: true, category: 'ladder', label: 'Leiter' },
-  brl:  { txCol: 10, txRow: 10, pass: true,  category: 'deco',     label: 'Behälter L'             },
-  brr:  { txCol: 11, txRow: 10, pass: true,  category: 'deco',     label: 'Behälter R'             },
-  abl:      { txCol:  2, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten L'         },
-  abr:      { txCol:  4, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten R'         },
-  ablCave:  { txCol:  2, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten L (Höhle)', bgFill: '#2f2540' },
-  abrCave:  { txCol:  4, txRow: 11, pass: false,  category: 'arch', label: 'Bogen unten R (Höhle)', bgFill: '#2f2540' },
-  tb:   { txCol: 15, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block 1'         },
-  tba:  { txCol: 17, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block 2'         },
-  tbd:  { txCol: 19, txRow: 11, pass: true, category: 'arch',     label: 'Tempel-Block dunkel'    },
-  cb1:  { txCol:  7, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 1'          },
-  cb2:  { txCol:  9, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 2'          },
-  cb3:  { txCol: 11, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 3'          },
-  cb4:  { txCol: 13, txRow: 13, pass: true, category: 'cave',     label: 'Höhlenblock 4'          },
-  cw1:  { txCol:  7, txRow: 14, pass: true, category: 'cave',     label: 'Höhlenwand 1'           },
-  cw2:  { txCol:  9, txRow: 14, pass: true, category: 'cave',     label: 'Höhlenwand 2'           },
-  cw3:  { txCol: 11, txRow: 14, pass: true, category: 'cave',     label: 'Höhlenwand 3'           },
-  tbt:  { txCol: 15, txRow: 14, pass: true, category: 'temple',   label: 'Tempel-Kachel L'        },
-  tbm:  { txCol: 17, txRow: 14, pass: true, category: 'temple',   label: 'Tempel-Kachel Mitte'    },
-  tbe:  { txCol: 19, txRow: 14, pass: true, category: 'temple',   label: 'Tempel-Kachel R'        },
-  cl1:  { txCol:  1, txRow: 15, pass: true,  category: 'cave',     label: 'Höhlenbogen oben L'     },
-  cl2:  { txCol:  2, txRow: 15, pass: true, category: 'cave',     label: 'Höhlenbogen oben M-L'   },
-  cl3:  { txCol:  4, txRow: 15, pass: true, category: 'cave',     label: 'Höhlenbogen oben M-R'   },
-  cl4:  { txCol:  5, txRow: 15, pass: true,  category: 'cave',     label: 'Höhlenbogen oben R'     },
-  cp:   { txCol:  9, txRow: 15, pass: true, category: 'cave',     label: 'Höhlen-Plattform'       },
-  cm1:  { txCol:  2, txRow: 16, pass: false, category: 'cave',     label: 'Höhlenbogen Mitte L'    },
-  cm2:  { txCol:  4, txRow: 16, pass: false, category: 'cave',     label: 'Höhlenbogen Mitte R'    },
-  cv1:  { txCol: 11, txRow: 16, pass: true, category: 'cave',     label: 'Höhle Ranken-Wand'      },
-  ts1:  { txCol: 14, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 1'         },
-  ts2:  { txCol: 15, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 2'         },
-  ts3:  { txCol: 17, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 3'         },
-  ts4:  { txCol: 18, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 4'         },
-  ts5:  { txCol: 19, txRow: 16, pass: true, category: 'temple',   label: 'Tempel-Stein 5'         },
-  cb5:  { txCol:  1, txRow: 17, pass: true,  category: 'cave',     label: 'Höhlenbogen unten L'    },
-  cb6:  { txCol:  2, txRow: 17, pass: true, category: 'cave',     label: 'Höhlenbogen unten M-L'  },
-  cb7:  { txCol:  4, txRow: 17, pass: true, category: 'cave',     label: 'Höhlenbogen unten M-R'  },
-  cb8:  { txCol:  5, txRow: 17, pass: true,  category: 'cave',     label: 'Höhlenbogen unten R'    },
-  cv2:  { txCol: 11, txRow: 17, pass: true, category: 'cave',     label: 'Höhle Ranken-Wand 2'    },
-  ts6:  { txCol: 14, txRow: 17, pass: true, category: 'temple',   label: 'Tempel-Stein 6'         },
-  ts7:  { txCol: 15, txRow: 17, pass: true, category: 'temple',   label: 'Tempel-Stein 7'         },
-  cfl:  { txCol:  1, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden L'          },
-  cfc:  { txCol:  2, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden Mitte'      },
-  cfr:  { txCol:  4, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden Mitte R'    },
-  cfre: { txCol:  5, txRow: 18, pass: true, category: 'cave',     label: 'Höhlenboden R'          },
-  cvd:  { txCol: 10, txRow: 18, pass: true,  category: 'deco',     label: 'Höhlen-Deko Overlay'    },
-  cvs:  { txCol: 11, txRow: 18, pass: true, category: 'cave',     label: 'Höhle Ranken-Ecke'      },
-  cvc:  { txCol: 12, txRow: 18, pass: true, category: 'cave',     label: 'Höhle Ranken-Winkel'    },
-  ta1:  { txCol: 14, txRow: 18, pass: true, category: 'temple',   label: 'Tempel-Wand 1'          },
-  ta2:  { txCol: 15, txRow: 18, pass: true, category: 'temple',   label: 'Tempel-Wand 2'          },
-  tv1:  { txCol: 17, txRow: 18, pass: true,  category: 'deco',     label: 'Tempel-Deko 1'          },
-  tv2:  { txCol: 19, txRow: 18, pass: true,  category: 'deco',     label: 'Tempel-Deko 2'          },
-  tv3:  { txCol: 21, txRow: 18, pass: true,  category: 'deco',     label: 'Tempel-Deko 3'          },
-  ctp1: { txCol:  1, txRow: 20, pass: true, category: 'temple',   label: 'Tempel-Säule oben'      },
-  ctp2: { txCol:  3, txRow: 20, pass: true, category: 'temple',   label: 'Tempel-Bogen L'         },
-  ctp3: { txCol:  4, txRow: 20, pass: true, category: 'temple',   label: 'Tempel-Bogen R'         },
-  cbd1: { txCol:  9, txRow: 20, pass: true, category: 'cave',     label: 'Höhle dunkel 1'         },
-  cbd2: { txCol: 10, txRow: 20, pass: true, category: 'cave',     label: 'Höhle dunkel 2'         },
-  cbd3: { txCol: 11, txRow: 20, pass: true, category: 'cave',     label: 'Höhle dunkel 3'         },
-  pvd:  { txCol: 13, txRow: 20, pass: true,  category: 'deco',     label: 'Lila Deko'              },
-  pvb1: { txCol: 14, txRow: 20, pass: true, category: 'cave',     label: 'Lila Block 1'           },
-  pvb2: { txCol: 15, txRow: 20, pass: true, category: 'cave',     label: 'Lila Block 2'           },
-  pvb3: { txCol: 17, txRow: 20, pass: true, category: 'cave',     label: 'Lila Block 3'           },
-  ctp4: { txCol:  3, txRow: 21, pass: false, category: 'temple',   label: 'Tempel-Bogen Boden L'   },
-  ctp5: { txCol:  4, txRow: 21, pass: false, category: 'temple',   label: 'Tempel-Bogen Boden R'   },
-  cbd4: { txCol:  9, txRow: 21, pass: false, category: 'cave',     label: 'Höhle dunkel Boden 1'   },
-  cbd5: { txCol: 10, txRow: 21, pass: false, category: 'cave',     label: 'Höhle dunkel Boden 2'   },
-  cbd6: { txCol: 11, txRow: 21, pass: false, category: 'cave',     label: 'Höhle dunkel Boden 3'   },
-  pvb4: { txCol: 13, txRow: 21, pass: false, category: 'cave',     label: 'Lila Block Boden 1'     },
-  pvb5: { txCol: 14, txRow: 21, pass: false, category: 'cave',     label: 'Lila Block Boden 2'     },
-  pvb6: { txCol: 15, txRow: 21, pass: false, category: 'cave',     label: 'Lila Block Boden 3'     },
+  g:    { txCol:  1, txRow:  1, pass: false, category: 'ground',   label: 'Grass Ground'             },
+  dg:   { txCol:  3, txRow:  1, pass: false, category: 'ground',   label: 'Light Dirt'              },
+  dv:   { txCol:  5, txRow:  1, pass: false, category: 'ground',   label: 'Mid Dirt'            },
+  d:    { txCol:  7, txRow:  1, pass: false, category: 'ground',   label: 'Dark Dirt'            },
+  srr:  { txCol:  9, txRow:  1, pass: false,  category: 'slope',    label: 'Right Slope Rise'      },
+  src:  { txCol: 10, txRow:  1, pass: false,  category: 'slope',    label: 'Right Slope Curve'        },
+  sc:   { txCol: 11, txRow:  1, pass: false, category: 'ground',   label: 'Ground Center'            },
+  st:   { txCol: 13, txRow:  1, pass: false, category: 'ground',   label: 'Stone'                  },
+  sta:  { txCol: 14, txRow:  1, pass: false, category: 'ground',   label: 'Stone Variant'         },
+  sd:   { txCol: 16, txRow:  1, pass: false, category: 'ground',   label: 'Dark Stone'           },
+  sda:  { txCol: 17, txRow:  1, pass: false, category: 'ground',   label: 'Dark Stone Variant'  },
+  srg:  { txCol: 20, txRow:  1, pass: true,  category: 'slope',    label: 'Right Slope Gradient'     },
+  srt:  { txCol: 19, txRow:  1, pass: true,  category: 'slope',    label: 'Right Slope Tip'       },
+  slg:  { txCol: 22, txRow:  1, pass: true,  category: 'slope',    label: 'Left Slope Gradient'     },
+  slt:  { txCol: 23, txRow:  1, pass: true,  category: 'slope',    label: 'Left Slope Tip'       },
+  stf:  { txCol: 13, txRow:  2, pass: false, category: 'ground',   label: 'Stone Fill'          },
+  staf: { txCol: 14, txRow:  2, pass: false, category: 'ground',   label: 'Stone Variant Fill'     },
+  sdf:  { txCol: 16, txRow:  2, pass: false, category: 'ground',   label: 'Dark Stone Fill'   },
+  sdaf: { txCol: 17, txRow:  2, pass: false, category: 'ground',   label: 'Dark Stone Variant Fill' },
+  srfb: { txCol: 19, txRow:  2, pass: false, category: 'slope',    label: 'Right Slope Fill'      },
+  srfm: { txCol: 20, txRow:  2, pass: false, category: 'slope',    label: 'Right Slope Fill Center'},
+  slfm: { txCol: 22, txRow:  2, pass: false, category: 'slope',    label: 'Left Slope Fill Center'},
+  slfb: { txCol: 23, txRow:  2, pass: false, category: 'slope',    label: 'Left Slope Fill'      },
+  g2:   { txCol:  1, txRow:  3, pass: false, category: 'ground',   label: 'Grass Ground Variant 2'      },
+  di:   { txCol:  3, txRow:  3, pass: false, category: 'ground',   label: 'Inner Dirt'             },
+  dv2:  { txCol:  5, txRow:  3, pass: false, category: 'ground',   label: 'Dirt Variant 2'        },
+  d2:   { txCol:  7, txRow:  3, pass: false, category: 'ground',   label: 'Dark Dirt 2'          },
+  src2: { txCol:  8, txRow:  3, pass: true,  category: 'slope',    label: 'Right Slope Corner 2'       },
+  slc2: { txCol: 10, txRow:  3, pass: true,  category: 'slope',    label: 'Left Slope Corner 2'       },
+  de:   { txCol: 11, txRow:  3, pass: false, category: 'ground',   label: 'Dirt Edge'             },
+  stt:  { txCol: 14, txRow:  4, pass: false, category: 'ground',   label: 'Stone Top'       },
+  sdt:  { txCol: 16, txRow:  4, pass: false, category: 'ground',   label: 'Dark Stone Top'  },
+  srh:  { txCol: 20, txRow:  4, pass: true,  category: 'slope',    label: 'Half Right Slope'         },
+  slh:  { txCol: 22, txRow:  4, pass: true,  category: 'slope',    label: 'Half Left Slope'         },
+  gf:   { txCol:  1, txRow:  5, pass: false, category: 'ground',   label: 'Deep Grass'             },
+  df:   { txCol:  3, txRow:  5, pass: false, category: 'ground',   label: 'Dirt Fill'           },
+  dvf:  { txCol:  5, txRow:  5, pass: false, category: 'ground',   label: 'Dirt Variant Fill'      },
+  ddf:  { txCol:  7, txRow:  5, pass: false, category: 'ground',   label: 'Dark Dirt Fill'    },
+  p:    { txCol:  8, txRow:  5, pass: false, oneWay: true, category: 'platform', label: 'Platform'       },
+  pa:   { txCol:  9, txRow:  5, pass: false, oneWay: true, category: 'platform', label: 'Old Platform'   },
+  stb:  { txCol: 14, txRow:  5, pass: false, category: 'ground',   label: 'Stone Bottom'      },
+  sdb:  { txCol: 16, txRow:  5, pass: false, category: 'ground',   label: 'Dark Stone Bottom' },
+  srs:  { txCol: 20, txRow:  5, pass: false, category: 'slope',    label: 'Right Slope Wedge'         },
+  sls:  { txCol: 22, txRow:  5, pass: false, category: 'slope',    label: 'Left Slope Wedge'         },
+  gtl:  { txCol:  1, txRow:  7, pass: true,  category: 'deco',     label: 'Grass Clump Left'         },
+  gtr:  { txCol:  3, txRow:  7, pass: true,  category: 'deco',     label: 'Grass Clump Right'         },
+  ll2:  { txCol:  5, txRow:  7, pass: false, category: 'ground',   label: 'Wood Block Left'            },
+  lr2:  { txCol:  7, txRow:  7, pass: false, category: 'ground',   label: 'Wood Block Right'            },
+  dcl:  { txCol:  9, txRow:  7, pass: true,  category: 'deco',     label: 'Deco Corner Left'            },
+  dcr:  { txCol: 11, txRow:  7, pass: true,  category: 'deco',     label: 'Deco Corner Right'            },
+  ab:   { txCol: 15, txRow:  7, pass: false, category: 'arch',     label: 'Arch Pillar A'         },
+  ab2:  { txCol: 17, txRow:  7, pass: false, category: 'arch',     label: 'Arch Pillar B'         },
+  ab3:  { txCol: 19, txRow:  7, pass: false, category: 'arch',     label: 'Arch Pillar C'         },
+  pt:   { txCol: 15, txRow:  9, pass: false, category: 'arch',     label: 'Column Top'             },
+  pm:   { txCol: 17, txRow:  9, pass: false, category: 'arch',     label: 'Column Center'            },
+  pb:   { txCol: 19, txRow:  9, pass: false, category: 'arch',     label: 'Column Bottom'            },
+  atl:      { txCol:  1, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Left'          },
+  atm:      { txCol:  2, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Mid Left'    },
+  atr:      { txCol:  4, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Mid Right'    },
+  ate:      { txCol:  5, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Right'          },
+  atlCave:  { txCol:  1, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Left (Cave)',       bgFill: '#2f2540' },
+  atmCave:  { txCol:  2, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Mid Left (Cave)', bgFill: '#2f2540' },
+  atrCave:  { txCol:  4, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Mid Right (Cave)', bgFill: '#2f2540' },
+  ateCave:  { txCol:  5, txRow: 10, pass: false,  category: 'arch', label: 'Arch Top Right (Cave)',       bgFill: '#2f2540' },
+  l:    { txCol:  7, txRow: 10, pass: true,  ladder: true, category: 'ladder', label: 'Ladder' },
+  brl:  { txCol: 10, txRow: 10, pass: true,  category: 'deco',     label: 'Container Left'             },
+  brr:  { txCol: 11, txRow: 10, pass: true,  category: 'deco',     label: 'Container Right'             },
+  abl:      { txCol:  2, txRow: 11, pass: false,  category: 'arch', label: 'Arch Bottom Left'         },
+  abr:      { txCol:  4, txRow: 11, pass: false,  category: 'arch', label: 'Arch Bottom Right'         },
+  ablCave:  { txCol:  2, txRow: 11, pass: false,  category: 'arch', label: 'Arch Bottom Left (Cave)', bgFill: '#2f2540' },
+  abrCave:  { txCol:  4, txRow: 11, pass: false,  category: 'arch', label: 'Arch Bottom Right (Cave)', bgFill: '#2f2540' },
+  tb:   { txCol: 15, txRow: 11, pass: true, category: 'arch',     label: 'Temple Block 1'         },
+  tba:  { txCol: 17, txRow: 11, pass: true, category: 'arch',     label: 'Temple Block 2'         },
+  tbd:  { txCol: 19, txRow: 11, pass: true, category: 'arch',     label: 'Temple Block Dark'    },
+  cb1:  { txCol:  7, txRow: 13, pass: true, category: 'cave',     label: 'Cave Block 1'          },
+  cb2:  { txCol:  9, txRow: 13, pass: true, category: 'cave',     label: 'Cave Block 2'          },
+  cb3:  { txCol: 11, txRow: 13, pass: true, category: 'cave',     label: 'Cave Block 3'          },
+  cb4:  { txCol: 13, txRow: 13, pass: true, category: 'cave',     label: 'Cave Block 4'          },
+  cw1:  { txCol:  7, txRow: 14, pass: true, category: 'cave',     label: 'Cave Wall 1'           },
+  cw2:  { txCol:  9, txRow: 14, pass: true, category: 'cave',     label: 'Cave Wall 2'           },
+  cw3:  { txCol: 11, txRow: 14, pass: true, category: 'cave',     label: 'Cave Wall 3'           },
+  tbt:  { txCol: 15, txRow: 14, pass: true, category: 'temple',   label: 'Temple Tile Left'        },
+  tbm:  { txCol: 17, txRow: 14, pass: true, category: 'temple',   label: 'Temple Tile Center'    },
+  tbe:  { txCol: 19, txRow: 14, pass: true, category: 'temple',   label: 'Temple Tile Right'        },
+  cl1:  { txCol:  1, txRow: 15, pass: true,  category: 'cave',     label: 'Cave Arch Top Left'     },
+  cl2:  { txCol:  2, txRow: 15, pass: true, category: 'cave',     label: 'Cave Arch Top Mid Left'   },
+  cl3:  { txCol:  4, txRow: 15, pass: true, category: 'cave',     label: 'Cave Arch Top Mid Right'   },
+  cl4:  { txCol:  5, txRow: 15, pass: true,  category: 'cave',     label: 'Cave Arch Top Right'     },
+  cp:   { txCol:  9, txRow: 15, pass: true, category: 'cave',     label: 'Cave Platform'       },
+  cm1:  { txCol:  2, txRow: 16, pass: false, category: 'cave',     label: 'Cave Arch Middle Left'    },
+  cm2:  { txCol:  4, txRow: 16, pass: false, category: 'cave',     label: 'Cave Arch Middle Right'    },
+  cv1:  { txCol: 11, txRow: 16, pass: true, category: 'cave',     label: 'Cave Vine Wall'      },
+  ts1:  { txCol: 14, txRow: 16, pass: true, category: 'temple',   label: 'Temple Stone 1'         },
+  ts2:  { txCol: 15, txRow: 16, pass: true, category: 'temple',   label: 'Temple Stone 2'         },
+  ts3:  { txCol: 17, txRow: 16, pass: true, category: 'temple',   label: 'Temple Stone 3'         },
+  ts4:  { txCol: 18, txRow: 16, pass: true, category: 'temple',   label: 'Temple Stone 4'         },
+  ts5:  { txCol: 19, txRow: 16, pass: true, category: 'temple',   label: 'Temple Stone 5'         },
+  cb5:  { txCol:  1, txRow: 17, pass: true,  category: 'cave',     label: 'Cave Arch Bottom Left'    },
+  cb6:  { txCol:  2, txRow: 17, pass: true, category: 'cave',     label: 'Cave Arch Bottom Mid Left'  },
+  cb7:  { txCol:  4, txRow: 17, pass: true, category: 'cave',     label: 'Cave Arch Bottom Mid Right'  },
+  cb8:  { txCol:  5, txRow: 17, pass: true,  category: 'cave',     label: 'Cave Arch Bottom Right'    },
+  cv2:  { txCol: 11, txRow: 17, pass: true, category: 'cave',     label: 'Cave Vine Wall 2'    },
+  ts6:  { txCol: 14, txRow: 17, pass: true, category: 'temple',   label: 'Temple Stone 6'         },
+  ts7:  { txCol: 15, txRow: 17, pass: true, category: 'temple',   label: 'Temple Stone 7'         },
+  cfl:  { txCol:  1, txRow: 18, pass: true, category: 'cave',     label: 'Cave Floor Left'          },
+  cfc:  { txCol:  2, txRow: 18, pass: true, category: 'cave',     label: 'Cave Floor Center'      },
+  cfr:  { txCol:  4, txRow: 18, pass: true, category: 'cave',     label: 'Cave Floor Mid Right'    },
+  cfre: { txCol:  5, txRow: 18, pass: true, category: 'cave',     label: 'Cave Floor Right'          },
+  cvd:  { txCol: 10, txRow: 18, pass: true,  category: 'deco',     label: 'Cave Deco Overlay'    },
+  cvs:  { txCol: 11, txRow: 18, pass: true, category: 'cave',     label: 'Cave Vine Corner'      },
+  cvc:  { txCol: 12, txRow: 18, pass: true, category: 'cave',     label: 'Cave Vine Angle'    },
+  ta1:  { txCol: 14, txRow: 18, pass: true, category: 'temple',   label: 'Temple Wall 1'          },
+  ta2:  { txCol: 15, txRow: 18, pass: true, category: 'temple',   label: 'Temple Wall 2'          },
+  tv1:  { txCol: 17, txRow: 18, pass: true,  category: 'deco',     label: 'Temple Deco 1'          },
+  tv2:  { txCol: 19, txRow: 18, pass: true,  category: 'deco',     label: 'Temple Deco 2'          },
+  tv3:  { txCol: 21, txRow: 18, pass: true,  category: 'deco',     label: 'Temple Deco 3'          },
+  ctp1: { txCol:  1, txRow: 20, pass: true, category: 'temple',   label: 'Temple Column Top'      },
+  ctp2: { txCol:  3, txRow: 20, pass: true, category: 'temple',   label: 'Temple Arch Left'         },
+  ctp3: { txCol:  4, txRow: 20, pass: true, category: 'temple',   label: 'Temple Arch Right'         },
+  cbd1: { txCol:  9, txRow: 20, pass: true, category: 'cave',     label: 'Dark Cave 1'         },
+  cbd2: { txCol: 10, txRow: 20, pass: true, category: 'cave',     label: 'Dark Cave 2'         },
+  cbd3: { txCol: 11, txRow: 20, pass: true, category: 'cave',     label: 'Dark Cave 3'         },
+  pvd:  { txCol: 13, txRow: 20, pass: true,  category: 'deco',     label: 'Purple Deco'              },
+  pvb1: { txCol: 14, txRow: 20, pass: true, category: 'cave',     label: 'Purple Block 1'           },
+  pvb2: { txCol: 15, txRow: 20, pass: true, category: 'cave',     label: 'Purple Block 2'           },
+  pvb3: { txCol: 17, txRow: 20, pass: true, category: 'cave',     label: 'Purple Block 3'           },
+  ctp4: { txCol:  3, txRow: 21, pass: false, category: 'temple',   label: 'Temple Arch Floor Left'   },
+  ctp5: { txCol:  4, txRow: 21, pass: false, category: 'temple',   label: 'Temple Arch Floor Right'   },
+  cbd4: { txCol:  9, txRow: 21, pass: false, category: 'cave',     label: 'Dark Cave Floor 1'   },
+  cbd5: { txCol: 10, txRow: 21, pass: false, category: 'cave',     label: 'Dark Cave Floor 2'   },
+  cbd6: { txCol: 11, txRow: 21, pass: false, category: 'cave',     label: 'Dark Cave Floor 3'   },
+  pvb4: { txCol: 13, txRow: 21, pass: false, category: 'cave',     label: 'Purple Block Floor 1'     },
+  pvb5: { txCol: 14, txRow: 21, pass: false, category: 'cave',     label: 'Purple Block Floor 2'     },
+  pvb6: { txCol: 15, txRow: 21, pass: false, category: 'cave',     label: 'Purple Block Floor 3'     },
 };
+
+/**
+ * Builds a descriptive canonical tile key from tile definition.
+ * @param {object} def Input parameter.
+ */
+function buildCanonicalKey(def) {
+  const key = toCamelKey(def.label);
+  if (!def.oneWay) return key;
+  if (key === 'platform') return 'oneWayPlatform';
+  if (key === 'oldPlatform') return 'oldOneWayPlatform';
+  return key;
+}
+
+/**
+ * Converts a human-readable label to lower camel-case.
+ * @param {string} label Input parameter.
+ */
+function toCamelKey(label) {
+  const words = extractKeyWords(label);
+  const [first, ...rest] = words;
+  const tail = rest.map(cap).join('');
+  return `${first.toLowerCase()}${tail}`;
+}
+
+/**
+ * Extracts normalized key words from a tile label.
+ * @param {string} label Input parameter.
+ */
+function extractKeyWords(label) {
+  const sanitized = label.replace(/[()./,-]/g, ' ').replace(/\s+/g, ' ').trim();
+  return sanitized.match(/[A-Za-z0-9]+/g) ?? ['tile'];
+}
+
+/**
+ * Capitalizes the first letter and strips non-alphanumerics.
+ * @param {string} value Input parameter.
+ */
+function cap(value) {
+  const clean = value.replace(/[^A-Za-z0-9]/g, '');
+  if (!clean) return 'Tile';
+  return clean[0].toUpperCase() + clean.slice(1);
+}
+
+/**
+ * Builds canonical registry and legacy alias map.
+ * @param {object} legacyRegistry Input parameter.
+ */
+function buildCanonicalRegistry(legacyRegistry) {
+  const registry = {};
+  const aliases = {};
+  for (const [legacyKey, def] of Object.entries(legacyRegistry)) {
+    const baseKey = buildCanonicalKey(def);
+    const key = uniqueCanonicalKey(registry, baseKey);
+    registry[key] = { ...def, canonicalName: key };
+    aliases[legacyKey] = key;
+  }
+  return { registry, aliases };
+}
+
+/**
+ * Ensures generated canonical key uniqueness.
+ * @param {object} registry Input parameter.
+ * @param {string} baseKey Input parameter.
+ */
+function uniqueCanonicalKey(registry, baseKey) {
+  if (!registry[baseKey]) return baseKey;
+  let index = 2;
+  while (registry[`${baseKey}${index}`]) index++;
+  return `${baseKey}${index}`;
+}
+
+const canonical = buildCanonicalRegistry(LEGACY_TILE_REGISTRY);
+
+export const TILE_REGISTRY = canonical.registry;
+export const LEGACY_TILE_ALIASES = canonical.aliases;
 
 export const TILE_KEYS_BY_CATEGORY = Object.entries(TILE_REGISTRY).reduce(
   (acc, [key, def]) => {
