@@ -398,10 +398,6 @@ export class Player extends Entity {
    */
   _tryStartRoll(dt, input) {
     if (!this.onGround || this._rolling || this._hurtTimer > 0) return;
-    if (input.rollPressed) {
-      startRoll(this, this.facingRight ? 1 : -1);
-      return;
-    }
     const holdDir = input.left ? -1 : (input.right ? 1 : 0);
     if (input.down && holdDir !== 0) {
       this._rollChargeTimer = Math.min(this._rollChargeTimer + dt, ROLL_CHARGE_TIME);

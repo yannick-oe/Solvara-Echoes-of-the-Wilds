@@ -361,7 +361,7 @@ export class StartScreen {
    * @param {CanvasRenderingContext2D} ctx Input parameter.
    */
   _drawControlsContent(ctx) {
-    drawControlsContent(ctx, PANEL_X, PANEL_Y, PANEL_W);
+    drawControlsContent(ctx, PANEL_X, PANEL_Y, PANEL_W, this._selectedCharacter);
   }
 
   /**

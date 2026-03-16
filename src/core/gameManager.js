@@ -79,6 +79,7 @@ export class GameManager {
       onResume:      () => { this.state = GAME_STATES.PLAYING; },
       onRestart:     () => this.restart(),
       onBackToStart: () => { audioManager.playMusic('assets/audio/music/startMenu.ogg'); this._startScreen.reset(); this.state = GAME_STATES.START; },
+      getSelectedCharacter: () => this._selectedCharacter,
     });
 
     this._touchControls = new TouchControls(

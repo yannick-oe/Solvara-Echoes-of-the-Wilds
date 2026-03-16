@@ -128,6 +128,9 @@ class InputManager {
       case 'KeyQ':
         if (value) this.backPressed = true;
         break;
+      case 'KeyM':
+        if (value) this.rollPressed = true;
+        break;
     }
   }
 }

@@ -40,6 +40,7 @@ export class PauseScreen {
     this._onResume      = callbacks.onResume;
     this._onRestart     = callbacks.onRestart;
     this._onBackToStart = callbacks.onBackToStart;
+    this._getSelectedCharacter = callbacks.getSelectedCharacter ?? (() => 'fox');
     this._reset();
   }
 
@@ -247,7 +248,7 @@ export class PauseScreen {
    * @param {CanvasRenderingContext2D} ctx Input parameter.
    */
   _drawControlsContent(ctx) {
-    drawControlsContent(ctx, SUB_X, SUB_Y, SUB_W);
+    drawControlsContent(ctx, SUB_X, SUB_Y, SUB_W, this._getSelectedCharacter());
   }
 }
 // #endregion

@@ -188,8 +188,8 @@ export class TouchControls {
    * @param {number} step Input parameter.
    */
   _buildActionButtons(size, step) {
-    this._makeBtn('↷', 'act-roll', 'roll', { right: EDGE + step, bottom: EDGE }, size, true);
-    this._makeBtn('✦', 'act-jump', 'jump', { right: EDGE, bottom: EDGE }, size, true);
+    this._makeBtn('✦', 'act-action', 'roll', { right: EDGE + step, bottom: EDGE }, size, true);
+    this._makeBtn('⬆', 'act-jump', 'jump', { right: EDGE, bottom: EDGE }, size, true);
   }
 
   /**

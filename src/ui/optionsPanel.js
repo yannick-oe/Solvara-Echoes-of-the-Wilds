@@ -6,6 +6,7 @@
 import { currentLang, setLang, t, LANGS } from '../core/localization.js';
 import { audioManager } from '../core/audioManager.js';
 import { rrect } from './canvasUtils.js';
+import { normalizeCharacterId } from '../config/characterConfig.js';
 // #endregion
 
 // #region Constants
@@ -192,8 +193,11 @@ function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
  * @param {number} panelX
  * @param {number} panelY
  * @param {number} panelW
+ * @param {string} characterId
  */
-export function drawControlsContent(ctx, panelX, panelY, panelW) {
+export function drawControlsContent(ctx, panelX, panelY, panelW, characterId = 'fox') {
+  const activeCharacter = normalizeCharacterId(characterId);
+  const actionRow = _buildActionControlRow(activeCharacter);
   ctx.textBaseline = 'middle';
   const midY    = panelY + 184;
   const b1Start = panelY + 88;
@@ -202,7 +206,7 @@ export function drawControlsContent(ctx, panelX, panelY, panelW) {
     [t('move'),   'Arrow Keys / WASD'],
     [t('jump'),   'Space'],
     [t('crouch'), 'S / ↓'],
-    [t('roll'),   'S + ← / →'],
+    actionRow,
   ];
   b1Rows.forEach(([label, keys], i) => {
     const y = b1Start + i * b1Step;
@@ -239,5 +243,16 @@ export function drawControlsContent(ctx, panelX, panelY, panelW) {
     ctx.textAlign = 'right';
     ctx.fillText(keys, panelX + panelW - 30, y);
   });
+}
+
+/**
+ * Builds the action row text for the current character.
+ * @param {string} characterId Input parameter.
+ */
+function _buildActionControlRow(characterId) {
+  if (characterId === 'imp') {
+    return [t('specialFireball'), t('specialFireballInput')];
+  }
+  return [t('specialRoll'), t('specialRollInput')];
 }
 // #endregion
