@@ -5,7 +5,8 @@ import { GAME_STATES } from '../core/constants.js';
 // #region Constants
 const BTN    = 56;
 const BTN_SM = 40;
-const SAI = 'env(safe-area-inset-bottom, 0px)';
+const EDGE = 12;
+const GAP = 8;
 // #endregion
 
 // #region Class Definition
@@ -131,7 +132,7 @@ export class TouchControls {
     el.style.cssText = [
       'position: fixed',
       'inset: 0',
-      'z-index: 20',
+      'z-index: 40',
       'pointer-events: none',
       'user-select: none',
       '-webkit-user-select: none',
@@ -145,15 +146,22 @@ export class TouchControls {
    * Handles build buttons.
    */
   _buildButtons() {
-    this._makeBtn('◄', 'dir-left',  'left',  { left: 10,  bottom: 75  });
-    this._makeBtn('▲', 'dir-up',    'up',    { left: 74,  bottom: 139 });
-    this._makeBtn('▼', 'dir-down',  'down',  { left: 74,  bottom: 11  });
-    this._makeBtn('►', 'dir-right', 'right', { left: 138, bottom: 75  });
-    this._makeBtn('↷', 'act-roll',  'roll',  { right: 80, bottom: 11  });
-    this._makeBtn('✦', 'act-jump',  'jump',  { right: 14, bottom: 11  });
-    this._makePauseBtn({ top: 10, right: 10 });
-    this._makeFullscreenBtn({ top: 10, right: 58 });
-    this._makeBackBtn({ top: 10, left: 10 });
+    const main = window.innerWidth < 740 ? 52 : BTN;
+    const small = window.innerWidth < 740 ? 38 : BTN_SM;
+    const step = main + GAP;
+    const topStep = small + GAP;
+
+    this._makeBtn('◄', 'dir-left',  'left',  { left: EDGE,            bottom: EDGE + step }, main, true);
+    this._makeBtn('▲', 'dir-up',    'up',    { left: EDGE + step,     bottom: EDGE + (step * 2) }, main, true);
+    this._makeBtn('▼', 'dir-down',  'down',  { left: EDGE + step,     bottom: EDGE }, main, true);
+    this._makeBtn('►', 'dir-right', 'right', { left: EDGE + (step * 2), bottom: EDGE + step }, main, true);
+
+    this._makeBtn('↷', 'act-roll',  'roll',  { right: EDGE + step,    bottom: EDGE }, main, true);
+    this._makeBtn('✦', 'act-jump',  'jump',  { right: EDGE,           bottom: EDGE }, main, true);
+
+    this._makePauseBtn({ top: EDGE, right: EDGE }, small);
+    this._makeFullscreenBtn({ top: EDGE, right: EDGE + topStep }, small);
+    this._makeBackBtn({ top: EDGE, left: EDGE }, small);
   }
 
   /**
@@ -163,8 +171,8 @@ export class TouchControls {
    * @param {object} action Input parameter.
    * @param {object} pos Input parameter.
    */
-  _makeBtn(label, id, action, pos) {
-    const btn = this._createEl(label, id, pos, BTN,  true);
+  _makeBtn(label, id, action, pos, size = BTN, withSAI = true) {
+    const btn = this._createEl(label, id, pos, size, withSAI);
     const im  = this._inputManager;
     const onDown = e => {
       e.preventDefault();
@@ -203,8 +211,8 @@ export class TouchControls {
    * Handles make pause btn.
    * @param {object} pos Input parameter.
    */
-  _makePauseBtn(pos) {
-    const btn = this._createEl('⚙', 'act-pause', pos, BTN_SM,  false);
+  _makePauseBtn(pos, size = BTN_SM) {
+    const btn = this._createEl('⚙', 'act-pause', pos, size, true);
     const im  = this._inputManager;
     btn.addEventListener('pointerdown', e => {
       e.preventDefault();
@@ -226,8 +234,8 @@ export class TouchControls {
    * Creates the dedicated mobile fullscreen button.
    * @param {object} pos Input parameter.
    */
-  _makeFullscreenBtn(pos) {
-    const btn = this._createEl('⛶', 'act-fullscreen', pos, BTN_SM, false);
+  _makeFullscreenBtn(pos, size = BTN_SM) {
+    const btn = this._createEl('⛶', 'act-fullscreen', pos, size, true);
     btn.addEventListener('pointerdown', e => {
       e.preventDefault();
       btn.setPointerCapture(e.pointerId);
@@ -248,8 +256,8 @@ export class TouchControls {
    * Creates the mobile-only touch back button for subpanels.
    * @param {object} pos Input parameter.
    */
-  _makeBackBtn(pos) {
-    const btn = this._createEl('↩', 'act-back', pos, BTN_SM, false);
+  _makeBackBtn(pos, size = BTN_SM) {
+    const btn = this._createEl('↩', 'act-back', pos, size, true);
     const im = this._inputManager;
     btn.addEventListener('pointerdown', e => {
       e.preventDefault();
@@ -290,8 +298,17 @@ export class TouchControls {
     btn.textContent = label;
     btn.setAttribute('aria-label', id.replace(/-/g, ' '));
     const posCSS = Object.entries(pos).map(([k, v]) => {
-      if (k === 'bottom' && withSAI) {
-        return `bottom: calc(${v}px + ${SAI})`;
+      if (withSAI && k === 'bottom') {
+        return `bottom: calc(${v}px + env(safe-area-inset-bottom, 0px))`;
+      }
+      if (withSAI && k === 'top') {
+        return `top: calc(${v}px + env(safe-area-inset-top, 0px))`;
+      }
+      if (withSAI && k === 'left') {
+        return `left: calc(${v}px + env(safe-area-inset-left, 0px))`;
+      }
+      if (withSAI && k === 'right') {
+        return `right: calc(${v}px + env(safe-area-inset-right, 0px))`;
       }
       return `${k}: ${v}px`;
     }).join('; ');
