@@ -99,11 +99,13 @@ export class TouchControls {
    * @param {string} state Input parameter.
    */
   setGameState(state) {
-    if (state === this._gameState) return;
-    const wasVisible = shouldShowTouchControls(this._gameState);
-    this._gameState  = state;
-    const isVisible  = shouldShowTouchControls(state);
-    if (wasVisible && !isVisible) this._clearAllInputFlags();
+    const stateChanged = state !== this._gameState;
+    if (stateChanged) {
+      const wasVisible = shouldShowTouchControls(this._gameState);
+      this._gameState  = state;
+      const isVisible  = shouldShowTouchControls(state);
+      if (wasVisible && !isVisible) this._clearAllInputFlags();
+    }
     this._updateVisibility();
   }
 
@@ -138,12 +140,13 @@ export class TouchControls {
 
   /**
    * Handles build layer.
+   * Append to container to ensure touch overlay enters fullscreen with the game.
    */
   _buildLayer() {
     const el = document.createElement('div');
     el.id = 'touchLayer';
     el.style.cssText = TOUCH_LAYER_STYLE;
-    document.body.appendChild(el);
+    this._container.appendChild(el);
     this._layer = el;
   }
 
@@ -198,6 +201,18 @@ export class TouchControls {
     this._makePauseBtn({ top: EDGE, right: EDGE }, size);
     this._makeFullscreenBtn({ top: EDGE, right: EDGE + topStep }, size);
     this._makeBackBtn({ top: EDGE, left: EDGE }, size);
+    this._applyHudClearTop(this._pauseBtn);
+    this._applyHudClearTop(this._fullscreenBtn);
+  }
+
+  /**
+   * Overrides the top position of a utility button to sit below the HUD.
+   * Uses 16vh so the offset scales proportionally with screen height,
+   * clearing the score panel (HUD bottom ≈ 13.75vh) on all device sizes.
+   * @param {HTMLElement|null} btn Input parameter.
+   */
+  _applyHudClearTop(btn) {
+    if (btn) btn.style.top = 'calc(16vh + env(safe-area-inset-top, 0px))';
   }
 
   /**
@@ -375,15 +390,22 @@ export class TouchControls {
     e.preventDefault();
     btn.setPointerCapture(e.pointerId);
     btn.classList.add('tc-active');
-    this._requestFullscreen();
+    this._toggleFullscreen();
   }
 
   /**
-   * Requests fullscreen on the game container when supported.
+   * Toggles fullscreen: enters when not in fullscreen, exits when already in fullscreen.
+   * Supports both standard and webkit-prefixed APIs.
    */
-  _requestFullscreen() {
-    const req = this._container.requestFullscreen ?? this._container.webkitRequestFullscreen;
-    req?.call(this._container)?.catch?.(() => {});
+  _toggleFullscreen() {
+    const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (inFs) {
+      const exit = document.exitFullscreen ?? document.webkitExitFullscreen;
+      exit?.call(document)?.catch?.(() => {});
+    } else {
+      const req = this._container.requestFullscreen ?? this._container.webkitRequestFullscreen;
+      req?.call(this._container)?.catch?.(() => {});
+    }
   }
 
   /**

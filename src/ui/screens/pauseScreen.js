@@ -72,11 +72,12 @@ export class PauseScreen {
    */
   handleInput(input) {
     if (this._subScreen === 'options') {
+      if (input.pausePressed) { this._subScreen = null; return; }
       this._handleOptionsInput(input);
       return;
     }
     if (this._subScreen === 'controls') {
-      if (input.backPressed) {
+      if (input.backPressed || input.pausePressed) {
         this._subScreen = null;
       }
       return;

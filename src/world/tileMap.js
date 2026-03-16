@@ -13,7 +13,17 @@ const LEGACY_FOOTSTEP_SOUND_BY_TILE = {
   d: 'assets/audio/sfx/grassLanding.mp3',
 };
 
-const LANDING_SOUND_BY_TILE = buildSoundLookup(LEGACY_LANDING_SOUND_BY_TILE);
+/** Fallback sound for all solid tiles in walkable categories not listed above. */
+const FOOTSTEP_SOUND_BY_CATEGORY = {
+  ground:   'assets/audio/sfx/grassLanding.mp3',
+  slope:    'assets/audio/sfx/grassLanding.mp3',
+  platform: 'assets/audio/sfx/grassLanding.mp3',
+  arch:     'assets/audio/sfx/grassLanding.mp3',
+  cave:     'assets/audio/sfx/grassLanding.mp3',
+  temple:   'assets/audio/sfx/grassLanding.mp3',
+};
+
+const LANDING_SOUND_BY_TILE  = buildSoundLookup(LEGACY_LANDING_SOUND_BY_TILE);
 const FOOTSTEP_SOUND_BY_TILE = buildSoundLookup(LEGACY_FOOTSTEP_SOUND_BY_TILE);
 
 /**
@@ -123,7 +133,10 @@ export class TileMap {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(feetY  / TILE_SIZE);
     const key = this._map[row]?.[col];
-    return key ? (LANDING_SOUND_BY_TILE[key] ?? null) : null;
+    if (!key) return null;
+    const tile = this._tiles[key];
+    if (!tile || tile.pass !== false) return null;
+    return LANDING_SOUND_BY_TILE[key] ?? FOOTSTEP_SOUND_BY_CATEGORY[tile.category] ?? null;
   }
 
   /**
@@ -135,7 +148,10 @@ export class TileMap {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(feetY  / TILE_SIZE);
     const key = this._map[row]?.[col];
-    return key ? (FOOTSTEP_SOUND_BY_TILE[key] ?? null) : null;
+    if (!key) return null;
+    const tile = this._tiles[key];
+    if (!tile || tile.pass !== false) return null;
+    return FOOTSTEP_SOUND_BY_TILE[key] ?? FOOTSTEP_SOUND_BY_CATEGORY[tile.category] ?? null;
   }
 
   /**

@@ -1,3 +1,13 @@
+// #region Helpers
+/**
+ * Returns true on touch-primary devices (Android/iOS mobile, tablet).
+ * Used only for default audio volume calibration; saved settings override this.
+ */
+function _isMobileDevice() {
+  return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+}
+// #endregion
+
 // #region Class Definition
 class AudioManager {
   /**
@@ -7,13 +17,38 @@ class AudioManager {
     this._musicEl  = null;
     this._musicSrc = null;
     this._fadeInterval = null;
+    this._deferredMusicSrc = null;
     this.masterVolume    = 1.0;
     this.musicVolume     = 0.8;
-    this.sfxVolumeMaster = 0.6;
+    this.sfxVolumeMaster = _isMobileDevice() ? 0.24 : 0.6;
     this.musicEnabled = true;
     this.sfxEnabled   = true;
     this._loopedSfx = new Map();
     this._loadSettings();
+    this._initAudioUnlock();
+  }
+
+  /**
+   * Registers persistent touch/pointer listeners to unlock and play deferred music.
+   * Unlike one-time listeners, this persists to catch NEW music play attempts.
+   */
+  _initAudioUnlock() {
+    const handler = () => this._handleAudioGesture();
+    document.addEventListener('touchstart',  handler, { capture: true, passive: true });
+    document.addEventListener('pointerdown', handler, { capture: true, passive: true });
+  }
+
+  /**
+   * Handles audio unlock when user gesture fires.
+   * Plays deferred music if one was flagged, or resumes existing music.
+   */
+  _handleAudioGesture() {
+    if (this._deferredMusicSrc) {
+      this.playMusic(this._deferredMusicSrc);
+      this._deferredMusicSrc = null;
+    } else if (this._musicEl && this._musicEl.paused && this.musicEnabled) {
+      this._musicEl.play().catch(() => {});
+    }
   }
 
   /**
@@ -132,6 +167,7 @@ class AudioManager {
 
   /**
    * Handles play music.
+   * On mobile with no user gesture context, defers play to next gesture.
    * @param {string} oggSrc Input parameter.
    */
   playMusic(oggSrc) {
@@ -152,7 +188,10 @@ class AudioManager {
     audio.loop     = true;
     audio.volume   = this._musicFinalVol;
     this._musicEl  = audio;
-    audio.play().catch(() => {});
+    const playResult = audio.play().catch(() => null);
+    if (playResult === undefined || (playResult && playResult.catch)) {
+      this._deferredMusicSrc = oggSrc;
+    }
   }
 
   /**
