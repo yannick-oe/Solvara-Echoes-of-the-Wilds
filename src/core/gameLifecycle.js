@@ -34,12 +34,17 @@ export function createGameState() {
  */
 export function initEntities(game) {
   const levelContent = game._level.content;
-  game._player = createPlayer(levelContent);
+  game._player = createPlayer(
+    levelContent,
+    game._selectedCharacter,
+    projectile => game._projectiles.push(projectile),
+  );
   game._enemies = spawnEnemies(levelContent);
   game._pickups = spawnPickups(levelContent);
   game._interactables = spawnInteractables(levelContent);
   game._hazards = spawnHazards(levelContent);
   game._props = spawnProps(levelContent);
+  game._projectiles = [];
   game._effects = [];
 }
 
@@ -85,7 +90,7 @@ export function handlePlayerDeath(game) {
  * Resets runtime timers and world state and re-enters the playing phase.
  * @param {object} game Input parameter.
  */
-export function restartGameSession(game) {
+export function restartGameSession(game, characterId = game._selectedCharacter) {
   if (game._deathTimeoutId !== null) {
     clearTimeout(game._deathTimeoutId);
     game._deathTimeoutId = null;
@@ -96,6 +101,7 @@ export function restartGameSession(game) {
   }
 
   intervalManager.stopAll();
+  game._selectedCharacter = characterId;
   game._levelTimer = 0;
   game._victoryPoseTimer = 0;
   game._finalLevelTime = 0;

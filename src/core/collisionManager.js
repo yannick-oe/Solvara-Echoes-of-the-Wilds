@@ -40,6 +40,17 @@ export function checkRollKill({ player, enemies, effects }) {
 }
 
 /**
+ * Checks projectile hits against enemies.
+ * @param {object} ctx - { projectiles, enemies, effects }
+ */
+export function checkProjectileHits({ projectiles, enemies, effects }) {
+  for (const projectile of projectiles) {
+    if (!projectile.active) continue;
+    if (_applyProjectileHit(projectile, enemies, effects)) projectile.deactivate?.();
+  }
+}
+
+/**
  * Checks pickup collection.
  * @param {object} ctx - { player, pickups, gameState, hud, camera }
  */
@@ -214,5 +225,20 @@ function applyEnemyDamage(player, enemy, gameState, hud, camera, onDeath) {
 function playHurtSfx() {
   audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
   return true;
+}
+
+/**
+ * Applies a projectile hit to the first intersecting active enemy.
+ * @param {object} projectile Input parameter.
+ * @param {Array} enemies Input parameter.
+ * @param {Array} effects Input parameter.
+ */
+function _applyProjectileHit(projectile, enemies, effects) {
+  for (const enemy of enemies) {
+    if (!isActiveEnemy(enemy) || !projectile.intersects(enemy)) continue;
+    killEnemy(enemy, effects);
+    return true;
+  }
+  return false;
 }
 // #endregion

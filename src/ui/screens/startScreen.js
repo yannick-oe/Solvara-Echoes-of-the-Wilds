@@ -10,10 +10,15 @@ import {
   drawControlsContent,
 } from '../optionsPanel.js';
 import { drawBackground, drawTitleBanner, drawVignette } from '../startMenuDeco.js';
+import {
+  CHARACTER_PROFILES,
+  normalizeCharacterId,
+  saveSelectedCharacter,
+} from '../../config/characterConfig.js';
 // #endregion
 
 // #region Constants
-const MENU_IDS = ['start', 'options', 'controls', 'credits'];
+const MENU_IDS = ['start', 'character', 'options', 'controls', 'credits'];
 const CX            = CANVAS_WIDTH  / 2;
 const CY            = CANVAS_HEIGHT / 2;
 const TITLE_Y       = 66;
@@ -38,6 +43,7 @@ export class StartScreen {
    */
   constructor(onStart) {
     this._onStart = onStart;
+    this._selectedCharacter = 'fox';
     this._reset();
   }
 
@@ -69,6 +75,21 @@ export class StartScreen {
   reset() { this._reset(); }
 
   /**
+   * Returns selected character id.
+   */
+  getSelectedCharacter() {
+    return this._selectedCharacter;
+  }
+
+  /**
+   * Sets selected character id.
+   * @param {string} characterId Input parameter.
+   */
+  setSelectedCharacter(characterId) {
+    this._selectedCharacter = normalizeCharacterId(characterId);
+  }
+
+  /**
    * Returns whether a subpanel is currently open.
    */
   isSubPanelOpen() {
@@ -93,6 +114,8 @@ export class StartScreen {
     }
     const upNow   = input.up;
     const downNow = input.down;
+    const leftNow  = input.left;
+    const rightNow = input.right;
     if (upNow && !this._prevUp) {
       this._selectedIndex =
         (this._selectedIndex - 1 + MENU_IDS.length) % MENU_IDS.length;
@@ -100,13 +123,40 @@ export class StartScreen {
     if (downNow && !this._prevDown) {
       this._selectedIndex = (this._selectedIndex + 1) % MENU_IDS.length;
     }
+    this._handleCharacterInput(leftNow, rightNow);
     this._prevUp   = upNow;
     this._prevDown = downNow;
-    this._prevLeft  = input.left;
-    this._prevRight = input.right;
+    this._prevLeft  = leftNow;
+    this._prevRight = rightNow;
     if (input.enterPressed || input.jumpPressed) {
       this._activate(MENU_IDS[this._selectedIndex]);
     }
+  }
+
+  /**
+   * Handles left/right switching on character menu row.
+   * @param {boolean} leftNow Input parameter.
+   * @param {boolean} rightNow Input parameter.
+   */
+  _handleCharacterInput(leftNow, rightNow) {
+    if (MENU_IDS[this._selectedIndex] !== 'character') return;
+    const leftEdge  = leftNow  && !this._prevLeft;
+    const rightEdge = rightNow && !this._prevRight;
+    if (!leftEdge && !rightEdge) return;
+    const dir = rightEdge ? 1 : -1;
+    this._shiftSelectedCharacter(dir);
+  }
+
+  /**
+   * Cycles character selection and stores it.
+   * @param {number} direction Input parameter.
+   */
+  _shiftSelectedCharacter(direction) {
+    const keys = Object.keys(CHARACTER_PROFILES);
+    const current = keys.indexOf(this._selectedCharacter);
+    const index = (current + direction + keys.length) % keys.length;
+    this._selectedCharacter = keys[index];
+    saveSelectedCharacter(this._selectedCharacter);
   }
 
   /**
@@ -125,6 +175,9 @@ export class StartScreen {
         if (this._started) return;
         this._started = true;
         this._onStart();
+        break;
+      case 'character':
+        this._shiftSelectedCharacter(1);
         break;
       case 'options':
         this._subScreen   = 'options';
@@ -207,21 +260,11 @@ export class StartScreen {
     drawWoodPanel(ctx, WOOD_X, WOOD_Y, WOOD_W, WOOD_H);
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-    const s  = WOOD_Y + 11;
-    const p1 = WOOD_Y + Math.floor(WOOD_H / 4);
-    const p2 = WOOD_Y + Math.floor(WOOD_H / 2);
-    const p3 = WOOD_Y + Math.floor(3 * WOOD_H / 4);
-    const b  = WOOD_Y + WOOD_H - 11;
-    const ZONE_Y = [
-      Math.round((s  + p1) / 2),
-      Math.round((p1 + p2) / 2),
-      Math.round((p2 + p3) / 2),
-      Math.round((p3 + b ) / 2),
-    ];
+    const ZONE_Y = this._menuZoneRows();
     MENU_IDS.forEach((id, i) => {
       const y        = ZONE_Y[i];
       const selected = i === this._selectedIndex;
-      const label = t(id);
+      const label = this._menuLabel(id, selected);
       if (selected) {
         const hl = ctx.createLinearGradient(WOOD_X, y, WOOD_X + WOOD_W, y);
         hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
@@ -252,6 +295,29 @@ export class StartScreen {
     ctx.textAlign   = 'center';
     ctx.fillText(t('pressEnter'), CX, FOOTER_Y);
     ctx.restore();
+  }
+
+  /**
+   * Builds evenly distributed menu row centers.
+   */
+  _menuZoneRows() {
+    const top = WOOD_Y + 12;
+    const step = (WOOD_H - 24) / MENU_IDS.length;
+    return MENU_IDS.map((_, i) => Math.round(top + step * i + step / 2));
+  }
+
+  /**
+   * Returns display label for one menu row.
+   * @param {string} id Input parameter.
+   * @param {boolean} selected Input parameter.
+   */
+  _menuLabel(id, selected) {
+    if (id !== 'character') return t(id);
+    const profile = CHARACTER_PROFILES[this._selectedCharacter];
+    const name = t(profile?.id ?? 'fox');
+    const arrows = selected ? '◄  ' : '';
+    const tail = selected ? '  ►' : '';
+    return `${arrows}${t('character')}: ${name}${tail}`;
   }
 
   /**

@@ -2,6 +2,7 @@
 import {
   checkStomp,
   checkRollKill,
+  checkProjectileHits,
   checkPickups,
   checkInteractables,
   checkHazards,
@@ -25,6 +26,12 @@ export function runInteractionChecks(game) {
 
   checkRollKill({
     player: game._player,
+    enemies: game._enemies,
+    effects: game._effects,
+  });
+
+  checkProjectileHits({
+    projectiles: game._projectiles,
     enemies: game._enemies,
     effects: game._effects,
   });

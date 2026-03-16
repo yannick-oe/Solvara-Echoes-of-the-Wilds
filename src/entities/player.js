@@ -10,11 +10,17 @@ import {
   COYOTE_TIME, JUMP_BUFFER,
 } from '../config/playerConfig.js';
 import {
+  FIREBALL_COOLDOWN,
+  getCharacterProfile,
+  normalizeCharacterId,
+} from '../config/characterConfig.js';
+import {
   TILE_SIZE, GRAVITY, MAX_FALL_SPEED, JUMP_FORCE, PLAYER_SPEED,
 } from '../core/constants.js';
-import { ANIM, updateAnim }                                  from './playerAnimation.js';
+import { updateAnim }                                        from './playerAnimation.js';
 import { resolveX, resolveY }                                from './playerPhysics.js';
 import { makeDustPool, spawnDust, updateDust, drawDust }     from './playerDust.js';
+import { FireballProjectile } from './projectiles/fireballProjectile.js';
 import {
   enterLadder, exitLadder, handleLadder,
   detectWallGrab, handleWallGrab,
@@ -39,9 +45,15 @@ export class Player extends Entity {
    * Creates a new instance.
    * @param {number} x Input parameter.
    * @param {number} y Input parameter.
+   * @param {object} options Input parameter.
    */
-  constructor(x, y) {
+  constructor(x, y, options = {}) {
     super(x, y, PLAYER_W, PLAYER_H);
+    const characterId = normalizeCharacterId(options.characterId);
+    this.characterId = characterId;
+    this._profile = getCharacterProfile(characterId);
+    this._animDefs = this._profile.anim;
+    this._spawnProjectile = options.onSpawnProjectile ?? (() => {});
     this.facingRight = true;
     this.onGround    = false;
     this.state      = 'idle';
@@ -69,6 +81,9 @@ export class Player extends Entity {
     this._squashScale      = 1.0;
     this._stepTimer        = 0;
     this._dustPool         = makeDustPool();
+    this._attackCooldown   = 0;
+    this._attackAnimTimer  = 0;
+    this._shotAnimState    = 'shot';
   }
 
   /**
@@ -84,7 +99,7 @@ export class Player extends Entity {
     this._tickJumpBuffer(dt, input);
     const overlapLadder = this._prepareLadderState(input, tileMap);
     if (this._handleLadderPhase(dt, input, tileMap)) return;
-    this._tryStartRoll(dt, input);
+    this._tryUseSpecialAction(dt, input);
     if (this._handleRollPhase(dt, input, tileMap)) return;
     if (this.onGround) this._coyoteTimer = COYOTE_TIME;
     else               this._coyoteTimer = Math.max(0, this._coyoteTimer - dt);
@@ -215,7 +230,7 @@ export class Player extends Entity {
   /** Sets the player into the dying state (final hit). */
   startDying() {
     this.dying       = true;
-    this.state       = 'hurt2';
+    this.state       = this._profile.deathState;
     this.frameIndex  = 0;
     this._invulTimer = 0;
     this.velX        = 0;
@@ -256,7 +271,7 @@ export class Player extends Entity {
   draw(ctx, _cam, imageCache) {
     drawDust(this._dustPool, ctx);
     if (this._shouldSkipDraw()) return;
-    const anim = ANIM[this.state];
+    const anim = this._animDefs[this.state] ?? this._animDefs.idle;
     const fi = this._getFrameIndex();
     const flipX = this._shouldFlipSprite();
     const img = imageCache.get(`${anim.prefix}_${fi}`);
@@ -335,6 +350,8 @@ export class Player extends Entity {
     if (this._ladderExitCooldown > 0) this._ladderExitCooldown = Math.max(0, this._ladderExitCooldown - dt);
     if (this._dropThroughTimer > 0) this._dropThroughTimer = Math.max(0, this._dropThroughTimer - dt);
     if (this._stepTimer        > 0) this._stepTimer        = Math.max(0, this._stepTimer        - dt);
+    if (this._attackCooldown   > 0) this._attackCooldown   = Math.max(0, this._attackCooldown   - dt);
+    if (this._attackAnimTimer  > 0) this._attackAnimTimer  = Math.max(0, this._attackAnimTimer  - dt);
   }
 
   /**
@@ -365,7 +382,17 @@ export class Player extends Entity {
   }
 
   /**
-   * Attempts to start a roll based on current input and state.
+   * Attempts to use character-specific special action.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   */
+  _tryUseSpecialAction(dt, input) {
+    if (this._profile.ability === 'fireball') return this._tryShootFireball(input);
+    this._tryStartRoll(dt, input);
+  }
+
+  /**
+   * Attempts to start fox roll.
    * @param {number} dt Input parameter.
    * @param {object} input Input parameter.
    */
@@ -382,6 +409,42 @@ export class Player extends Entity {
     } else {
       this._rollChargeTimer = 0;
     }
+  }
+
+  /**
+   * Attempts to fire imp projectile.
+   * @param {object} input Input parameter.
+   */
+  _tryShootFireball(input) {
+    if (!input.rollPressed || this._hurtTimer > 0 || this._rolling) return;
+    if (this._onLadder || this._attackCooldown > 0) return;
+    if (!this.onGround && !this._profile.canShootInAir) return;
+    this._shotAnimState = this._isCrouchShooting(input) ? 'crouchShot' : 'shot';
+    this._attackCooldown = FIREBALL_COOLDOWN;
+    this._attackAnimTimer = 0.16;
+    const projectile = this._buildFireballProjectile(input);
+    this._spawnProjectile(projectile);
+  }
+
+  /**
+   * Creates fireball projectile at standing/crouch height and facing direction.
+   * @param {object} input Input parameter.
+   */
+  _buildFireballProjectile(input) {
+    const dir = this.facingRight ? 1 : -1;
+    const shotY = this._isCrouchShooting(input)
+      ? this.y + this.h * 0.58
+      : this.y + this.h * 0.34;
+    const shotX = dir > 0 ? this.x + this.w - 2 : this.x - 26;
+    return new FireballProjectile(shotX, shotY, dir);
+  }
+
+  /**
+   * Returns true when shot should use crouch-shoot animation and lower spawn.
+   * @param {object} input Input parameter.
+   */
+  _isCrouchShooting(input) {
+    return this.onGround && input.down;
   }
 
   /**

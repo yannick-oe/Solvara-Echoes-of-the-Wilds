@@ -14,6 +14,7 @@ import { GameOverScreen } from '../ui/screens/gameOverScreen.js';
 import { VictoryScreen } from '../ui/screens/victoryScreen.js';
 import { PauseScreen } from '../ui/screens/pauseScreen.js';
 import { TouchControls } from '../ui/touchControls.js';
+import { loadSelectedCharacter, saveSelectedCharacter } from '../config/characterConfig.js';
 import {
   createGameState,
   initEntities,
@@ -49,6 +50,7 @@ export class GameManager {
     this._player        = null;
     this._camLookOffset = 0;
     this._enemies       = [];
+    this._projectiles   = [];
     this._effects       = [];
     this._pickups       = [];
     this._interactables = [];
@@ -60,7 +62,9 @@ export class GameManager {
     this._levelTimer          = 0;
     this._finalLevelTime      = 0;
     this._victoryTransitionId = null;
-    this._startScreen   = new StartScreen(() => this.restart());
+    this._selectedCharacter = loadSelectedCharacter();
+    this._startScreen   = new StartScreen(() => this.restart(this._startScreen.getSelectedCharacter()));
+    this._startScreen.setSelectedCharacter(this._selectedCharacter);
     this._gameOverScreen = new GameOverScreen(() => this.restart());
     this._victoryScreen = new VictoryScreen({
       onRestart:  () => this.restart(),
@@ -113,8 +117,11 @@ export class GameManager {
   }
 
   /** Resets the current level and restarts the PLAYING phase. */
-  restart() {
-    restartGameSession(this);
+  restart(characterId = this._selectedCharacter) {
+    this._selectedCharacter = characterId;
+    this._startScreen.setSelectedCharacter(characterId);
+    saveSelectedCharacter(characterId);
+    restartGameSession(this, characterId);
   }
 
   /**
@@ -258,8 +265,20 @@ export class GameManager {
   _updateWorldEntities(dt) {
     this._player.update(dt, inputManager, this._level.tileMap);
     this._updateEnemies(dt);
+    this._updateProjectiles(dt);
     this._updateHazards(dt);
     this._updatePickups(dt);
+  }
+
+  /**
+   * Updates active projectiles.
+   * @param {number} dt Input parameter.
+   */
+  _updateProjectiles(dt) {
+    for (const projectile of this._projectiles) {
+      if (projectile.active) projectile.update(dt, this._level.tileMap);
+    }
+    this._projectiles = this._projectiles.filter(projectile => projectile.active);
   }
 
   /**
@@ -351,6 +370,7 @@ export class GameManager {
     this._drawEntityGroup(this._hazards);
     this._drawEntityGroup(this._interactables);
     this._player?.draw(this.ctx, this._camera, imageCache);
+    this._drawActiveEntityGroup(this._projectiles);
     this._drawActiveEntityGroup(this._enemies);
     this._drawActiveEntityGroup(this._effects);
     this._drawActiveEntityGroup(this._pickups);

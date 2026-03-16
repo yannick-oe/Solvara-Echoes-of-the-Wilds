@@ -27,12 +27,14 @@ import { PROP_REGISTRY } from '../config/propConfig.js';
 /**
  * Handles create player.
  * @param {object} levelContent Input parameter.
+ * @param {string} characterId Input parameter.
+ * @param {Function} onSpawnProjectile Input parameter.
  */
-export function createPlayer(levelContent) {
+export function createPlayer(levelContent, characterId = 'fox', onSpawnProjectile = () => {}) {
   const spawn = levelContent?.playerSpawn;
   const x = spawn?.x ?? 2 * TILE_SIZE;
   const y = spawn?.y ?? (8 * TILE_SIZE - 48);
-  return new Player(x, y);
+  return new Player(x, y, { characterId, onSpawnProjectile });
 }
 
 /**

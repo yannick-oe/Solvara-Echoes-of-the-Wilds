@@ -4,6 +4,9 @@ export const LANGS = ['en', 'de'];
 export const TEXT = {
   en: {
     start:        'Start Game',
+    character:    'Character',
+    fox:          'Fox',
+    imp:          'Imp',
     options:      'Options',
     controls:     'Controls',
     credits:      'Credits',
@@ -47,6 +50,9 @@ export const TEXT = {
   },
   de: {
     start:        'Spiel starten',
+    character:    'Charakter',
+    fox:          'Fuchs',
+    imp:          'Imp',
     options:      'Optionen',
     controls:     'Steuerung',
     credits:      'Credits',

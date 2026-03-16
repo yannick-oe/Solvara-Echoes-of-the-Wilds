@@ -4,21 +4,8 @@
  * @module playerAnimation
  */
 
-/** Animation table: state name -> spritesheet configuration. */
-export const ANIM = {
-  idle:     { prefix: 'PLAYER_IDLE',     frames: 4, fps: 6  },
-  run:      { prefix: 'PLAYER_RUN',      frames: 6, fps: 10 },
-  jump:     { prefix: 'PLAYER_JUMP',     frames: 1, fps: 0  },
-  fall:     { prefix: 'PLAYER_JUMP',     frames: 1, fps: 0  },
-  crouch:   { prefix: 'PLAYER_CROUCH',   frames: 2, fps: 6  },
-  lookUp:   { prefix: 'PLAYER_LOOK_UP',  frames: 1, fps: 0  },
-  hurt:     { prefix: 'PLAYER_HURT',     frames: 2, fps: 8  },
-  hurt2:    { prefix: 'PLAYER_HURT2',    frames: 1, fps: 0  },
-  victory:  { prefix: 'PLAYER_VICTORY',  frames: 1, fps: 0  },
-  wallGrab: { prefix: 'PLAYER_WALL_GRAB',frames: 2, fps: 4  },
-  climb:    { prefix: 'PLAYER_CLIMB',    frames: 3, fps: 8  },
-  roll:     { prefix: 'PLAYER_ROLL',     frames: 4, fps: 16 },
-};
+/** Default fallback animation for unknown states. */
+const FALLBACK_ANIM = { prefix: 'PLAYER_IDLE', frames: 1, fps: 0 };
 
 /**
  * Selects the next animation state and advances the frame timer.
@@ -39,6 +26,7 @@ export const ANIM = {
  */
 export function updateAnim(player, dt, input, lookUpOverride = false) {
   const FALL_THRESHOLD = 60;
+  const animTable = player._animDefs;
   if (player._wallPushOffTimer > 0 && player._wallGrabSide === 0) {
     if (player.state !== 'wallGrab') {
       player.state      = 'wallGrab';
@@ -56,6 +44,8 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
     next = 'climb';
   } else if (player._rolling) {
     next = 'roll';
+  } else if (player._attackAnimTimer > 0) {
+    next = player._shotAnimState ?? 'shot';
   } else if (!player.onGround) {
     next = player.velY < FALL_THRESHOLD ? 'jump' : 'fall';
   } else if (input.down) {
@@ -81,7 +71,7 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
     player.frameTimer = 0;
     return;
   }
-  const anim = ANIM[player.state];
+  const anim = animTable[player.state] ?? FALLBACK_ANIM;
   if (anim.fps === 0) return;
   player.frameTimer += dt;
   const frameDuration = 1 / anim.fps;
