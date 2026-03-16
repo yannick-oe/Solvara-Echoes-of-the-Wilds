@@ -18,51 +18,36 @@ import { handlePlayerDeath, startVictorySequence } from './gameLifecycle.js';
  * @param {object} game Input parameter.
  */
 export function runInteractionChecks(game) {
-  checkStomp({
-    player: game._player,
-    enemies: game._enemies,
-    effects: game._effects,
-  });
-
-  checkRollKill({
-    player: game._player,
-    enemies: game._enemies,
-    effects: game._effects,
-  });
-
-  checkProjectileHits({
-    projectiles: game._projectiles,
-    enemies: game._enemies,
-    effects: game._effects,
-  });
-
+  _runPreDamageChecks(game);
   if (game._player.dying) return;
+  _runPlayerDamageAndPickups(game);
+  _runInteractablesIfAllowed(game);
+  _runHazardChecks(game);
+}
 
-  checkEnemyDamage({
-    player: game._player,
-    enemies: game._enemies,
-    gameState: game.gameState,
-    hud: game._hud,
-    camera: game._camera,
-    onDeath: () => handlePlayerDeath(game),
-  });
+/** Runs stomp/roll/projectile pre-damage checks. */
+function _runPreDamageChecks(game) {
+  const common = { player: game._player, enemies: game._enemies, effects: game._effects };
+  checkStomp(common);
+  checkRollKill(common);
+  checkProjectileHits({ projectiles: game._projectiles, enemies: game._enemies, effects: game._effects });
+}
 
-  checkPickups({
-    player: game._player,
-    pickups: game._pickups,
-    gameState: game.gameState,
-    hud: game._hud,
-    camera: game._camera,
-  });
+/** Runs enemy damage and pickup collision checks. */
+function _runPlayerDamageAndPickups(game) {
+  const shared = { player: game._player, gameState: game.gameState, hud: game._hud, camera: game._camera };
+  checkEnemyDamage({ ...shared, enemies: game._enemies, onDeath: () => handlePlayerDeath(game) });
+  checkPickups({ ...shared, pickups: game._pickups });
+}
 
-  if (game._victoryPoseTimer <= 0) {
-    checkInteractables({
-      player: game._player,
-      interactables: game._interactables,
-      onVictory: () => startVictorySequence(game),
-    });
-  }
+/** Runs interactable checks when not in victory pose lock. */
+function _runInteractablesIfAllowed(game) {
+  if (game._victoryPoseTimer > 0) return;
+  checkInteractables({ player: game._player, interactables: game._interactables, onVictory: () => startVictorySequence(game) });
+}
 
+/** Runs hazard damage checks. */
+function _runHazardChecks(game) {
   checkHazards({
     player: game._player,
     hazards: game._hazards,

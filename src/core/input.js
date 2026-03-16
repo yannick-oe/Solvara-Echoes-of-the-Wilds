@@ -4,23 +4,32 @@ class InputManager {
    * Creates a new instance.
    */
   constructor() {
-    this.left          = false;
-    this.right         = false;
-    this.jump          = false;
-    this.jumpPressed   = false;
-    this.enterPressed  = false;
-    this.down          = false;
-    this.up            = false;
-    this.lookUp        = false;
-    this.escPressed    = false;
-    this.pausePressed  = false;
-    this.fullscreenPressed = false;
-    this.backPressed   = false;
-    this.rollPressed   = false;
-    this.mobileUpActive = false;
+    this._resetStateFlags();
+    this._bindHandlers();
+  }
 
+  /** Handles reset state flags. */
+  _resetStateFlags() {
+    this.left = false;
+    this.right = false;
+    this.jump = false;
+    this.jumpPressed = false;
+    this.enterPressed = false;
+    this.down = false;
+    this.up = false;
+    this.lookUp = false;
+    this.escPressed = false;
+    this.pausePressed = false;
+    this.fullscreenPressed = false;
+    this.backPressed = false;
+    this.rollPressed = false;
+    this.mobileUpActive = false;
+  }
+
+  /** Handles bind handlers. */
+  _bindHandlers() {
     this._onKeyDown = this._onKeyDown.bind(this);
-    this._onKeyUp   = this._onKeyUp.bind(this);
+    this._onKeyUp = this._onKeyUp.bind(this);
   }
 
   /**
@@ -92,46 +101,72 @@ class InputManager {
    * @param {number} value Input parameter.
    */
   _apply(code, value) {
-    switch (code) {
-      case 'ArrowLeft':  case 'KeyA':
-        this.left  = value;
-        break;
-      case 'ArrowRight': case 'KeyD':
-        this.right = value;
-        break;
-      case 'Space':
-        if (value && !this.jump) this.jumpPressed = true;
-        this.jump = value;
-        break;
-      case 'ArrowUp': case 'KeyW':
-        this.up = value;
-        break;
-      case 'KeyE':
-        this.lookUp = value;
-        break;
-      case 'ArrowDown': case 'KeyS':
-        this.down  = value;
-        break;
-      case 'Enter': case 'NumpadEnter':
-        if (value) this.enterPressed = true;
-        break;
-      case 'Escape':
+    if (this._applyHorizontal(code, value)) return;
+    if (this._applyVerticalAndLook(code, value)) return;
+    if (this._applyJump(code, value)) return;
+    this._applySignalKeys(code, value);
+  }
 
-        if (value) this.escPressed = true;
-        break;
-      case 'KeyP':
-        if (value) this.pausePressed = true;
-        break;
-      case 'KeyF':
-        if (value) this.fullscreenPressed = true;
-        break;
-      case 'KeyQ':
-        if (value) this.backPressed = true;
-        break;
-      case 'KeyM':
-        if (value) this.rollPressed = true;
-        break;
+  /**
+   * Handles apply horizontal movement keys.
+   * @param {string} code Input parameter.
+   * @param {boolean} value Input parameter.
+   */
+  _applyHorizontal(code, value) {
+    if (code === 'ArrowLeft' || code === 'KeyA') {
+      this.left = value;
+      return true;
     }
+    if (code === 'ArrowRight' || code === 'KeyD') {
+      this.right = value;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handles apply vertical and lookup keys.
+   * @param {string} code Input parameter.
+   * @param {boolean} value Input parameter.
+   */
+  _applyVerticalAndLook(code, value) {
+    if (code === 'ArrowUp' || code === 'KeyW') {
+      this.up = value;
+      return true;
+    }
+    if (code === 'ArrowDown' || code === 'KeyS') {
+      this.down = value;
+      return true;
+    }
+    if (code === 'KeyE') this.lookUp = value;
+    return code === 'KeyE';
+  }
+
+  /**
+   * Handles apply jump key.
+   * @param {string} code Input parameter.
+   * @param {boolean} value Input parameter.
+   */
+  _applyJump(code, value) {
+    if (code !== 'Space') return false;
+    if (value && !this.jump) this.jumpPressed = true;
+    this.jump = value;
+    return true;
+  }
+
+  /**
+   * Handles apply signal keys.
+   * @param {string} code Input parameter.
+   * @param {boolean} value Input parameter.
+   */
+  _applySignalKeys(code, value) {
+    if (!value) return;
+    if (code === 'Enter' || code === 'NumpadEnter') this.enterPressed = true;
+    else if (code === 'Escape') this.escPressed = true;
+    else if (code === 'KeyP') this.pausePressed = true;
+    else if (code === 'KeyF') this.fullscreenPressed = true;
+    else if (code === 'KeyQ') this.backPressed = true;
+    else if (code === 'KeyM') this.rollPressed = true;
   }
 }
 export const inputManager = new InputManager();

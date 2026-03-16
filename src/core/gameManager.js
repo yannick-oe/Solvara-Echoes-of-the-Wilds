@@ -36,6 +36,20 @@ export class GameManager {
    * @param {object} container Input parameter.
    */
   constructor(canvas, container) {
+    this._initCoreState(canvas, container);
+    this._initWorldState();
+    this._initSessionState();
+    this._initUiScreens();
+    this._initTouchControls(container);
+    this._loop = this._loop.bind(this);
+  }
+
+  /**
+   * Initializes core canvas/runtime state.
+   * @param {object} canvas Input parameter.
+   * @param {object} container Input parameter.
+   */
+  _initCoreState(canvas, container) {
     this.canvas = canvas;
     this.container = container;
     this.ctx = canvas.getContext('2d');
@@ -44,55 +58,84 @@ export class GameManager {
     this._rafId = null;
     this._lastTime = 0;
     this._loopStarted = false;
+    this._selectedCharacter = loadSelectedCharacter();
+  }
+
+  /** Initializes world collections and camera/level objects. */
+  _initWorldState() {
     this._level = new Level();
     this._camera = new Camera();
-    this._parallax      = null;
-    this._player        = null;
+    this._parallax = null;
+    this._player = null;
     this._camLookOffset = 0;
-    this._enemies       = [];
-    this._projectiles   = [];
-    this._effects       = [];
-    this._pickups       = [];
+    this._enemies = [];
+    this._projectiles = [];
+    this._effects = [];
+    this._pickups = [];
     this._interactables = [];
-    this._hazards       = [];
-    this._props         = [];
-    this._hud           = new Hud(imageCache);
-    this._deathTimeoutId      = null;
-    this._victoryPoseTimer    = 0;
-    this._levelTimer          = 0;
-    this._finalLevelTime      = 0;
+    this._hazards = [];
+    this._props = [];
+    this._hud = new Hud(imageCache);
+  }
+
+  /** Initializes transition/timer/session helper fields. */
+  _initSessionState() {
+    this._deathTimeoutId = null;
+    this._victoryPoseTimer = 0;
+    this._levelTimer = 0;
+    this._finalLevelTime = 0;
     this._victoryTransitionId = null;
-    this._selectedCharacter = loadSelectedCharacter();
-    this._startScreen   = new StartScreen(() => this.restart(this._startScreen.getSelectedCharacter()));
+  }
+
+  /** Initializes all menu/screen controllers. */
+  _initUiScreens() {
+    this._startScreen = new StartScreen(() => this.restart(this._startScreen.getSelectedCharacter()));
     this._startScreen.setSelectedCharacter(this._selectedCharacter);
     this._gameOverScreen = new GameOverScreen(() => this.restart());
-    this._victoryScreen = new VictoryScreen({
-      onRestart:  () => this.restart(),
-      onMainMenu: () => {
-        audioManager.stopMusic();
-        this._startScreen.reset();
-        audioManager.playMusic('assets/audio/music/startMenu.ogg');
-        this.state = GAME_STATES.START;
-      },
+    this._victoryScreen = this._createVictoryScreen();
+    this._pauseScreen = this._createPauseScreen();
+  }
+
+  /** Creates configured victory screen controller. */
+  _createVictoryScreen() {
+    return new VictoryScreen({
+      onRestart: () => this.restart(),
+      onMainMenu: () => this._returnToStartMenu(true),
     });
-    this._pauseScreen    = new PauseScreen({
-      onResume:      () => { this.state = GAME_STATES.PLAYING; },
-      onRestart:     () => this.restart(),
-      onBackToStart: () => { audioManager.playMusic('assets/audio/music/startMenu.ogg'); this._startScreen.reset(); this.state = GAME_STATES.START; },
+  }
+
+  /** Creates configured pause screen controller. */
+  _createPauseScreen() {
+    return new PauseScreen({
+      onResume: () => { this.state = GAME_STATES.PLAYING; },
+      onRestart: () => this.restart(),
+      onBackToStart: () => this._returnToStartMenu(false),
       getSelectedCharacter: () => this._selectedCharacter,
     });
+  }
 
+  /**
+   * Returns to start menu from pause/victory context.
+   * @param {boolean} stopMusic Input parameter.
+   */
+  _returnToStartMenu(stopMusic) {
+    if (stopMusic) audioManager.stopMusic();
+    this._startScreen.reset();
+    audioManager.playMusic('assets/audio/music/startMenu.ogg');
+    this.state = GAME_STATES.START;
+  }
+
+  /**
+   * Initializes touch controls bridge.
+   * @param {object} container Input parameter.
+   */
+  _initTouchControls(container) {
     this._touchControls = new TouchControls(
       container,
       inputManager,
       () => this.state,
-      () => ({
-        startSubOpen: this._startScreen.isSubPanelOpen(),
-        pauseSubOpen: this._pauseScreen.isSubPanelOpen(),
-      })
+      () => ({ startSubOpen: this._startScreen.isSubPanelOpen(), pauseSubOpen: this._pauseScreen.isSubPanelOpen() })
     );
-
-    this._loop = this._loop.bind(this);
   }
 
   /**
@@ -100,19 +143,38 @@ export class GameManager {
    */
   async start() {
     this._drawLoadingScreen();
+    await this._loadWorldAssets();
+    this._initWorldRenderSystems();
+    this._initRuntimeSystems();
+    this._enterStartState();
+  }
+
+  /** Loads required level and image assets. */
+  async _loadWorldAssets() {
     await imageCache.preload(ASSET_ENTRIES);
     await imageCache.preload(PROP_ASSET_ENTRIES);
     await this._level.load('assets/data/levels/level_01.json');
     initEntities(this);
+  }
+
+  /** Initializes camera/parallax systems for world rendering. */
+  _initWorldRenderSystems() {
     this._camera.y = 0;
     this._parallax = new Parallax([
-      { img: imageCache.get('BG_FOREST_BACK'),   speed: 0.15 },
-      { img: imageCache.get('BG_FOREST_MIDDLE'), speed: 0.4,
-        drawH: Math.round(CANVAS_HEIGHT * 0.58), alignBottom: true },
+      { img: imageCache.get('BG_FOREST_BACK'), speed: 0.15 },
+      { img: imageCache.get('BG_FOREST_MIDDLE'), speed: 0.4, drawH: Math.round(CANVAS_HEIGHT * 0.58), alignBottom: true },
     ]);
+  }
+
+  /** Initializes runtime input/audio/touch systems. */
+  _initRuntimeSystems() {
     inputManager.init();
     audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
     this._touchControls.init();
+  }
+
+  /** Enters start state and begins animation loop. */
+  _enterStartState() {
     this.state = GAME_STATES.START;
     this._rafId = requestAnimationFrame(this._loop);
   }
@@ -181,24 +243,29 @@ export class GameManager {
    * @param {number} dt Input parameter.
    */
   _update(dt) {
-    switch (this.state) {
-      case GAME_STATES.START:
-        audioManager.playMusic('assets/audio/music/startMenu.ogg');
-        this._startScreen.handleInput(inputManager);
-        break;
-      case GAME_STATES.PLAYING:    this._updatePlaying(dt); break;
-      case GAME_STATES.GAMEOVER:
-        this._gameOverScreen.update(dt);
-        this._gameOverScreen.handleInput(inputManager);
-        break;
-      case GAME_STATES.VICTORY:
-        this._victoryScreen.update(dt);
-        this._victoryScreen.handleInput(inputManager);
-        break;
-      case GAME_STATES.PAUSED:
-        this._pauseScreen.handleInput(inputManager);
-        break;
-    }
+    if (this.state === GAME_STATES.START) return this._updateStartScreen();
+    if (this.state === GAME_STATES.PLAYING) return this._updatePlaying(dt);
+    if (this.state === GAME_STATES.GAMEOVER) return this._updateGameOverScreen(dt);
+    if (this.state === GAME_STATES.VICTORY) return this._updateVictoryScreen(dt);
+    if (this.state === GAME_STATES.PAUSED) this._pauseScreen.handleInput(inputManager);
+  }
+
+  /** Updates start menu state input and music. */
+  _updateStartScreen() {
+    audioManager.playMusic('assets/audio/music/startMenu.ogg');
+    this._startScreen.handleInput(inputManager);
+  }
+
+  /** Updates game-over screen state input. */
+  _updateGameOverScreen(dt) {
+    this._gameOverScreen.update(dt);
+    this._gameOverScreen.handleInput(inputManager);
+  }
+
+  /** Updates victory screen state input. */
+  _updateVictoryScreen(dt) {
+    this._victoryScreen.update(dt);
+    this._victoryScreen.handleInput(inputManager);
   }
 
   /**
@@ -335,38 +402,59 @@ export class GameManager {
    * Handles draw.
    */
   _draw() {
+    this._clearFrame();
+    this.ctx.imageSmoothingEnabled = false;
+    this._drawStateFrame();
+  }
+
+  /** Clears frame to base background color. */
+  _clearFrame() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = '#1a1220';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.imageSmoothingEnabled = false;
-    switch (this.state) {
-      case GAME_STATES.START:
-        this._startScreen.draw(this.ctx);
-        break;
-      case GAME_STATES.PLAYING:
-        this._drawWorld();
-        break;
-      case GAME_STATES.PAUSED:
-        this._drawWorld();
-        this._pauseScreen.draw(this.ctx);
-        break;
-      case GAME_STATES.GAMEOVER:
-        this._gameOverScreen.draw(this.ctx);
-        break;
-      case GAME_STATES.VICTORY:
-        this._victoryScreen.draw(this.ctx);
-        break;
-    }
+  }
+
+  /** Draws current state frame content. */
+  _drawStateFrame() {
+    if (this.state === GAME_STATES.START) return this._startScreen.draw(this.ctx);
+    if (this.state === GAME_STATES.PLAYING) return this._drawWorld();
+    if (this.state === GAME_STATES.PAUSED) return this._drawPausedWorld();
+    if (this.state === GAME_STATES.GAMEOVER) return this._gameOverScreen.draw(this.ctx);
+    if (this.state === GAME_STATES.VICTORY) this._victoryScreen.draw(this.ctx);
+  }
+
+  /** Draws world and pause overlay. */
+  _drawPausedWorld() {
+    this._drawWorld();
+    this._pauseScreen.draw(this.ctx);
   }
 
   /**
    * Handles draw world.
    */
   _drawWorld() {
+    this._drawParallaxLayer();
+    this._drawWorldEntities();
+    this._drawLightingOverlay();
+    this._hud.draw(this.ctx, this.gameState);
+  }
+
+  /** Draws parallax background layer. */
+  _drawParallaxLayer() {
     this._parallax?.draw(this.ctx, this._camera.x);
+  }
+
+  /** Draws world tilemap and in-world entities within camera transform. */
+  _drawWorldEntities() {
     this.ctx.save();
     this._camera.applyTransform(this.ctx);
     this._level.tileMap?.draw(this.ctx, this._camera);
+    this._drawWorldPropAndEntityPass();
+    this.ctx.restore();
+  }
+
+  /** Draws back/front props and entity passes in world space. */
+  _drawWorldPropAndEntityPass() {
     this._drawProps('back');
     this._drawEntityGroup(this._hazards);
     this._drawEntityGroup(this._interactables);
@@ -376,9 +464,6 @@ export class GameManager {
     this._drawActiveEntityGroup(this._effects);
     this._drawActiveEntityGroup(this._pickups);
     this._drawProps('front');
-    this.ctx.restore();
-    this._drawLightingOverlay();
-    this._hud.draw(this.ctx, this.gameState);
   }
 
   /**
@@ -415,29 +500,63 @@ export class GameManager {
    * @param {object} layer Input parameter.
    */
   _drawProps(layer) {
-    const ctx = this.ctx;
     for (const prop of this._props) {
       if (prop.layer !== layer) continue;
-      const img = imageCache.get(prop.key);
-      if (!img) continue;
-      const w = img.naturalWidth  * prop.scaleX;
-      const h = img.naturalHeight * prop.scaleY;
-      ctx.save();
-      if (prop.alpha !== 1) ctx.globalAlpha = prop.alpha;
-      if (prop.flipX || prop.flipY) {
-        const sx = prop.flipX ? -1 : 1;
-        const sy = prop.flipY ? -1 : 1;
-        ctx.translate(
-          prop.x + (prop.flipX ? w : 0),
-          prop.y + (prop.flipY ? h : 0)
-        );
-        ctx.scale(sx, sy);
-        ctx.drawImage(img, 0, 0, w, h);
-      } else {
-        ctx.drawImage(img, prop.x, prop.y, w, h);
-      }
-      ctx.restore();
+      this._drawSingleProp(prop);
     }
+  }
+
+  /**
+   * Draws one prop entry when asset image is available.
+   * @param {object} prop Input parameter.
+   */
+  _drawSingleProp(prop) {
+    const img = imageCache.get(prop.key);
+    if (!img) return;
+    const size = this._propDrawSize(img, prop);
+    this.ctx.save();
+    if (prop.alpha !== 1) this.ctx.globalAlpha = prop.alpha;
+    this._drawPropImage(prop, img, size);
+    this.ctx.restore();
+  }
+
+  /**
+   * Computes draw size for prop image.
+   * @param {object} img Input parameter.
+   * @param {object} prop Input parameter.
+   */
+  _propDrawSize(img, prop) {
+    const w = img.naturalWidth * prop.scaleX;
+    const h = img.naturalHeight * prop.scaleY;
+    return { w, h };
+  }
+
+  /**
+   * Draws prop image with optional flip transform.
+   * @param {object} prop Input parameter.
+   * @param {object} img Input parameter.
+   * @param {object} size Input parameter.
+   */
+  _drawPropImage(prop, img, size) {
+    if (!prop.flipX && !prop.flipY) {
+      this.ctx.drawImage(img, prop.x, prop.y, size.w, size.h);
+      return;
+    }
+    this._drawFlippedPropImage(prop, img, size);
+  }
+
+  /**
+   * Draws prop image with flipped axis transforms.
+   * @param {object} prop Input parameter.
+   * @param {object} img Input parameter.
+   * @param {object} size Input parameter.
+   */
+  _drawFlippedPropImage(prop, img, size) {
+    const sx = prop.flipX ? -1 : 1;
+    const sy = prop.flipY ? -1 : 1;
+    this.ctx.translate(prop.x + (prop.flipX ? size.w : 0), prop.y + (prop.flipY ? size.h : 0));
+    this.ctx.scale(sx, sy);
+    this.ctx.drawImage(img, 0, 0, size.w, size.h);
   }
 
   /**

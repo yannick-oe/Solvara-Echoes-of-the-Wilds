@@ -71,20 +71,40 @@ class AudioManager {
   fadeOutMusic(durationMs) {
     this._cancelFade();
     if (!this._musicEl) return;
-    const steps    = 16;
-    const stepMs   = Math.max(10, Math.round(durationMs / steps));
-    const startVol = this._musicEl.volume;
-    let   step     = 0;
-    this._fadeInterval = setInterval(() => {
-      step++;
-      if (!this._musicEl) { this._cancelFade(); return; }
-      this._musicEl.volume = Math.max(0, startVol * (1 - step / steps));
-      if (step >= steps) {
-        clearInterval(this._fadeInterval);
-        this._fadeInterval = null;
-        this.stopMusic();
-      }
-    }, stepMs);
+    const state = this._createFadeState(durationMs);
+    this._startFadeInterval(state);
+  }
+
+  /**
+   * Creates fade interval state object.
+   * @param {number} durationMs Input parameter.
+   */
+  _createFadeState(durationMs) {
+    const steps = 16;
+    const stepMs = Math.max(10, Math.round(durationMs / steps));
+    return { steps, stepMs, startVol: this._musicEl.volume, step: 0 };
+  }
+
+  /**
+   * Starts fade interval with precomputed state.
+   * @param {object} state Input parameter.
+   */
+  _startFadeInterval(state) {
+    this._fadeInterval = setInterval(() => this._runFadeStep(state), state.stepMs);
+  }
+
+  /**
+   * Runs one music fade step.
+   * @param {object} state Input parameter.
+   */
+  _runFadeStep(state) {
+    state.step++;
+    if (!this._musicEl) return this._cancelFade();
+    this._musicEl.volume = Math.max(0, state.startVol * (1 - state.step / state.steps));
+    if (state.step < state.steps) return;
+    clearInterval(this._fadeInterval);
+    this._fadeInterval = null;
+    this.stopMusic();
   }
 
   /**
@@ -174,24 +194,45 @@ class AudioManager {
     this._cancelFade();
     if (!this.musicEnabled) return;
     if (this._musicSrc === oggSrc && this._musicEl && !this._musicEl.paused) return;
-    if (this._musicSrc === oggSrc && this._musicEl) {
-      this._musicEl.play().catch(() => {});
-      return;
-    }
+    if (this._resumeIfSameTrack(oggSrc)) return;
+    this._replaceMusicElement(oggSrc);
+    this._playCurrentMusicOrDefer(oggSrc);
+  }
+
+  /**
+   * Resumes paused track when source is unchanged.
+   * @param {string} oggSrc Input parameter.
+   */
+  _resumeIfSameTrack(oggSrc) {
+    if (this._musicSrc !== oggSrc || !this._musicEl) return false;
+    this._musicEl.play().catch(() => {});
+    return true;
+  }
+
+  /**
+   * Replaces current music element with new source.
+   * @param {string} oggSrc Input parameter.
+   */
+  _replaceMusicElement(oggSrc) {
     if (this._musicEl) {
       this._musicEl.pause();
       this._musicEl.src = '';
       this._musicEl = null;
     }
     this._musicSrc = oggSrc;
-    const audio    = new Audio(oggSrc);
-    audio.loop     = true;
-    audio.volume   = this._musicFinalVol;
-    this._musicEl  = audio;
-    const playResult = audio.play().catch(() => null);
-    if (playResult === undefined || (playResult && playResult.catch)) {
-      this._deferredMusicSrc = oggSrc;
-    }
+    const audio = new Audio(oggSrc);
+    audio.loop = true;
+    audio.volume = this._musicFinalVol;
+    this._musicEl = audio;
+  }
+
+  /**
+   * Tries playing current music and stores deferred source when blocked.
+   * @param {string} oggSrc Input parameter.
+   */
+  _playCurrentMusicOrDefer(oggSrc) {
+    const playResult = this._musicEl.play().catch(() => null);
+    if (playResult === undefined || (playResult && playResult.catch)) this._deferredMusicSrc = oggSrc;
   }
 
   /**

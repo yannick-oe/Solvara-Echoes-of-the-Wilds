@@ -72,21 +72,45 @@ export class PauseScreen {
    * @param {object} input Input parameter.
    */
   handleInput(input) {
-    if (this._subScreen === 'options') {
-      if (input.pausePressed) { this._subScreen = null; return; }
-      this._handleOptionsInput(input);
-      return;
-    }
-    if (this._subScreen === 'controls') {
-      if (input.backPressed || input.pausePressed) {
-        this._subScreen = null;
-      }
-      return;
-    }
-    if (input.pausePressed) {
-      this._onResume();
-      return;
-    }
+    if (this._handleSubScreenInput(input)) return;
+    if (input.pausePressed) return this._onResume();
+    this._handleMainMenuInput(input);
+  }
+
+  /**
+   * Handles input while a pause subpanel is open.
+   * @param {object} input Input parameter.
+   */
+  _handleSubScreenInput(input) {
+    if (this._subScreen === 'options') return this._handleOptionsSubInput(input);
+    if (this._subScreen === 'controls') return this._handleControlsSubInput(input);
+    return false;
+  }
+
+  /**
+   * Handles options subpanel input and returns consumed state.
+   * @param {object} input Input parameter.
+   */
+  _handleOptionsSubInput(input) {
+    if (input.pausePressed) { this._subScreen = null; return true; }
+    this._handleOptionsInput(input);
+    return true;
+  }
+
+  /**
+   * Handles controls subpanel input and returns consumed state.
+   * @param {object} input Input parameter.
+   */
+  _handleControlsSubInput(input) {
+    if (input.backPressed || input.pausePressed) this._subScreen = null;
+    return true;
+  }
+
+  /**
+   * Handles pause menu navigation and activation.
+   * @param {object} input Input parameter.
+   */
+  _handleMainMenuInput(input) {
     const upNow   = input.up;
     const downNow = input.down;
     if (upNow && !this._prevUp) {
@@ -98,9 +122,7 @@ export class PauseScreen {
     }
     this._prevUp   = upNow;
     this._prevDown = downNow;
-    if (input.jumpPressed || input.enterPressed) {
-      this._activate(PAUSE_ITEMS[this._selectedIndex]);
-    }
+    if (input.jumpPressed || input.enterPressed) this._activate(PAUSE_ITEMS[this._selectedIndex]);
   }
 
   /**
@@ -114,24 +136,23 @@ export class PauseScreen {
    * @param {object} item Input parameter.
    */
   _activate(item) {
-    switch (item) {
-      case 'continue':
-        this._onResume();
-        break;
-      case 'restartLevel':
-        this._onRestart();
-        break;
-      case 'options':
-        this._subScreen   = 'options';
-        this._optionIndex = 0;
-        break;
-      case 'controls':
-        this._subScreen = 'controls';
-        break;
-      case 'mainMenu':
-        this._onBackToStart();
-        break;
+    if (item === 'continue') return this._onResume();
+    if (item === 'restartLevel') return this._onRestart();
+    if (item === 'mainMenu') return this._onBackToStart();
+    this._openSubScreen(item);
+  }
+
+  /**
+   * Opens a pause sub screen when selected from menu.
+   * @param {string} item Input parameter.
+   */
+  _openSubScreen(item) {
+    if (item === 'options') {
+      this._subScreen = 'options';
+      this._optionIndex = 0;
+      return;
     }
+    if (item === 'controls') this._subScreen = 'controls';
   }
 
   /**
@@ -156,7 +177,18 @@ export class PauseScreen {
    */
   _drawMainMenu(ctx, now) {
     drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, false);
-    ctx.textAlign    = 'center';
+    this._drawPauseMenuTitle(ctx, now);
+    this._drawPauseMenuSeparators(ctx);
+    PAUSE_ITEMS.forEach((id, i) => this._drawPauseMenuRow(ctx, id, ZONE_Y[i], i === this._selectedIndex));
+  }
+
+  /**
+   * Draws pause menu title text.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} now Input parameter.
+   */
+  _drawPauseMenuTitle(ctx, now) {
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.90)';
@@ -165,46 +197,90 @@ export class PauseScreen {
     ctx.font        = 'bold 32px serif';
     ctx.fillText('PAUSE', CX, TITLE_Y);
     ctx.restore();
+  }
+
+  /**
+   * Draws title separator and row separators.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawPauseMenuSeparators(ctx) {
+    this._drawPauseTitleSeparator(ctx);
+    ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
+    ctx.lineWidth   = 1;
+    for (let i = 1; i < PAUSE_ITEMS.length; i++) this._drawPauseRowSeparator(ctx, i);
+  }
+
+  /**
+   * Draws main title separator line.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawPauseTitleSeparator(ctx) {
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.65)';
     ctx.lineWidth   = 2;
     ctx.beginPath();
     ctx.moveTo(PANEL_X + 12, TITLE_SEP_Y);
     ctx.lineTo(PANEL_X + PANEL_W - 12, TITLE_SEP_Y);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
-    ctx.lineWidth   = 1;
-    for (let i = 1; i < PAUSE_ITEMS.length; i++) {
-      const sy = TITLE_SEP_Y + ITEM_ZONE_H * i;
-      ctx.beginPath();
-      ctx.moveTo(PANEL_X + 8,           sy);
-      ctx.lineTo(PANEL_X + PANEL_W - 8, sy);
-      ctx.stroke();
-    }
-    PAUSE_ITEMS.forEach((id, i) => {
-      const y        = ZONE_Y[i];
-      const selected = i === this._selectedIndex;
-      if (selected) {
-        const hl = ctx.createLinearGradient(PANEL_X, y, PANEL_X + PANEL_W, y);
-        hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
-        hl.addColorStop(0.10, 'rgba(20, 10, 4, 0.55)');
-        hl.addColorStop(0.90, 'rgba(20, 10, 4, 0.55)');
-        hl.addColorStop(1,    'rgba(20, 10, 4, 0.00)');
-        ctx.fillStyle = hl;
-        ctx.fillRect(PANEL_X, y - 17, PANEL_W, 34);
-        ctx.save();
-        ctx.shadowColor = 'rgba(240,192,0,0.55)';
-        ctx.shadowBlur  = 6;
-        ctx.fillStyle   = '#f0c040';
-        ctx.font        = 'bold 13px monospace';
-        ctx.textAlign   = 'left';
-        ctx.fillText('▶', PANEL_X + 18, y);
-        ctx.restore();
-      }
-      ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
-      ctx.font      = selected ? 'bold 16px monospace' : '14px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(t(id), CX, y);
-    });
+  }
+
+  /**
+   * Draws one menu row separator.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} i Input parameter.
+   */
+  _drawPauseRowSeparator(ctx, i) {
+    const sy = TITLE_SEP_Y + ITEM_ZONE_H * i;
+    ctx.beginPath();
+    ctx.moveTo(PANEL_X + 8, sy);
+    ctx.lineTo(PANEL_X + PANEL_W - 8, sy);
+    ctx.stroke();
+  }
+
+  /**
+   * Draws one pause menu row.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {string} id Input parameter.
+   * @param {number} y Input parameter.
+   * @param {boolean} selected Input parameter.
+   */
+  _drawPauseMenuRow(ctx, id, y, selected) {
+    if (selected) this._drawPauseSelectedRow(ctx, y);
+    ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
+    ctx.font      = selected ? 'bold 16px monospace' : '14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(t(id), CX, y);
+  }
+
+  /**
+   * Draws selected row background and pointer marker.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} y Input parameter.
+   */
+  _drawPauseSelectedRow(ctx, y) {
+    const hl = ctx.createLinearGradient(PANEL_X, y, PANEL_X + PANEL_W, y);
+    hl.addColorStop(0, 'rgba(20, 10, 4, 0.00)');
+    hl.addColorStop(0.10, 'rgba(20, 10, 4, 0.55)');
+    hl.addColorStop(0.90, 'rgba(20, 10, 4, 0.55)');
+    hl.addColorStop(1, 'rgba(20, 10, 4, 0.00)');
+    ctx.fillStyle = hl;
+    ctx.fillRect(PANEL_X, y - 17, PANEL_W, 34);
+    this._drawPausePointer(ctx, y);
+  }
+
+  /**
+   * Draws selected-row pointer glyph.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} y Input parameter.
+   */
+  _drawPausePointer(ctx, y) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(240,192,0,0.55)';
+    ctx.shadowBlur  = 6;
+    ctx.fillStyle   = '#f0c040';
+    ctx.font        = 'bold 13px monospace';
+    ctx.textAlign   = 'left';
+    ctx.fillText('▶', PANEL_X + 18, y);
+    ctx.restore();
   }
 
   /**
@@ -215,7 +291,18 @@ export class PauseScreen {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     drawWoodPanel(ctx, SUB_X, SUB_Y, SUB_W, SUB_H, false);
-    ctx.textAlign    = 'center';
+    this._drawSubPanelHeader(ctx);
+    if (this._subScreen === 'options') this._drawOptionsContent(ctx);
+    else this._drawControlsContent(ctx);
+    this._drawSubPanelFooter(ctx);
+  }
+
+  /**
+   * Draws pause sub panel header text.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubPanelHeader(ctx) {
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.5)';
@@ -224,11 +311,13 @@ export class PauseScreen {
     ctx.font        = 'bold 22px serif';
     ctx.fillText(t(this._subScreen), CX, SUB_Y + 32);
     ctx.restore();
-    if (this._subScreen === 'options') {
-      this._drawOptionsContent(ctx);
-    } else {
-      this._drawControlsContent(ctx);
-    }
+  }
+
+  /**
+   * Draws pause sub panel footer hint.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubPanelFooter(ctx) {
     ctx.font      = '11px monospace';
     ctx.fillStyle = '#c8b090';
     ctx.textAlign = 'center';

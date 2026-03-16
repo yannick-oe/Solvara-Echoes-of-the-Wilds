@@ -112,22 +112,28 @@ export function spawnHazards(levelContent) {
  */
 export function spawnProps(levelContent) {
   const defs = levelContent?.props ?? [];
-  return defs.map(def => {
-    const entry = PROP_REGISTRY[def.asset];
-    if (!entry) return null;
-    const base   = entry.defaultScale ?? 1;
-    const instU  = def.scale  ?? 1;
-    return {
-      key:    entry.key,
-      x:      def.x     ?? 0,
-      y:      def.y     ?? 0,
-      layer:  def.layer ?? 'back',
-      scaleX: base * (def.scaleX ?? instU),
-      scaleY: base * (def.scaleY ?? instU),
-      flipX:  def.flipX ?? false,
-      flipY:  def.flipY ?? false,
-      alpha:  def.alpha ?? 1,
-    };
-  }).filter(Boolean);
+  return defs.map(def => _createPropInstance(def)).filter(Boolean);
+}
+
+/**
+ * Creates one decorative prop instance from level definition.
+ * @param {object} def Input parameter.
+ */
+function _createPropInstance(def) {
+  const entry = PROP_REGISTRY[def.asset];
+  if (!entry) return null;
+  const baseScale = entry.defaultScale ?? 1;
+  const uniformScale = def.scale ?? 1;
+  return {
+    key: entry.key,
+    x: def.x ?? 0,
+    y: def.y ?? 0,
+    layer: def.layer ?? 'back',
+    scaleX: baseScale * (def.scaleX ?? uniformScale),
+    scaleY: baseScale * (def.scaleY ?? uniformScale),
+    flipX: def.flipX ?? false,
+    flipY: def.flipY ?? false,
+    alpha: def.alpha ?? 1,
+  };
 }
 // #endregion

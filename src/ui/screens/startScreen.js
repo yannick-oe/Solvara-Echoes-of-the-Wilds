@@ -55,20 +55,30 @@ export class StartScreen {
     this._selectedIndex = 0;
     this._subScreen     = null;
     this._optionIndex   = 0;
-    this._prevUp    = false;
-    this._prevDown  = false;
-    this._prevLeft  = false;
+    this._resetInputEdges();
+    this._fireflies = this._createFireflies();
+    this._lastDrawTime = null;
+  }
+
+  /** Handles reset input edges. */
+  _resetInputEdges() {
+    this._prevUp = false;
+    this._prevDown = false;
+    this._prevLeft = false;
     this._prevRight = false;
-    this._fireflies = Array.from({ length: 12 }, () => ({
-      x:     Math.random() * CANVAS_WIDTH,
-      y:     40 + Math.random() * (CANVAS_HEIGHT - 80),
-      vx:    (Math.random() - 0.5) * 22,
-      vy:    -3 - Math.random() * 9,
-      size:  0.9 + Math.random() * 1.4,
+  }
+
+  /** Handles create fireflies. */
+  _createFireflies() {
+    return Array.from({ length: 12 }, () => ({
+      x: Math.random() * CANVAS_WIDTH,
+      y: 40 + Math.random() * (CANVAS_HEIGHT - 80),
+      vx: (Math.random() - 0.5) * 22,
+      vy: -3 - Math.random() * 9,
+      size: 0.9 + Math.random() * 1.4,
       phase: Math.random() * Math.PI * 2,
       color: Math.random() < 0.55 ? '#c8ff9a' : '#eaffb0',
     }));
-    this._lastDrawTime = null;
   }
 
   /** Resets the start screen state (selection, sub-panel, fireflies). */
@@ -101,36 +111,62 @@ export class StartScreen {
    * @param {object} input
    */
   handleInput(input) {
+    if (this._handleSubScreenInput(input)) return;
+    this._handleMainMenuInput(input);
+  }
 
-    if (this._subScreen !== null) {
-      if (this._subScreen === 'options') {
-        this._handleOptionsInput(input);
-      } else {
-        if (input.backPressed) {
-          this._subScreen = null;
-        }
-      }
-      return;
-    }
-    const upNow   = input.up;
+  /**
+   * Returns true when a sub panel consumed input.
+   * @param {object} input Input parameter.
+   */
+  _handleSubScreenInput(input) {
+    if (this._subScreen === null) return false;
+    if (this._subScreen === 'options') this._handleOptionsInput(input);
+    else if (input.backPressed) this._subScreen = null;
+    return true;
+  }
+
+  /**
+   * Handles menu navigation and activation when no sub panel is open.
+   * @param {object} input Input parameter.
+   */
+  _handleMainMenuInput(input) {
+    const upNow = input.up;
     const downNow = input.down;
     const leftNow  = input.left;
     const rightNow = input.right;
+    this._handleVerticalInput(upNow, downNow);
+    this._handleCharacterInput(leftNow, rightNow);
+    this._cacheDirectionEdges(upNow, downNow, leftNow, rightNow);
+    if (input.enterPressed || input.jumpPressed) this._activate(MENU_IDS[this._selectedIndex]);
+  }
+
+  /**
+   * Handles vertical menu input.
+   * @param {boolean} upNow Input parameter.
+   * @param {boolean} downNow Input parameter.
+   */
+  _handleVerticalInput(upNow, downNow) {
     if (upNow && !this._prevUp) {
-      this._selectedIndex =
-        (this._selectedIndex - 1 + MENU_IDS.length) % MENU_IDS.length;
+      this._selectedIndex = (this._selectedIndex - 1 + MENU_IDS.length) % MENU_IDS.length;
     }
     if (downNow && !this._prevDown) {
       this._selectedIndex = (this._selectedIndex + 1) % MENU_IDS.length;
     }
-    this._handleCharacterInput(leftNow, rightNow);
-    this._prevUp   = upNow;
+  }
+
+  /**
+   * Handles cache direction edges.
+   * @param {boolean} upNow Input parameter.
+   * @param {boolean} downNow Input parameter.
+   * @param {boolean} leftNow Input parameter.
+   * @param {boolean} rightNow Input parameter.
+   */
+  _cacheDirectionEdges(upNow, downNow, leftNow, rightNow) {
+    this._prevUp = upNow;
     this._prevDown = downNow;
-    this._prevLeft  = leftNow;
+    this._prevLeft = leftNow;
     this._prevRight = rightNow;
-    if (input.enterPressed || input.jumpPressed) {
-      this._activate(MENU_IDS[this._selectedIndex]);
-    }
   }
 
   /**
@@ -170,26 +206,36 @@ export class StartScreen {
    * @param {string} id Input parameter.
    */
   _activate(id) {
-    switch (id) {
-      case 'start':
-        if (this._started) return;
-        this._started = true;
-        this._onStart();
-        break;
-      case 'character':
-        this._shiftSelectedCharacter(1);
-        break;
-      case 'options':
-        this._subScreen   = 'options';
-        this._optionIndex = 0;
-        break;
-      case 'controls':
-        this._subScreen = 'controls';
-        break;
-      case 'credits':
-        this._subScreen = 'credits';
-        break;
-    }
+    const actions = {
+      start: () => this._activateStart(),
+      character: () => this._shiftSelectedCharacter(1),
+      options: () => this._openOptions(),
+      controls: () => this._openSubScreen('controls'),
+      credits: () => this._openSubScreen('credits'),
+    };
+    const action = actions[id];
+    if (action) action();
+  }
+
+  /** Handles activate start action. */
+  _activateStart() {
+    if (this._started) return;
+    this._started = true;
+    this._onStart();
+  }
+
+  /** Handles open options action. */
+  _openOptions() {
+    this._subScreen = 'options';
+    this._optionIndex = 0;
+  }
+
+  /**
+   * Handles open subscreen.
+   * @param {string} name Input parameter.
+   */
+  _openSubScreen(name) {
+    this._subScreen = name;
   }
 
   /**
@@ -198,25 +244,45 @@ export class StartScreen {
    */
   draw(ctx) {
     const now = performance.now() / 1000;
-    const dt  = this._lastDrawTime !== null
-      ? Math.min(now - this._lastDrawTime, 0.05)
-      : 0;
-    this._lastDrawTime = now;
-    for (const ff of this._fireflies) {
-      ff.x = ((ff.x + ff.vx * dt) % CANVAS_WIDTH  + CANVAS_WIDTH)  % CANVAS_WIDTH;
-      ff.y = ((ff.y + ff.vy * dt) % CANVAS_HEIGHT + CANVAS_HEIGHT) % CANVAS_HEIGHT;
-    }
+    const dt  = this._getDrawDt(now);
+    this._updateFireflies(dt);
     this._drawBackground(ctx);
     this._drawFireflies(ctx, now);
     this._drawVignette(ctx);
     this._drawTitle(ctx, now);
-    if (this._subScreen !== null) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      this._drawSubPanel(ctx);
-    } else {
-      this._drawMenu(ctx, now);
+    if (this._subScreen !== null) this._drawSubPanelOverlay(ctx);
+    else this._drawMenu(ctx, now);
+  }
+
+  /**
+   * Computes frame delta time and updates last draw timestamp.
+   * @param {number} now Input parameter.
+   */
+  _getDrawDt(now) {
+    const dt = this._lastDrawTime !== null ? Math.min(now - this._lastDrawTime, 0.05) : 0;
+    this._lastDrawTime = now;
+    return dt;
+  }
+
+  /**
+   * Advances firefly positions with wrapping.
+   * @param {number} dt Input parameter.
+   */
+  _updateFireflies(dt) {
+    for (const ff of this._fireflies) {
+      ff.x = ((ff.x + ff.vx * dt) % CANVAS_WIDTH  + CANVAS_WIDTH)  % CANVAS_WIDTH;
+      ff.y = ((ff.y + ff.vy * dt) % CANVAS_HEIGHT + CANVAS_HEIGHT) % CANVAS_HEIGHT;
     }
+  }
+
+  /**
+   * Draws dim overlay and the currently active sub panel.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubPanelOverlay(ctx) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    this._drawSubPanel(ctx);
   }
 
   /**
@@ -234,19 +300,36 @@ export class StartScreen {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     this._drawTitleBanner(ctx);
+    this._drawMainTitleText(ctx, now);
+    this._drawSubtitleText(ctx);
+  }
+
+  /**
+   * Draws glowing Solvara title text.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} now Input parameter.
+   */
+  _drawMainTitleText(ctx, now) {
     const blur = 12 + Math.sin(now * 2.0) * 4;
     ctx.save();
-    ctx.shadowColor   = 'rgba(240, 192, 0, 0.85)';
-    ctx.shadowBlur    = blur;
-    ctx.fillStyle     = '#f0c040';
-    ctx.font          = 'bold 46px serif';
+    ctx.shadowColor = 'rgba(240, 192, 0, 0.85)';
+    ctx.shadowBlur  = blur;
+    ctx.fillStyle   = '#f0c040';
+    ctx.font        = 'bold 46px serif';
     ctx.fillText('Solvara', CX, TITLE_Y);
     ctx.restore();
+  }
+
+  /**
+   * Draws subtitle text below the title.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubtitleText(ctx) {
     ctx.save();
-    ctx.shadowColor   = 'rgba(0, 0, 0, 0.90)';
-    ctx.shadowBlur    = 4;
-    ctx.fillStyle     = '#a8d8a8';
-    ctx.font          = '19px serif';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
+    ctx.shadowBlur  = 4;
+    ctx.fillStyle   = '#a8d8a8';
+    ctx.font        = '19px serif';
     ctx.fillText('Echoes of the Wilds', CX, SUBTITLE_Y);
     ctx.restore();
   }
@@ -261,32 +344,63 @@ export class StartScreen {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     const ZONE_Y = this._menuZoneRows();
-    MENU_IDS.forEach((id, i) => {
-      const y        = ZONE_Y[i];
-      const selected = i === this._selectedIndex;
-      const label = this._menuLabel(id, selected);
-      if (selected) {
-        const hl = ctx.createLinearGradient(WOOD_X, y, WOOD_X + WOOD_W, y);
-        hl.addColorStop(0,    'rgba(20, 10, 4, 0.00)');
-        hl.addColorStop(0.12, 'rgba(20, 10, 4, 0.55)');
-        hl.addColorStop(0.88, 'rgba(20, 10, 4, 0.55)');
-        hl.addColorStop(1,    'rgba(20, 10, 4, 0.00)');
-        ctx.fillStyle = hl;
-        ctx.fillRect(WOOD_X, y - 16, WOOD_W, 32);
-        ctx.save();
-        ctx.shadowColor = 'rgba(240,192,0,0.6)';
-        ctx.shadowBlur  = 8;
-        ctx.fillStyle   = '#f0c040';
-        ctx.font        = 'bold 13px monospace';
-        ctx.textAlign   = 'left';
-        ctx.fillText('▶', WOOD_X + 20, y);
-        ctx.restore();
-      }
-      ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
-      ctx.font      = selected ? 'bold 16px monospace' : '14px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(label, CX + 8, y);
-    });
+    MENU_IDS.forEach((id, i) => this._drawMenuRow(ctx, id, ZONE_Y[i], i === this._selectedIndex));
+    this._drawMenuFooter(ctx);
+  }
+
+  /**
+   * Draws one menu row with optional selection highlight.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {string} id Input parameter.
+   * @param {number} y Input parameter.
+   * @param {boolean} selected Input parameter.
+   */
+  _drawMenuRow(ctx, id, y, selected) {
+    const label = this._menuLabel(id, selected);
+    if (selected) this._drawSelectedMenuRow(ctx, y);
+    ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
+    ctx.font      = selected ? 'bold 16px monospace' : '14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, CX + 8, y);
+  }
+
+  /**
+   * Draws selected-row glow bar and pointer marker.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} y Input parameter.
+   */
+  _drawSelectedMenuRow(ctx, y) {
+    const hl = ctx.createLinearGradient(WOOD_X, y, WOOD_X + WOOD_W, y);
+    hl.addColorStop(0, 'rgba(20, 10, 4, 0.00)');
+    hl.addColorStop(0.12, 'rgba(20, 10, 4, 0.55)');
+    hl.addColorStop(0.88, 'rgba(20, 10, 4, 0.55)');
+    hl.addColorStop(1, 'rgba(20, 10, 4, 0.00)');
+    ctx.fillStyle = hl;
+    ctx.fillRect(WOOD_X, y - 16, WOOD_W, 32);
+    this._drawMenuPointer(ctx, y);
+  }
+
+  /**
+   * Draws the left arrow marker for the selected row.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} y Input parameter.
+   */
+  _drawMenuPointer(ctx, y) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(240,192,0,0.6)';
+    ctx.shadowBlur  = 8;
+    ctx.fillStyle   = '#f0c040';
+    ctx.font        = 'bold 13px monospace';
+    ctx.textAlign   = 'left';
+    ctx.fillText('▶', WOOD_X + 20, y);
+    ctx.restore();
+  }
+
+  /**
+   * Draws menu footer hint text.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawMenuFooter(ctx) {
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.7)';
     ctx.shadowBlur  = 4;
@@ -331,6 +445,16 @@ export class StartScreen {
    */
   _drawSubPanel(ctx) {
     drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, false);
+    this._drawSubPanelHeader(ctx);
+    this._drawSubPanelContent(ctx);
+    this._drawSubPanelFooter(ctx);
+  }
+
+  /**
+   * Draws sub panel title header.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubPanelHeader(ctx) {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.save();
@@ -340,13 +464,23 @@ export class StartScreen {
     ctx.font        = 'bold 22px serif';
     ctx.fillText(t(this._subScreen), CX, PANEL_Y + 32);
     ctx.restore();
-    if (this._subScreen === 'options') {
-      this._drawOptionsContent(ctx);
-    } else if (this._subScreen === 'controls') {
-      this._drawControlsContent(ctx);
-    } else {
-      this._drawCreditsContent(ctx);
-    }
+  }
+
+  /**
+   * Draws the active sub panel body content.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubPanelContent(ctx) {
+    if (this._subScreen === 'options') this._drawOptionsContent(ctx);
+    else if (this._subScreen === 'controls') this._drawControlsContent(ctx);
+    else this._drawCreditsContent(ctx);
+  }
+
+  /**
+   * Draws sub panel footer hint.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawSubPanelFooter(ctx) {
     ctx.font      = '11px monospace';
     ctx.fillStyle = '#c8b090';
     ctx.textAlign = 'center';
@@ -374,50 +508,68 @@ export class StartScreen {
    * @param {CanvasRenderingContext2D} ctx Input parameter.
    */
   _drawCreditsContent(ctx) {
+    this._drawCreditsDev(ctx);
+    this._drawCreditsDivider(ctx);
+    this._drawCreditsSource(ctx, CX - 95, 'Pixel Assets', 'Anismuz');
+    this._drawCreditsSource(ctx, CX + 115, 'Music', 'Pascal Belisle');
+  }
+
+  /**
+   * Draws primary credits block.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawCreditsDev(ctx) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Game Design & Programming', CX, PANEL_Y + 140);
-    ctx.save();
-    ctx.shadowColor = 'rgba(240,192,0,0.45)';
-    ctx.shadowBlur  = 6;
-    ctx.fillStyle   = '#f0c040';
-    ctx.font        = 'bold 14px monospace';
-    ctx.textAlign   = 'center';
-    ctx.fillText('Yannick', CX, PANEL_Y + 166);
-    ctx.restore();
+    this._drawCreditName(ctx, 'Yannick', CX, PANEL_Y + 166);
+  }
+
+  /**
+   * Draws divider line between top and lower credit groups.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   */
+  _drawCreditsDivider(ctx) {
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.40)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(PANEL_X + 120, PANEL_Y + 195);
     ctx.lineTo(PANEL_X + 360, PANEL_Y + 195);
     ctx.stroke();
-    const leftX  = CX - 95;
+  }
+
+  /**
+   * Draws one credit source label and highlighted name.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {number} x Input parameter.
+   * @param {string} label Input parameter.
+   * @param {string} name Input parameter.
+   */
+  _drawCreditsSource(ctx, x, label, name) {
     ctx.fillStyle = '#f6e3c3';
     ctx.font      = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Pixel Assets', leftX, PANEL_Y + 230);
+    ctx.fillText(label, x, PANEL_Y + 230);
+    this._drawCreditName(ctx, name, x, PANEL_Y + 256);
+  }
+
+  /**
+   * Draws highlighted credit name text.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {string} name Input parameter.
+   * @param {number} x Input parameter.
+   * @param {number} y Input parameter.
+   */
+  _drawCreditName(ctx, name, x, y) {
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.45)';
     ctx.shadowBlur  = 6;
     ctx.fillStyle   = '#f0c040';
     ctx.font        = 'bold 14px monospace';
     ctx.textAlign   = 'center';
-    ctx.fillText('Anismuz', leftX, PANEL_Y + 256);
-    ctx.restore();
-    const rightX = CX + 115;
-    ctx.fillStyle = '#f6e3c3';
-    ctx.font      = '13px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Music', rightX, PANEL_Y + 230);
-    ctx.save();
-    ctx.shadowColor = 'rgba(240,192,0,0.45)';
-    ctx.shadowBlur  = 6;
-    ctx.fillStyle   = '#f0c040';
-    ctx.font        = 'bold 14px monospace';
-    ctx.textAlign   = 'center';
-    ctx.fillText('Pascal Belisle', rightX, PANEL_Y + 256);
+    ctx.fillText(name, x, y);
     ctx.restore();
   }
 

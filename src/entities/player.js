@@ -49,41 +49,72 @@ export class Player extends Entity {
    */
   constructor(x, y, options = {}) {
     super(x, y, PLAYER_W, PLAYER_H);
+    this._initCharacterState(options);
+    this._initCoreMotionState(y);
+    this._initTraversalState();
+    this._initRollAndFeedbackState();
+    this._initCombatState();
+  }
+
+  /**
+   * Initializes character/profile-related fields.
+   * @param {object} options Input parameter.
+   */
+  _initCharacterState(options) {
     const characterId = normalizeCharacterId(options.characterId);
     this.characterId = characterId;
     this._profile = getCharacterProfile(characterId);
     this._animDefs = this._profile.anim;
     this._spawnProjectile = options.onSpawnProjectile ?? (() => {});
+  }
+
+  /**
+   * Initializes core motion and base state fields.
+   * @param {number} y Input parameter.
+   */
+  _initCoreMotionState(y) {
     this.facingRight = true;
-    this.onGround    = false;
-    this.state      = 'idle';
+    this.onGround = false;
+    this.state = 'idle';
     this.frameIndex = 0;
     this.frameTimer = 0;
     this._invulTimer = 0;
-    this._hurtTimer  = 0;
-    this.dying       = false;
+    this._hurtTimer = 0;
+    this.dying = false;
+    this._prevFeetY = y + PLAYER_H;
+  }
+
+  /** Initializes ladder/wall/coyote traversal fields. */
+  _initTraversalState() {
     this._wallGrabSide = 0;
     this._wallLockSide = 0;
-    this._onLadder           = false;
-    this._climbMoving        = false;
-    this._atLadderTop        = false;
+    this._onLadder = false;
+    this._climbMoving = false;
+    this._atLadderTop = false;
     this._ladderExitCooldown = 0;
     this._coyoteTimer = 0;
-    this._jumpBuffer  = 0;
+    this._jumpBuffer = 0;
     this._wallPushOffTimer = 0;
+  }
+
+  /** Initializes rolling and feedback helper fields. */
+  _initRollAndFeedbackState() {
     this._rollChargeTimer = 0;
-    this._rolling         = false;
-    this._rollDir         = 0;
-    this._rollSpeed       = 0;
-    this._prevFeetY        = y + PLAYER_H;
+    this._rolling = false;
+    this._rollDir = 0;
+    this._rollSpeed = 0;
     this._dropThroughTimer = 0;
-    this._squashTimer      = 0;
-    this._squashScale      = 1.0;
-    this._stepTimer        = 0;
-    this._dustPool         = makeDustPool();
-    this._attackCooldown   = 0;
-    this._attackAnimTimer  = 0;
-    this._shotAnimState    = 'shot';
+    this._squashTimer = 0;
+    this._squashScale = 1.0;
+    this._stepTimer = 0;
+    this._dustPool = makeDustPool();
+  }
+
+  /** Initializes attack/projectile fields. */
+  _initCombatState() {
+    this._attackCooldown = 0;
+    this._attackAnimTimer = 0;
+    this._shotAnimState = 'shot';
   }
 
   /**
@@ -101,19 +132,52 @@ export class Player extends Entity {
     if (this._handleLadderPhase(dt, input, tileMap)) return;
     this._tryUseSpecialAction(dt, input);
     if (this._handleRollPhase(dt, input, tileMap)) return;
-    if (this.onGround) this._coyoteTimer = COYOTE_TIME;
-    else               this._coyoteTimer = Math.max(0, this._coyoteTimer - dt);
-    if (this._hurtTimer <= 0) detectWallGrab(this, tileMap, input);
-    const effectiveLookUp = input.lookUp ||
-      (!overlapLadder && !this._atLadderTop && !!input.mobileUpActive);
-
-    if (this._wallGrabSide !== 0) {
-      handleWallGrab(this, dt, input, tileMap);
-    } else {
-      this._handleFreeMovement(dt, input, tileMap, effectiveLookUp, overlapLadder);
-    }
+    this._updateCoyoteTimer(dt);
+    this._tryDetectWallGrab(tileMap, input);
+    const effectiveLookUp = this._resolveEffectiveLookUp(input, overlapLadder);
+    this._runMovementPhase(dt, input, tileMap, effectiveLookUp, overlapLadder);
     updateAnim(this, dt, input, effectiveLookUp);
     updateDust(this._dustPool, dt);
+  }
+
+  /**
+   * Updates coyote timer from grounded state.
+   * @param {number} dt Input parameter.
+   */
+  _updateCoyoteTimer(dt) {
+    if (this.onGround) this._coyoteTimer = COYOTE_TIME;
+    else this._coyoteTimer = Math.max(0, this._coyoteTimer - dt);
+  }
+
+  /**
+   * Tries to detect wall-grab opportunities.
+   * @param {object} tileMap Input parameter.
+   * @param {object} input Input parameter.
+   */
+  _tryDetectWallGrab(tileMap, input) {
+    if (this._hurtTimer <= 0) detectWallGrab(this, tileMap, input);
+  }
+
+  /**
+   * Resolves effective look-up intent.
+   * @param {object} input Input parameter.
+   * @param {boolean} overlapLadder Input parameter.
+   */
+  _resolveEffectiveLookUp(input, overlapLadder) {
+    return input.lookUp || (!overlapLadder && !this._atLadderTop && !!input.mobileUpActive);
+  }
+
+  /**
+   * Runs either wall-grab movement or normal free movement.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   * @param {boolean} effectiveLookUp Input parameter.
+   * @param {boolean} overlapLadder Input parameter.
+   */
+  _runMovementPhase(dt, input, tileMap, effectiveLookUp, overlapLadder) {
+    if (this._wallGrabSide !== 0) return handleWallGrab(this, dt, input, tileMap);
+    this._handleFreeMovement(dt, input, tileMap, effectiveLookUp, overlapLadder);
   }
 
   /**
@@ -453,26 +517,60 @@ export class Player extends Entity {
    */
   _handleFreeMovement(dt, input, tileMap, effectiveLookUp, _overlapLadder) {
     this._applyGroundInput(input, tileMap, effectiveLookUp);
+    this._applyGravityAndResolveX(dt, tileMap);
+    const wasGrounded = this.onGround;
+    this.onGround = false;
+    this._prevFeetY = this.y + this.h;
+    this._resolveYAndLadderTopSnap(dt, tileMap);
+    this._runGroundFeedback(tileMap, wasGrounded);
+  }
+
+  /**
+   * Applies gravity and resolves horizontal movement.
+   * @param {number} dt Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _applyGravityAndResolveX(dt, tileMap) {
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
     this.x += this.velX * dt;
     resolveX(this, tileMap);
-    const wasGrounded = this.onGround;
-    this.onGround   = false;
-    this._prevFeetY = this.y + this.h;
-    this.y         += this.velY * dt;
+  }
+
+  /**
+   * Resolves vertical movement and ladder-top snap rules.
+   * @param {number} dt Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _resolveYAndLadderTopSnap(dt, tileMap) {
+    this.y += this.velY * dt;
     resolveY(this, tileMap);
-    if (this._atLadderTop && !this.onGround) {
-      const _ts   = TILE_SIZE;
-      const _col  = Math.floor((this.x + this.w / 2) / _ts);
-      const _fRow = Math.floor((this.y + this.h) / _ts);
-      if (tileMap.isLadder(_col, _fRow)) {
-        this.y        = _fRow * _ts - this.h;
-        this.velY     = 0;
-        this.onGround = true;
-      } else {
-        this._atLadderTop = false;
-      }
+    this._applyLadderTopSnap(tileMap);
+  }
+
+  /**
+   * Applies ladder-top snap when exiting ladders upward.
+   * @param {object} tileMap Input parameter.
+   */
+  _applyLadderTopSnap(tileMap) {
+    if (!(this._atLadderTop && !this.onGround)) return;
+    const ts = TILE_SIZE;
+    const col = Math.floor((this.x + this.w / 2) / ts);
+    const floorRow = Math.floor((this.y + this.h) / ts);
+    if (!tileMap.isLadder(col, floorRow)) {
+      this._atLadderTop = false;
+      return;
     }
+    this.y = floorRow * ts - this.h;
+    this.velY = 0;
+    this.onGround = true;
+  }
+
+  /**
+   * Runs landing and footstep feedback handlers.
+   * @param {object} tileMap Input parameter.
+   * @param {boolean} wasGrounded Input parameter.
+   */
+  _runGroundFeedback(tileMap, wasGrounded) {
     this._handleLandingFeedback(tileMap, wasGrounded);
     this._handleFootstepFeedback(tileMap);
   }

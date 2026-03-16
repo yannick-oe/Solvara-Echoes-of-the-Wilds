@@ -91,6 +91,19 @@ export function handlePlayerDeath(game) {
  * @param {object} game Input parameter.
  */
 export function restartGameSession(game, characterId = game._selectedCharacter) {
+  _clearPendingSessionTimeouts(game);
+  intervalManager.stopAll();
+  _resetSessionState(game, characterId);
+  initEntities(game);
+  _resetCameraState(game);
+  setGameState(game, GAME_STATES.PLAYING);
+}
+
+/**
+ * Clears pending death/victory timeout handles.
+ * @param {object} game Input parameter.
+ */
+function _clearPendingSessionTimeouts(game) {
   if (game._deathTimeoutId !== null) {
     clearTimeout(game._deathTimeoutId);
     game._deathTimeoutId = null;
@@ -99,18 +112,28 @@ export function restartGameSession(game, characterId = game._selectedCharacter) 
     clearTimeout(game._victoryTransitionId);
     game._victoryTransitionId = null;
   }
+}
 
-  intervalManager.stopAll();
+/**
+ * Resets runtime game-session state fields.
+ * @param {object} game Input parameter.
+ * @param {string} characterId Input parameter.
+ */
+function _resetSessionState(game, characterId) {
   game._selectedCharacter = characterId;
   game._levelTimer = 0;
   game._victoryPoseTimer = 0;
   game._finalLevelTime = 0;
   game.gameState = createGameState();
+}
 
-  initEntities(game);
+/**
+ * Resets camera and look offset to defaults.
+ * @param {object} game Input parameter.
+ */
+function _resetCameraState(game) {
   game._camera.x = 0;
   game._camera.y = 0;
   game._camLookOffset = 0;
-  setGameState(game, GAME_STATES.PLAYING);
 }
 // #endregion

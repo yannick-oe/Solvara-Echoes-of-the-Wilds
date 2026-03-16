@@ -28,19 +28,29 @@ export function spawnDust(pool, cx, groundY, count = 5) {
   let spawned = 0;
   for (const p of pool) {
     if (p.active) continue;
-    const angle = Math.PI + (Math.random() - 0.5) * Math.PI;
-    const speed = 25 + Math.random() * 55;
-    p.active  = true;
-    p.x       = cx + (Math.random() - 0.5) * 16;
-    p.y       = groundY;
-    p.vx      = Math.cos(angle) * speed;
-    p.vy      = Math.sin(angle) * speed - 20;
-    p.life    = 0.25 + Math.random() * 0.20;
-    p.maxLife = p.life;
-    p.r       = 2 + Math.random() * 3;
-    p.a       = 0.55 + Math.random() * 0.25;
+    _initDustParticle(p, cx, groundY);
     if (++spawned >= count) break;
   }
+}
+
+/**
+ * Initializes one dust particle instance.
+ * @param {object} p Input parameter.
+ * @param {number} cx Input parameter.
+ * @param {number} groundY Input parameter.
+ */
+function _initDustParticle(p, cx, groundY) {
+  const angle = Math.PI + (Math.random() - 0.5) * Math.PI;
+  const speed = 25 + Math.random() * 55;
+  p.active = true;
+  p.x = cx + (Math.random() - 0.5) * 16;
+  p.y = groundY;
+  p.vx = Math.cos(angle) * speed;
+  p.vy = Math.sin(angle) * speed - 20;
+  p.life = 0.25 + Math.random() * 0.20;
+  p.maxLife = p.life;
+  p.r = 2 + Math.random() * 3;
+  p.a = 0.55 + Math.random() * 0.25;
 }
 
 /**

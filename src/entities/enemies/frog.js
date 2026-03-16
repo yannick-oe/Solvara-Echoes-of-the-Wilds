@@ -43,33 +43,66 @@ export class FrogEnemy extends Enemy {
    */
   update(dt, tileMap) {
     if (this.dead) return;
-    this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
-    if (this._state === 'idle') {
-      this.velX = 0;
-      this._idleTimer -= dt;
-      if (this._idleTimer <= 0) {
-        this._beginJump();
-      }
-      this._frameTimer += dt;
-      if (this._frameTimer >= 1 / IDLE_FPS) {
-        this._frameTimer -= 1 / IDLE_FPS;
-        this._frameIndex  = (this._frameIndex + 1) % IDLE_FRAMES;
-      }
-    }
-    if (this._state === 'jumping') {
-      this.x += this.velX * dt;
-      this._resolveWall(tileMap);
-    }
+    this._applyGravity(dt);
+    this._updateIdleState(dt);
+    this._updateJumpX(dt, tileMap);
     this._onGround = false;
     this.y += this.velY * dt;
     this._resolveFloor(tileMap);
-    if (this._state === 'jumping' && this._onGround) {
-      this._state      = 'idle';
-      this._idleTimer  = IDLE_DURATION;
-      this.velX        = 0;
-      this._frameIndex = 0;
-      this._frameTimer = 0;
-    }
+    this._finishJumpOnLanding();
+  }
+
+  /**
+   * Handles apply gravity.
+   * @param {number} dt Input parameter.
+   */
+  _applyGravity(dt) {
+    this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
+  }
+
+  /**
+   * Handles update idle state.
+   * @param {number} dt Input parameter.
+   */
+  _updateIdleState(dt) {
+    if (this._state !== 'idle') return;
+    this.velX = 0;
+    this._idleTimer -= dt;
+    if (this._idleTimer <= 0) this._beginJump();
+    this._advanceIdleFrame(dt);
+  }
+
+  /**
+   * Handles advance idle frame.
+   * @param {number} dt Input parameter.
+   */
+  _advanceIdleFrame(dt) {
+    this._frameTimer += dt;
+    const frameDur = 1 / IDLE_FPS;
+    if (this._frameTimer < frameDur) return;
+    this._frameTimer -= frameDur;
+    this._frameIndex = (this._frameIndex + 1) % IDLE_FRAMES;
+  }
+
+  /**
+   * Handles update jump x.
+   * @param {number} dt Input parameter.
+   * @param {object} tileMap Input parameter.
+   */
+  _updateJumpX(dt, tileMap) {
+    if (this._state !== 'jumping') return;
+    this.x += this.velX * dt;
+    this._resolveWall(tileMap);
+  }
+
+  /** Handles finish jump on landing. */
+  _finishJumpOnLanding() {
+    if (!(this._state === 'jumping' && this._onGround)) return;
+    this._state = 'idle';
+    this._idleTimer = IDLE_DURATION;
+    this.velX = 0;
+    this._frameIndex = 0;
+    this._frameTimer = 0;
   }
 
   /**
@@ -80,25 +113,37 @@ export class FrogEnemy extends Enemy {
    */
   draw(ctx, _cam, imageCache) {
     if (this.dead) return;
-    let img;
-    if (this._state === 'idle') {
-      img = imageCache.get(`FROG_IDLE_${this._frameIndex}`);
-    } else {
-      const fi = this.velY < 0 ? 0 : 1;
-      img = imageCache.get(`FROG_JUMP_${fi}`);
-    }
+    const img = this._currentSprite(imageCache);
     if (!img) return;
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
-    if (!this.facingRight) {
-      ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
-    } else {
-      ctx.save();
-      ctx.translate(dx + DRAW_W, dy);
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
-      ctx.restore();
-    }
+    if (!this.facingRight) return ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
+    this._drawFlipped(ctx, img, dx, dy);
+  }
+
+  /**
+   * Handles current sprite.
+   * @param {object} imageCache Input parameter.
+   */
+  _currentSprite(imageCache) {
+    if (this._state === 'idle') return imageCache.get(`FROG_IDLE_${this._frameIndex}`);
+    const fi = this.velY < 0 ? 0 : 1;
+    return imageCache.get(`FROG_JUMP_${fi}`);
+  }
+
+  /**
+   * Handles draw flipped.
+   * @param {CanvasRenderingContext2D} ctx Input parameter.
+   * @param {object} img Input parameter.
+   * @param {number} dx Input parameter.
+   * @param {number} dy Input parameter.
+   */
+  _drawFlipped(ctx, img, dx, dy) {
+    ctx.save();
+    ctx.translate(dx + DRAW_W, dy);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
+    ctx.restore();
   }
 
   /**

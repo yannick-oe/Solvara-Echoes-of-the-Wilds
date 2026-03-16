@@ -17,6 +17,31 @@ const TOUCH_LAYER_STYLE = [
   '-webkit-user-select: none',
   'display: none',
 ].join('; ');
+const BUTTON_CSS_TEMPLATE = `
+  position: fixed;
+  __POS__;
+  width:  __SIZE__px;
+  height: __SIZE__px;
+  border-radius: 50%;
+  background: rgba(22, 14, 6, 0.60);
+  border: 2px solid rgba(180, 140, 55, 0.55);
+  color: rgba(236, 196, 88, 0.92);
+  font-size: __FONT__px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.60), inset 0 0 0 1px rgba(240,200,100,0.10);
+  transition: background 0.07s, border-color 0.07s;
+`;
 // #endregion
 
 // #region Class Definition
@@ -422,33 +447,33 @@ export class TouchControls {
     btn.className = 'tc-btn';
     btn.textContent = label;
     btn.setAttribute('aria-label', id.replace(/-/g, ' '));
-    const posCSS = this._buildPositionCss(pos, withSAI);
-    btn.style.cssText = `
-      position: fixed;
-      ${posCSS};
-      width:  ${size}px;
-      height: ${size}px;
-      border-radius: 50%;
-      background: rgba(22, 14, 6, 0.60);
-      border: 2px solid rgba(180, 140, 55, 0.55);
-      color: rgba(236, 196, 88, 0.92);
-      font-size: ${Math.round(size * 0.42)}px;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-      touch-action: none;
-      -webkit-touch-callout: none;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
-      cursor: pointer;
-      outline: none;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.60), inset 0 0 0 1px rgba(240,200,100,0.10);
-      transition: background 0.07s, border-color 0.07s;
-    `;
+    this._applyButtonStyles(btn, pos, size, withSAI);
     return btn;
+  }
+
+  /**
+   * Applies full inline button style string.
+   * @param {HTMLElement} btn Input parameter.
+   * @param {object} pos Input parameter.
+   * @param {number} size Input parameter.
+   * @param {boolean} withSAI Input parameter.
+   */
+  _applyButtonStyles(btn, pos, size, withSAI) {
+    const posCSS = this._buildPositionCss(pos, withSAI);
+    btn.style.cssText = this._buttonCssText(posCSS, size);
+  }
+
+  /**
+   * Returns full button css text.
+   * @param {string} posCSS Input parameter.
+   * @param {number} size Input parameter.
+   */
+  _buttonCssText(posCSS, size) {
+    const fontSize = Math.round(size * 0.42);
+    return BUTTON_CSS_TEMPLATE
+      .replaceAll('__POS__', posCSS)
+      .replaceAll('__SIZE__', String(size))
+      .replaceAll('__FONT__', String(fontSize));
   }
 
   /**
