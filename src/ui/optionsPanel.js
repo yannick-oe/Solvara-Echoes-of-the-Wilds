@@ -102,6 +102,17 @@ export function drawOptionsContent(ctx, optionIndex, panelX, panelY, panelW, _pa
   });
 }
 
+/**
+ * Draws a volume bar row inside the options panel.
+ * @param {CanvasRenderingContext2D} ctx Input parameter.
+ * @param {string} id Input parameter.
+ * @param {boolean} selected Input parameter.
+ * @param {number} panelX Input parameter.
+ * @param {number} panelW Input parameter.
+ * @param {number} _panelH Input parameter.
+ * @param {number} y Input parameter.
+ * @param {number} cx Input parameter.
+ */
 function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   const vol = id === 'masterVolume'    ? audioManager.masterVolume
             : id === 'musicVolume'     ? audioManager.musicVolume
@@ -154,6 +165,14 @@ function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   }
 }
 
+/**
+ * Draws the language selection row inside the options panel.
+ * @param {CanvasRenderingContext2D} ctx Input parameter.
+ * @param {boolean} selected Input parameter.
+ * @param {number} panelX Input parameter.
+ * @param {number} panelW Input parameter.
+ * @param {number} y Input parameter.
+ */
 function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
   const langDisplay = currentLang === 'en' ? 'English' : 'Deutsch';
   ctx.save();

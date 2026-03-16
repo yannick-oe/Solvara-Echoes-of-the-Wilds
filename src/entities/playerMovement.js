@@ -32,6 +32,10 @@ export function enterLadder(player) {
   exitRoll(player);
 }
 
+/**
+ * Exits ladder mode for the player.
+ * @param {object} player Input parameter.
+ */
 export function exitLadder(player) {
   player._onLadder    = false;
   player._climbMoving = false;
@@ -185,6 +189,11 @@ export function handleWallGrab(player, dt, input, tileMap) {
   }
 }
 
+/**
+ * Starts player roll state and roll audio.
+ * @param {object} player Input parameter.
+ * @param {number} dir Input parameter.
+ */
 export function startRoll(player, dir) {
   player._rolling         = true;
   player._rollDir         = dir;
@@ -195,6 +204,10 @@ export function startRoll(player, dir) {
   spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 6);
 }
 
+/**
+ * Exits player roll state and stops roll audio.
+ * @param {object} player Input parameter.
+ */
 export function exitRoll(player) {
   player._rolling         = false;
   player._rollSpeed       = 0;

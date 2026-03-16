@@ -240,6 +240,10 @@ export class Player extends Entity {
     }
   }
 
+  /**
+   * Updates internal countdown timers.
+   * @param {number} dt Input parameter.
+   */
   _tickTimers(dt) {
     if (this._invulTimer       > 0) this._invulTimer       = Math.max(0, this._invulTimer       - dt);
     if (this._hurtTimer        > 0) this._hurtTimer        = Math.max(0, this._hurtTimer        - dt);
@@ -249,6 +253,10 @@ export class Player extends Entity {
     if (this._stepTimer        > 0) this._stepTimer        = Math.max(0, this._stepTimer        - dt);
   }
 
+  /**
+   * Updates squash and stretch animation state.
+   * @param {number} dt Input parameter.
+   */
   _squashTick(dt) {
     if (this._squashTimer > 0) {
       this._squashTimer = Math.max(0, this._squashTimer - dt);
@@ -258,6 +266,10 @@ export class Player extends Entity {
     }
   }
 
+  /**
+   * Validates ladder-top state when leaving ladder space.
+   * @param {object} tileMap Input parameter.
+   */
   _validateAtLadderTop(tileMap) {
     if (!this._atLadderTop || this._onLadder) return;
     const ts  = TILE_SIZE;
@@ -268,6 +280,11 @@ export class Player extends Entity {
     }
   }
 
+  /**
+   * Attempts to start a roll based on current input and state.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   */
   _tryStartRoll(dt, input) {
     if (!this.onGround || this._rolling || this._hurtTimer > 0) return;
     if (input.rollPressed) {
@@ -283,6 +300,14 @@ export class Player extends Entity {
     }
   }
 
+  /**
+   * Applies default movement, jumping, and gravity behavior.
+   * @param {number} dt Input parameter.
+   * @param {object} input Input parameter.
+   * @param {object} tileMap Input parameter.
+   * @param {boolean} effectiveLookUp Input parameter.
+   * @param {boolean} _overlapLadder Input parameter.
+   */
   _handleFreeMovement(dt, input, tileMap, effectiveLookUp, _overlapLadder) {
     if (this._hurtTimer <= 0) {
       if (input.left) {

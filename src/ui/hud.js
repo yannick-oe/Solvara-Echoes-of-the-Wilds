@@ -1,6 +1,6 @@
 // #region Imports
 import { CANVAS_WIDTH, STAR_COIN_COUNT } from '../core/constants.js';
-import { rrect, drawHudPanel } from './canvasUtils.js';
+import { drawHudPanel } from './canvasUtils.js';
 // #endregion
 
 // #region Constants

@@ -1,6 +1,6 @@
 // #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
-import { currentLang, t } from '../../core/localization.js';
+import { t } from '../../core/localization.js';
 import { drawWoodPanel } from '../canvasUtils.js';
 import {
 
