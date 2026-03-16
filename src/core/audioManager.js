@@ -18,7 +18,7 @@ class AudioManager {
     this._musicSrc = null;
     this._fadeInterval = null;
     this._deferredMusicSrc = null;
-    this.masterVolume    = 1.0;
+    this.masterVolume    = 0.7;
     this.musicVolume     = 0.8;
     this.sfxVolumeMaster = _isMobileDevice() ? 0.24 : 0.6;
     this.musicEnabled = true;

@@ -33,7 +33,7 @@ export function rrect(ctx, x, y, w, h, r) {
  * @param {number} y
  * @param {number} w
  * @param {number} h
- * @param {boolean} [drawPlanks=true] - Whether to draw horizontal plank lines
+  * @param {boolean|number} [drawPlanks=true] - true/number to draw planks, false to skip. Number = number of items (planks = items - 1)
  */
 export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   const r = 8;
@@ -62,10 +62,11 @@ export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   ctx.fillRect(x + r, y, w - r * 2, 11);
   ctx.fillStyle = 'rgba(28, 14, 4, 0.58)';
   ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
-  if (drawPlanks) {
+  const shouldDrawPlanks = typeof drawPlanks === 'number' ? drawPlanks > 1 : drawPlanks;
+  if (shouldDrawPlanks) {
     ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
     ctx.lineWidth   = 1;
-    const planks = 3;
+    const planks = typeof drawPlanks === 'number' ? drawPlanks - 1 : 4;
     for (let i = 1; i <= planks; i++) {
       const py = Math.floor(y + (h / (planks + 1)) * i);
       ctx.beginPath();

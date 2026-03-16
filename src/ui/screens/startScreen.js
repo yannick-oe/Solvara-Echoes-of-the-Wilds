@@ -257,7 +257,7 @@ export class StartScreen {
    * @param {object} now Input parameter.
    */
   _drawMenu(ctx, now) {
-    drawWoodPanel(ctx, WOOD_X, WOOD_Y, WOOD_W, WOOD_H);
+    drawWoodPanel(ctx, WOOD_X, WOOD_Y, WOOD_W, WOOD_H, MENU_IDS.length);
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     const ZONE_Y = this._menuZoneRows();
@@ -301,9 +301,14 @@ export class StartScreen {
    * Builds evenly distributed menu row centers.
    */
   _menuZoneRows() {
-    const top = WOOD_Y + 12;
-    const step = (WOOD_H - 24) / MENU_IDS.length;
-    return MENU_IDS.map((_, i) => Math.round(top + step * i + step / 2));
+    const slotH = WOOD_H / MENU_IDS.length;
+    const outerCompensation = 4;
+    return MENU_IDS.map((_, i) => {
+      const baseY = WOOD_Y + slotH * (i + 0.5);
+      if (i === 0) return Math.round(baseY + outerCompensation);
+      if (i === MENU_IDS.length - 1) return Math.round(baseY - outerCompensation);
+      return Math.round(baseY);
+    });
   }
 
   /**
