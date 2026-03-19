@@ -17,6 +17,10 @@ export class TouchControls {
     this._layer = null;
     this._buttons = [];
     this._gameplayButtons = [];
+    this._menuButtons = [];
+    this._menuPrimaryBtn = null;
+    this._jumpBtn = null;
+    this._rollBtn = null;
     this._pauseBtn = null;
     this._fullscreenBtn = null;
     this._backBtn = null;
