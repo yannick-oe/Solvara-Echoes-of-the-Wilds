@@ -1,26 +1,43 @@
-// #region Helpers
-/** Checks whether mobile Device. @returns {boolean} - Whether the check passes. */
-function _isMobileDevice() {
-  return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-}
+// #region Defaults
+const DEFAULT_MASTER_VOLUME = 0.6;
+const DEFAULT_MUSIC_VOLUME = 0.6;
+const DEFAULT_SFX_VOLUME = 0.4;
 // #endregion
 
 // #region Class Definition
 class AudioManager {
 /** Creates a new instance. @returns {void} - Nothing. */
   constructor() {
-    this._musicEl  = null;
+    this._initPlaybackState();
+    this._initVolumeState();
+    this._initAudioCollections();
+    this._loadSettings();
+    this._initAudioUnlock();
+  }
+
+/** Handles init Playback State. @returns {void} - Nothing. */
+  _initPlaybackState() {
+    this._musicEl = null;
     this._musicSrc = null;
     this._fadeInterval = null;
     this._deferredMusicSrc = null;
-    this.masterVolume    = 0.7;
-    this.musicVolume     = 0.8;
-    this.sfxVolumeMaster = _isMobileDevice() ? 0.24 : 0.6;
+  }
+
+/** Handles init Volume State. @returns {void} - Nothing. */
+  _initVolumeState() {
+    this.masterVolume = DEFAULT_MASTER_VOLUME;
+    this.musicVolume = DEFAULT_MUSIC_VOLUME;
+    this.sfxVolumeMaster = DEFAULT_SFX_VOLUME;
     this.musicEnabled = true;
-    this.sfxEnabled   = true;
+    this.sfxEnabled = true;
+    this._lastNonZeroMasterVolume = DEFAULT_MASTER_VOLUME;
+  }
+
+/** Handles init Audio Collections. @returns {void} - Nothing. */
+  _initAudioCollections() {
+    this._activeTransient = new Set();
     this._loopedSfx = new Map();
-    this._loadSettings();
-    this._initAudioUnlock();
+    this._uiListeners = new Set();
   }
 
 /** Handles init Audio Unlock. @returns {void} - Nothing. */
@@ -48,6 +65,7 @@ class AudioManager {
     } else if (this._musicEl) {
       this._musicEl.play().catch(() => {});
     }
+    this._emitUiChange();
   }
 
 /** Fades out Music. @param {*} durationMs - Duration Ms value. @returns {void} - Nothing. */
@@ -97,22 +115,28 @@ class AudioManager {
 
 /** Sets master Volume. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setMasterVolume(value) {
-    this.masterVolume = Math.max(0, Math.min(1, value));
-    if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
+    const nextVolume = Math.max(0, Math.min(1, value));
+    if (nextVolume > 0) this._lastNonZeroMasterVolume = nextVolume;
+    this.masterVolume = nextVolume;
+    this._syncRunningAudioVolumes();
     this._saveSettings();
+    this._emitUiChange();
   }
 
 /** Sets music Volume. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setMusicVolume(value) {
     this.musicVolume = Math.max(0, Math.min(1, value));
-    if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
+    this._syncRunningAudioVolumes();
     this._saveSettings();
+    this._emitUiChange();
   }
 
 /** Sets sfx Volume Master. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setSfxVolumeMaster(value) {
     this.sfxVolumeMaster = Math.max(0, Math.min(1, value));
+    this._syncRunningAudioVolumes();
     this._saveSettings();
+    this._emitUiChange();
   }
 
 /** Loads settings. @returns {void} - Nothing. */
@@ -126,6 +150,7 @@ class AudioManager {
       if (typeof s.sfxVolumeMaster === 'number')  this.sfxVolumeMaster = Math.max(0, Math.min(1, s.sfxVolumeMaster));
       if (typeof s.musicEnabled    === 'boolean') this.musicEnabled    = s.musicEnabled;
       if (typeof s.sfxEnabled      === 'boolean') this.sfxEnabled      = s.sfxEnabled;
+      if (this.masterVolume > 0) this._lastNonZeroMasterVolume = this.masterVolume;
     } catch {}
   }
 
@@ -173,6 +198,29 @@ class AudioManager {
     this._musicEl = audio;
   }
 
+/** Checks whether muted. @returns {boolean} - Whether the check passes. */
+  isMuted() {
+    return this.masterVolume <= 0.0001;
+  }
+
+/** Toggles muted. @returns {*} - Resulting value. */
+  toggleMuted() {
+    if (this.isMuted()) return this.setMasterVolume(this._lastNonZeroMasterVolume);
+    this.setMasterVolume(0);
+  }
+
+/** Gets ui State. @returns {*} - Resulting value. */
+  getUiState() {
+    return { muted: this.isMuted(), masterVolume: this.masterVolume };
+  }
+
+/** Subscribes. @param {*} listener - Listener value. @returns {*} - Resulting value. */
+  subscribe(listener) {
+    this._uiListeners.add(listener);
+    listener(this.getUiState());
+    return () => this._uiListeners.delete(listener);
+  }
+
 /** Plays current Music Or Defer. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
   _playCurrentMusicOrDefer(oggSrc) {
     const playResult = this._musicEl.play().catch(() => null);
@@ -209,32 +257,25 @@ class AudioManager {
     if (!this.musicEnabled) return;
     this.stopMusic();
     const audio = new Audio(src);
-    audio.loop   = false;
-    audio.volume = this._musicFinalVol;
-    audio.play().catch(() => {});
+    audio.loop = false;
+    this._playTransientAudio(audio, 'music');
   }
 
 /** Plays sfx. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
   playSfx(src, options) {
     if (!this.sfxEnabled) return;
-    const audio  = new Audio(src);
-    const sfxBal = options?.volume !== undefined
-      ? Math.min(1.5, Math.max(0, options.volume))
-      : 1.0;
-    audio.volume = Math.min(1.0, this.masterVolume * this.sfxVolumeMaster * sfxBal);
-    audio.play().catch(() => {});
+    const audio = new Audio(src);
+    this._playTransientAudio(audio, 'sfx', this._resolveSfxBalance(options));
   }
 
 /** Plays looped Sfx. @param {*} key - Key value. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
   playLoopedSfx(key, src, options) {
     this.stopLoopedSfx(key);
     if (!this.sfxEnabled) return;
-    const sfxBal = options?.volume !== undefined
-      ? Math.min(1.5, Math.max(0, options.volume))
-      : 1.0;
-    const audio   = new Audio(src);
-    audio.loop    = true;
-    audio.volume  = Math.min(1.0, this.masterVolume * this.sfxVolumeMaster * sfxBal);
+    const audio = new Audio(src);
+    audio.loop = true;
+    this._tagAudio(audio, 'sfx', this._resolveSfxBalance(options));
+    this._applyTrackedVolume(audio);
     audio.play().catch(() => {});
     this._loopedSfx.set(key, audio);
   }
@@ -247,6 +288,56 @@ class AudioManager {
       audio.currentTime = 0;
       this._loopedSfx.delete(key);
     }
+  }
+
+/** Resolves sfx Balance. @param {*} options - Optional configuration values. @returns {number} - Computed numeric value. */
+  _resolveSfxBalance(options) {
+    if (options?.volume === undefined) return 1.0;
+    return Math.min(1.5, Math.max(0, options.volume));
+  }
+
+/** Plays transient Audio. @param {*} audio - Audio value. @param {*} kind - Kind value. @param {*} balance - Balance value. @returns {void} - Nothing. */
+  _playTransientAudio(audio, kind, balance = 1) {
+    this._tagAudio(audio, kind, balance);
+    this._applyTrackedVolume(audio);
+    this._activeTransient.add(audio);
+    audio.addEventListener('ended', () => this._activeTransient.delete(audio), { once: true });
+    audio.play().catch(() => this._activeTransient.delete(audio));
+  }
+
+/** Tags audio. @param {*} audio - Audio value. @param {*} kind - Kind value. @param {*} balance - Balance value. @returns {void} - Nothing. */
+  _tagAudio(audio, kind, balance = 1) {
+    audio._solvaraKind = kind;
+    audio._solvaraBalance = balance;
+  }
+
+/** Handles effective Sfx Volume. @param {*} balance - Balance value. @returns {number} - Computed numeric value. */
+  _effectiveSfxVolume(balance) {
+    return Math.min(1.0, this.masterVolume * this.sfxVolumeMaster * balance);
+  }
+
+/** Applies tracked Volume. @param {*} audio - Audio value. @returns {void} - Nothing. */
+  _applyTrackedVolume(audio) {
+    if (audio._solvaraKind === 'music') return void (audio.volume = this._musicFinalVol);
+    audio.volume = this._effectiveSfxVolume(audio._solvaraBalance ?? 1);
+  }
+
+/** Handles sync Running Audio Volumes. @returns {void} - Nothing. */
+  _syncRunningAudioVolumes() {
+    if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
+    this._syncTrackedAudios(this._loopedSfx.values());
+    this._syncTrackedAudios(this._activeTransient);
+  }
+
+/** Handles sync Tracked Audios. @param {*} audios - Audios value. @returns {void} - Nothing. */
+  _syncTrackedAudios(audios) {
+    for (const audio of audios) this._applyTrackedVolume(audio);
+  }
+
+/** Handles emit Ui Change. @returns {void} - Nothing. */
+  _emitUiChange() {
+    const state = this.getUiState();
+    for (const listener of this._uiListeners) listener(state);
   }
 }
 

@@ -1,6 +1,7 @@
 // #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './core/constants.js';
 import { GameManager }               from './core/gameManager/gameManager.js';
+import { initPageShell }            from './ui/pageShell.js';
 // #endregion
 
 /**
@@ -11,6 +12,7 @@ import { GameManager }               from './core/gameManager/gameManager.js';
 function init() {
   const container = document.getElementById('gameContainer');
   const canvas    = document.getElementById('gameCanvas');
+  initPageShell();
   canvas.width  = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   const game = new GameManager(canvas, container);

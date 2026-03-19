@@ -19,6 +19,8 @@ export const touchControlsDomMethods = {
     this._attachDocTap();
     this._onResize = () => this._updateVisibility();
     window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+    this._scheduleInitialVisibilitySync();
   },
 
 /** Handles destroy. @returns {void} - Nothing. */
@@ -29,6 +31,7 @@ export const touchControlsDomMethods = {
     this._buttons = [];
     if (this._onDocTap) document.removeEventListener('touchstart', this._onDocTap);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._onResize) window.removeEventListener('orientationchange', this._onResize);
   },
 
 /** Handles inject Styles. @returns {void} - Nothing. */
@@ -315,6 +318,13 @@ export const touchControlsDomMethods = {
       this._inputManager.enterPressed = true;
     };
     document.addEventListener('touchstart', this._onDocTap, { passive: true });
+  },
+
+/** Handles schedule Initial Visibility Sync. @returns {void} - Nothing. */
+  _scheduleInitialVisibilitySync() {
+    const sync = () => this.setGameState(this._getState());
+    requestAnimationFrame(() => requestAnimationFrame(sync));
+    window.setTimeout(sync, 160);
   },
 };
 // #endregion

@@ -145,6 +145,7 @@ export const gameManagerSetupMethods = {
 /** Handles enter Start State. @returns {void} - Nothing. */
   _enterStartState() {
     this.state = GAME_STATES.START;
+    this._touchControls.setGameState(this.state);
     this._rafId = requestAnimationFrame(this._loop);
   },
 

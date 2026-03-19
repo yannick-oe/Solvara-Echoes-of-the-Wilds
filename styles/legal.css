@@ -1,0 +1,124 @@
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba(10, 7, 6, 0.86), rgba(10, 7, 6, 0.92)),
+    url(../assets/images/backgrounds/background.png) center / cover fixed;
+  color: #f2e2c2;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.legal-page {
+  min-height: 100vh;
+  padding: 110px 24px 40px;
+  box-sizing: border-box;
+}
+
+.legal-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top, rgba(201, 154, 74, 0.18), transparent 32%),
+    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.28), transparent 46%);
+}
+
+.legal-shell {
+  position: relative;
+  z-index: 1;
+  width: min(820px, 100%);
+  margin: 0 auto;
+  padding: 34px 34px 32px;
+  border-radius: 28px;
+  border: 1px solid rgba(209, 173, 100, 0.3);
+  background:
+    linear-gradient(180deg, rgba(43, 29, 20, 0.96), rgba(23, 16, 12, 0.97)),
+    radial-gradient(circle at top, rgba(201, 154, 74, 0.12), transparent 60%);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 239, 205, 0.1);
+  box-sizing: border-box;
+}
+
+.legal-kicker {
+  margin: 0 0 6px;
+  color: #d8b16a;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.legal-shell h1 {
+  margin: 0 0 22px;
+  font-size: clamp(32px, 5vw, 42px);
+  line-height: 1.08;
+}
+
+.legal-panel {
+  display: grid;
+  gap: 16px;
+  line-height: 1.65;
+  font-size: 16px;
+}
+
+.legal-panel h2 {
+  margin: 10px 0 0;
+  color: #f6d79d;
+  font-size: 19px;
+}
+
+.legal-panel p,
+.legal-panel ul {
+  margin: 0;
+}
+
+.legal-list {
+  display: grid;
+  gap: 6px;
+  padding-left: 18px;
+}
+
+.legal-note {
+  color: #d9bf8e;
+  font-size: 14px;
+}
+
+.legal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.legal-chip {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 178, 108, 0.24);
+  background: rgba(34, 25, 19, 0.48);
+  color: #e8cf9e;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .legal-page {
+    padding: 108px 14px 24px;
+  }
+
+  .legal-shell {
+    padding: 26px 20px 24px;
+    border-radius: 22px;
+  }
+
+  .legal-shell h1 {
+    margin-bottom: 18px;
+  }
+
+  .legal-panel {
+    font-size: 15px;
+  }
+}
