@@ -1,6 +1,9 @@
+// #region Imports
 import { STAR_COIN_COUNT } from '../../core/constants.js';
 import { COUNT_SPEED, initParticle } from './hudShared.js';
 
+// #endregion
+// #region Update Methods
 export const hudUpdateMethods = {
 /** Handles update. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   update(dt) {
@@ -86,3 +89,4 @@ export const hudUpdateMethods = {
     }
   },
 };
+// #endregion

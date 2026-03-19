@@ -1,7 +1,10 @@
+// #region Imports
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../core/constants.js';
 import { ATMO_RATE, ATMO_POOL, CX, SPARK_MAX, STAR_CY, T_STAR_0, T_STAR_GAP } from './victoryScreenShared.js';
 import { initAtmoParticle, initSparkParticle } from '../../shared/victoryParticles.js';
 
+// #endregion
+// #region Update Methods
 export const victoryScreenUpdateMethods = {
 /** Handles show. @param {*} gameState - Current game state. @param {*} levelTime - Level Time value. @returns {void} - Nothing. */
   show(gameState, levelTime) {
@@ -80,3 +83,4 @@ export const victoryScreenUpdateMethods = {
     if (input.jumpPressed || input.enterPressed) this._onRestart();
   },
 };
+// #endregion

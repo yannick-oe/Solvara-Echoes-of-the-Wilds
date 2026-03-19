@@ -1,3 +1,4 @@
+// #region Imports
 import { CANVAS_WIDTH, STAR_COIN_COUNT } from '../../core/constants.js';
 import { drawHudPanel } from '../shared/canvasUtils.js';
 import {
@@ -5,6 +6,8 @@ import {
   HEART_PULSE_PERIOD, HEART_SIZE, HUD_FONT, PAD, PANEL_PAD, SCORE_FONT, STAR_GAP, STAR_SIZE,
 } from './hudShared.js';
 
+// #endregion
+// #region Render Methods
 export const hudRenderMethods = {
 /** Handles draw. @param {*} ctx - Ctx value. @param {*} gameState - Current game state. @returns {void} - Nothing. */
   draw(ctx, gameState) {
@@ -240,3 +243,4 @@ export const hudRenderMethods = {
     ctx.restore();
   },
 };
+// #endregion

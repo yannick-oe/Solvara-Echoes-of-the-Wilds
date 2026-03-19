@@ -1,3 +1,4 @@
+// #region Imports
 import { GRAVITY, JUMP_FORCE, MAX_FALL_SPEED } from '../../core/constants.js';
 import { ROLL_SPEED_INIT, ROLL_FRICTION, ROLL_MIN_SPEED } from '../../config/playerConfig.js';
 import { audioManager } from '../../core/audioManager.js';
@@ -5,6 +6,8 @@ import { SFX_VOLUME } from '../../config/audioConfig.js';
 import { resolveX, resolveY } from './playerPhysics.js';
 import { spawnDust } from './playerDust.js';
 
+// #endregion
+// #region Roll Movement
 /** Starts roll. @param {*} player - Player value. @param {*} dir - Dir value. @returns {void} - Nothing. */
 export function startRoll(player, dir) {
   player._rolling = true;
@@ -85,3 +88,4 @@ function resetAfterRollLanding(player) {
   spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 4);
   player._wallLockSide = 0;
 }
+// #endregion

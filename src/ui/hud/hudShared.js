@@ -1,3 +1,4 @@
+// #region Shared Helpers
 const POOL_SIZE = 96;
 
 export const PAD = 10;
@@ -49,3 +50,4 @@ function makeParticle() {
     life: 0, maxLife: 1, r: 2, color: '#fff',
   };
 }
+// #endregion

@@ -1,3 +1,4 @@
+// #region Imports
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../core/constants.js';
 import { t } from '../../../core/localization.js';
 import {
@@ -11,6 +12,8 @@ import {
   SUBTITLE_Y, TITLE_Y, WOOD_H, WOOD_W, WOOD_X, WOOD_Y,
 } from './startScreenShared.js';
 
+// #endregion
+// #region Render Methods
 export const startScreenRenderMethods = {
 /** Handles draw. @param {*} ctx - Ctx value. @returns {*} - Resulting value. */
   draw(ctx) {
@@ -289,3 +292,4 @@ export const startScreenRenderMethods = {
     ctx.restore();
   },
 };
+// #endregion

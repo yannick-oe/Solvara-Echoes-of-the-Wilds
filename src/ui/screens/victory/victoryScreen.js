@@ -1,8 +1,11 @@
+// #region Imports
 import { makePool } from '../../shared/victoryParticles.js';
 import { ATMO_POOL, SPARK_MAX } from './victoryScreenShared.js';
 import { victoryScreenUpdateMethods } from './victoryScreenUpdateMethods.js';
 import { victoryScreenRenderMethods } from './victoryScreenRenderMethods.js';
 
+// #endregion
+// #region Class Definition
 export class VictoryScreen {
 /** Creates a new instance. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
   constructor({ onRestart, onMainMenu }) {
@@ -19,3 +22,4 @@ export class VictoryScreen {
 }
 
 Object.assign(VictoryScreen.prototype, victoryScreenUpdateMethods, victoryScreenRenderMethods);
+// #endregion

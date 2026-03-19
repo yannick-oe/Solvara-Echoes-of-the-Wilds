@@ -1,7 +1,10 @@
+// #region Imports
 import { gameManagerSetupMethods } from './gameManagerSetupMethods.js';
 import { gameManagerUpdateMethods } from './gameManagerUpdateMethods.js';
 import { gameManagerRenderMethods } from './gameManagerRenderMethods.js';
 
+// #endregion
+// #region Class Definition
 export class GameManager {
 /** Creates a new instance. @param {*} canvas - Canvas value. @param {*} container - Container value. @returns {void} - Nothing. */
   constructor(canvas, container) {
@@ -20,3 +23,4 @@ Object.assign(
   gameManagerUpdateMethods,
   gameManagerRenderMethods,
 );
+// #endregion

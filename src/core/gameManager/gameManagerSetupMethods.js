@@ -1,3 +1,4 @@
+// #region Imports
 import { GAME_STATES, CANVAS_HEIGHT, CANVAS_WIDTH } from '../constants.js';
 import { imageCache } from '../imageCache.js';
 import { audioManager } from '../audioManager.js';
@@ -16,6 +17,8 @@ import { TouchControls } from '../../ui/touch/touchControls.js';
 import { loadSelectedCharacter, saveSelectedCharacter } from '../../config/characterConfig.js';
 import { createGameState, initEntities, restartGameSession } from './gameLifecycle.js';
 
+// #endregion
+// #region Setup Methods
 export const gameManagerSetupMethods = {
 /** Handles init Core State. @param {*} canvas - Canvas value. @param {*} container - Container value. @returns {void} - Nothing. */
   _initCoreState(canvas, container) {
@@ -183,3 +186,4 @@ export const gameManagerSetupMethods = {
     exit?.call(document)?.catch?.(() => {});
   },
 };
+// #endregion

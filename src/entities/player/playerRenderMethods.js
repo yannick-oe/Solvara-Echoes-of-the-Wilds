@@ -1,7 +1,10 @@
+// #region Imports
 import { BLINK_INTERVAL } from '../../config/playerConfig.js';
 import { drawDust } from './playerDust.js';
 import { DRAW_H, DRAW_OX, DRAW_OY, DRAW_W, FALL_FRAME } from './playerConstants.js';
 
+// #endregion
+// #region Render Methods
 export const playerRenderMethods = {
 /** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {*} - Resulting value. */
   draw(ctx, _cam, imageCache) {
@@ -54,3 +57,4 @@ export const playerRenderMethods = {
     ctx.restore();
   },
 };
+// #endregion

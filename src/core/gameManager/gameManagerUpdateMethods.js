@@ -1,9 +1,12 @@
+// #region Imports
 import { GAME_STATES, TILE_SIZE } from '../constants.js';
 import { audioManager } from '../audioManager.js';
 import { inputManager } from '../input.js';
 import { runInteractionChecks } from './gameInteractionChecks.js';
 import { CAM_LOOKUP_OFFSET, CAM_LERP_SPEED } from './gameManagerShared.js';
 
+// #endregion
+// #region Update Methods
 export const gameManagerUpdateMethods = {
 /** Handles loop. @param {*} timestamp - Timestamp value. @returns {void} - Nothing. */
   _loop(timestamp) {
@@ -164,3 +167,4 @@ export const gameManagerUpdateMethods = {
     this._camera.clamp(this._level.width, this._level.height);
   },
 };
+// #endregion

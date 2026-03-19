@@ -1,8 +1,11 @@
+// #region Imports
 import { TILE_SIZE } from '../../core/constants.js';
 import { WALL_SLIDE_GRAVITY, WALL_SLIDE_MAX_SPEED, WALL_JUMP_X, WALL_JUMP_Y } from '../../config/playerConfig.js';
 import { resolveY } from './playerPhysics.js';
 import { spawnDust } from './playerDust.js';
 
+// #endregion
+// #region Wall Movement
 /** Handles detect Wall Grab. @param {*} player - Player value. @param {*} tileMap - Current tile map. @param {*} input - Current input state. @returns {*} - Resulting value. */
 export function detectWallGrab(player, tileMap, input) {
   if (player.onGround) return clearWallGrab(player);
@@ -103,3 +106,4 @@ function applyWallJumpIfBuffered(player) {
   player._jumpBuffer = 0;
   spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h / 2, 4);
 }
+// #endregion

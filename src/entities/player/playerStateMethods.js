@@ -1,3 +1,4 @@
+// #region Imports
 import {
   INVUL_DURATION, HURT_DURATION,
   KNOCKBACK_X, KNOCKBACK_Y,
@@ -13,6 +14,8 @@ import {
   exitRoll, handleRoll,
 } from './playerMovement.js';
 
+// #endregion
+// #region State Methods
 export const playerStateMethods = {
 /** Handles init Character State. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
   _initCharacterState(options) {
@@ -246,3 +249,4 @@ export const playerStateMethods = {
     if (!tileMap.isLadder(col, row) && !tileMap.isLadder(col, row + 1)) this._atLadderTop = false;
   },
 };
+// #endregion

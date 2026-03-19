@@ -1,8 +1,11 @@
+// #region Imports
 import { ROLL_CHARGE_TIME } from '../../config/playerConfig.js';
 import { FIREBALL_COOLDOWN } from '../../config/characterConfig.js';
 import { startRoll } from './playerMovement.js';
 import { FireballProjectile } from '../projectiles/fireballProjectile.js';
 
+// #endregion
+// #region Combat Methods
 export const playerCombatMethods = {
 /** Handles try Use Special Action. @param {*} dt - Frame delta time. @param {*} input - Current input state. @returns {*} - Resulting value. */
   _tryUseSpecialAction(dt, input) {
@@ -48,3 +51,4 @@ export const playerCombatMethods = {
     return this.onGround && input.down;
   },
 };
+// #endregion

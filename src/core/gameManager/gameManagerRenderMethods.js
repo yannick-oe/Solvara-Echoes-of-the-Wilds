@@ -1,6 +1,9 @@
+// #region Imports
 import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_STATES } from '../constants.js';
 import { imageCache } from '../imageCache.js';
 
+// #endregion
+// #region Render Methods
 export const gameManagerRenderMethods = {
 /** Handles draw. @returns {void} - Nothing. */
   _draw() {
@@ -123,3 +126,4 @@ export const gameManagerRenderMethods = {
     this.ctx.drawImage(img, 0, 0, size.w, size.h);
   },
 };
+// #endregion

@@ -1,9 +1,12 @@
+// #region Imports
 import { GAME_STATES } from '../../core/constants.js';
 import {
   BTN, BTN_SM, BUTTON_CSS_TEMPLATE, EDGE, GAP, TOUCH_BUTTON_STATE_STYLE, TOUCH_LAYER_STYLE,
   isMenuTouchState, isMobileLayout,
 } from './touchControlsShared.js';
 
+// #endregion
+// #region DOM Methods
 export const touchControlsDomMethods = {
 /** Handles init. @returns {void} - Nothing. */
   init() {
@@ -314,3 +317,4 @@ export const touchControlsDomMethods = {
     document.addEventListener('touchstart', this._onDocTap, { passive: true });
   },
 };
+// #endregion

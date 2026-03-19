@@ -1,3 +1,4 @@
+// #region Imports
 import {
   CHARACTER_PROFILES,
   normalizeCharacterId,
@@ -6,6 +7,8 @@ import {
 import { handleOptionsInput } from '../../shared/optionsPanel.js';
 import { MENU_IDS, createFireflies } from './startScreenShared.js';
 
+// #endregion
+// #region Input Methods
 export const startScreenInputMethods = {
 /** Handles reset. @returns {void} - Nothing. */
   _reset() {
@@ -139,3 +142,4 @@ export const startScreenInputMethods = {
     this._subScreen = name;
   },
 };
+// #endregion

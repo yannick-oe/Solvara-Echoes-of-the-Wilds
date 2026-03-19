@@ -1,5 +1,8 @@
+// #region Imports
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../core/constants.js';
 
+// #endregion
+// #region Shared Helpers
 export const CX = CANVAS_WIDTH / 2;
 export const CY = CANVAS_HEIGHT / 2;
 export const STAR_CY = 176;
@@ -29,3 +32,4 @@ export const T_HINTS_IN = T_STATS_IN + T_STATS_DUR + 0.10;
 export const ATMO_POOL = 55;
 export const ATMO_RATE = 0.14;
 export const SPARK_MAX = 12;
+// #endregion

@@ -1,6 +1,9 @@
+// #region Imports
 import { startScreenInputMethods } from './startScreenInputMethods.js';
 import { startScreenRenderMethods } from './startScreenRenderMethods.js';
 
+// #endregion
+// #region Class Definition
 export class StartScreen {
 /** Creates a new instance. @param {*} onStart - On Start value. @returns {void} - Nothing. */
   constructor(onStart) {
@@ -11,3 +14,4 @@ export class StartScreen {
 }
 
 Object.assign(StartScreen.prototype, startScreenInputMethods, startScreenRenderMethods);
+// #endregion

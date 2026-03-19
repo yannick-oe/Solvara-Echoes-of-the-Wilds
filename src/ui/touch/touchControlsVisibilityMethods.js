@@ -1,3 +1,4 @@
+// #region Imports
 import { GAME_STATES } from '../../core/constants.js';
 import {
   isGameplayTouchState,
@@ -7,6 +8,8 @@ import {
   shouldShowTouchControls,
 } from './touchControlsShared.js';
 
+// #endregion
+// #region Visibility Methods
 export const touchControlsVisibilityMethods = {
 /** Sets game State. @param {*} state - State value. @returns {void} - Nothing. */
   setGameState(state) {
@@ -107,3 +110,4 @@ export const touchControlsVisibilityMethods = {
     for (const btn of this._buttons) btn.classList.remove('tc-active');
   },
 };
+// #endregion

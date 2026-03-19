@@ -1,5 +1,8 @@
+// #region Imports
 import { GAME_STATES } from '../../core/constants.js';
 
+// #endregion
+// #region Shared Helpers
 export const BTN = 56;
 export const BTN_SM = 40;
 export const EDGE = 12;
@@ -171,3 +174,4 @@ export function isMenuTouchState(state) {
 export function isGameplayTouchState(state) {
   return state === GAME_STATES.PLAYING;
 }
+// #endregion

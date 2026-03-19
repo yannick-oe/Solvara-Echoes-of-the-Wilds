@@ -1,3 +1,4 @@
+// #region Imports
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../core/constants.js';
 import { t } from '../../../core/localization.js';
 import { imageCache } from '../../../core/imageCache.js';
@@ -10,6 +11,8 @@ import {
   T_TITLE_DUR,
 } from './victoryScreenShared.js';
 
+// #endregion
+// #region Render Methods
 export const victoryScreenRenderMethods = {
 /** Handles draw. @param {*} ctx - Ctx value. @returns {*} - Resulting value. */
   draw(ctx) {
@@ -331,3 +334,4 @@ export const victoryScreenRenderMethods = {
     ctx.fill();
   },
 };
+// #endregion

@@ -1,3 +1,4 @@
+// #region Imports
 export {
   isTouchDevice,
   isMobileLayout,
@@ -8,6 +9,8 @@ export {
 import { touchControlsDomMethods } from './touchControlsDomMethods.js';
 import { touchControlsVisibilityMethods } from './touchControlsVisibilityMethods.js';
 
+// #endregion
+// #region Class Definition
 export class TouchControls {
   constructor(container, inputManager, getState, getMobileUiFlags = () => ({ startSubOpen: false, pauseSubOpen: false })) {
     this._container = container;
@@ -31,3 +34,4 @@ export class TouchControls {
 }
 
 Object.assign(TouchControls.prototype, touchControlsDomMethods, touchControlsVisibilityMethods);
+// #endregion

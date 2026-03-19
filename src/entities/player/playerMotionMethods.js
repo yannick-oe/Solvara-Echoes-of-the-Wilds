@@ -1,9 +1,12 @@
+// #region Imports
 import { audioManager } from '../../core/audioManager.js';
 import { SFX_VOLUME } from '../../config/audioConfig.js';
 import { TILE_SIZE, GRAVITY, MAX_FALL_SPEED, JUMP_FORCE, PLAYER_SPEED } from '../../core/constants.js';
 import { resolveX, resolveY } from './playerPhysics.js';
 import { spawnDust } from './playerDust.js';
 
+// #endregion
+// #region Motion Methods
 export const playerMotionMethods = {
 /** Handles free Movement. @param {*} dt - Frame delta time. @param {*} input - Current input state. @param {*} tileMap - Current tile map. @param {*} lookUp - Look Up value. @param {*} _overlapLadder - Overlap Ladder value. @returns {void} - Nothing. */
   _handleFreeMovement(dt, input, tileMap, lookUp, _overlapLadder) {
@@ -127,3 +130,4 @@ export const playerMotionMethods = {
     this._stepTimer = 0.30;
   },
 };
+// #endregion

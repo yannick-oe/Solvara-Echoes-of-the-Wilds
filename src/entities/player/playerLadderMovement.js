@@ -1,7 +1,10 @@
+// #region Imports
 import { TILE_SIZE } from '../../core/constants.js';
 import { CLIMB_SPEED } from '../../config/playerConfig.js';
 import { exitRoll } from './playerRollMovement.js';
 
+// #endregion
+// #region Ladder Movement
 /** Handles enter Ladder. @param {*} player - Player value. @returns {void} - Nothing. */
 export function enterLadder(player) {
   player._onLadder = true;
@@ -74,3 +77,4 @@ function tryExitLadderAtTop(player, tileMap) {
   player._ladderExitCooldown = 0.15;
   exitLadder(player);
 }
+// #endregion

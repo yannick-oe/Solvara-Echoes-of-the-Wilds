@@ -1,5 +1,8 @@
+// #region Imports
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../core/constants.js';
 
+// #endregion
+// #region Shared Helpers
 export const MENU_IDS = ['start', 'character', 'options', 'controls', 'credits'];
 export const CX = CANVAS_WIDTH / 2;
 export const CY = CANVAS_HEIGHT / 2;
@@ -27,3 +30,4 @@ export function createFireflies() {
     color: Math.random() < 0.55 ? '#c8ff9a' : '#eaffb0',
   }));
 }
+// #endregion

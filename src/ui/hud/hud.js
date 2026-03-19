@@ -1,7 +1,10 @@
+// #region Imports
 import { makePool } from './hudShared.js';
 import { hudUpdateMethods } from './hudUpdateMethods.js';
 import { hudRenderMethods } from './hudRenderMethods.js';
 
+// #endregion
+// #region Class Definition
 export class Hud {
 /** Creates a new instance. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   constructor(imageCache) {
@@ -21,3 +24,4 @@ export class Hud {
 }
 
 Object.assign(Hud.prototype, hudUpdateMethods, hudRenderMethods);
+// #endregion

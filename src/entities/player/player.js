@@ -1,3 +1,4 @@
+// #region Imports
 import { Entity } from '../entity.js';
 import { updateAnim } from './playerAnimation.js';
 import { updateDust } from './playerDust.js';
@@ -7,6 +8,8 @@ import { playerCombatMethods } from './playerCombatMethods.js';
 import { playerMotionMethods } from './playerMotionMethods.js';
 import { playerRenderMethods } from './playerRenderMethods.js';
 
+// #endregion
+// #region Class Definition
 export class Player extends Entity {
 /** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
   constructor(x, y, options = {}) {
@@ -54,3 +57,4 @@ Object.assign(
   playerMotionMethods,
   playerRenderMethods,
 );
+// #endregion
