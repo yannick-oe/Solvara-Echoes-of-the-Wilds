@@ -11,6 +11,7 @@ body {
   z-index: 120;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   padding: 20px 20px 0;
   box-sizing: border-box;
   pointer-events: none;
@@ -30,6 +31,123 @@ body {
   backdrop-filter: blur(16px) saturate(130%);
   -webkit-backdrop-filter: blur(16px) saturate(130%);
   pointer-events: auto;
+}
+
+.shell-mobile {
+  display: none;
+  position: relative;
+  pointer-events: auto;
+}
+
+.shell-menu-trigger {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(218, 183, 112, 0.48);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 235, 198, 0.14), rgba(205, 157, 78, 0.06) 24%, rgba(26, 18, 13, 0.82) 78%),
+    rgba(23, 17, 13, 0.72);
+  color: #f3e0b8;
+  font: 600 13px/1 Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    0 0 16px rgba(206, 157, 73, 0.10),
+    inset 0 1px 0 rgba(255, 241, 212, 0.16),
+    inset 0 -10px 16px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(16px) saturate(128%);
+  -webkit-backdrop-filter: blur(16px) saturate(128%);
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.shell-menu-trigger:hover,
+.shell-menu-trigger:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(238, 203, 130, 0.7);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.30),
+    0 0 18px rgba(222, 171, 84, 0.16),
+    inset 0 1px 0 rgba(255, 244, 219, 0.18),
+    inset 0 -10px 16px rgba(0, 0, 0, 0.16);
+  outline: none;
+}
+
+.shell-menu-trigger__icon {
+  font-size: 15px;
+  line-height: 1;
+  color: #f6dba1;
+  text-shadow: 0 0 10px rgba(255, 216, 140, 0.28);
+}
+
+.shell-menu-trigger__label {
+  white-space: nowrap;
+}
+
+.shell-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 188px;
+  padding: 9px;
+  border-radius: 20px;
+  border: 1px solid rgba(212, 177, 105, 0.34);
+  background:
+    linear-gradient(180deg, rgba(42, 29, 20, 0.92), rgba(20, 15, 11, 0.94)),
+    radial-gradient(circle at top, rgba(201, 154, 74, 0.10), transparent 62%);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    0 0 20px rgba(205, 154, 71, 0.10),
+    inset 0 1px 0 rgba(255, 239, 205, 0.10);
+  backdrop-filter: blur(16px) saturate(126%);
+  -webkit-backdrop-filter: blur(16px) saturate(126%);
+  animation: shellDropdownIn 0.18s ease;
+}
+
+.shell-dropdown[hidden] {
+  display: none;
+}
+
+.shell-dropdown__item {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #f0dfbe;
+  font: 600 13px/1 Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
+}
+
+.shell-dropdown__item + .shell-dropdown__item {
+  margin-top: 4px;
+}
+
+.shell-dropdown__item:hover,
+.shell-dropdown__item:focus-visible {
+  background: rgba(255, 242, 214, 0.06);
+  border-color: rgba(225, 190, 118, 0.26);
+  transform: translateX(1px);
+  outline: none;
 }
 
 .shell-btn,
@@ -82,6 +200,18 @@ body {
   line-height: 1;
 }
 
+@keyframes shellDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (pointer: coarse) and (orientation: landscape) {
   #pageChrome {
     padding-top: calc(10px + env(safe-area-inset-top, 0px));
@@ -102,15 +232,37 @@ body {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   #pageChrome {
     padding: 14px 14px 0;
+    justify-content: flex-start;
   }
 
-  .shell-toolbar {
-    width: min(100%, 420px);
-    justify-content: center;
-    flex-wrap: wrap;
-    border-radius: 22px;
+  .shell-toolbar--desktop {
+    display: none;
+  }
+
+  .shell-mobile {
+    display: block;
+  }
+
+  .shell-dropdown {
+    min-width: 178px;
+  }
+
+  .shell-menu-trigger {
+    min-height: 42px;
+    padding: 0 13px;
+    border-radius: 17px;
+  }
+}
+
+@media (max-width: 768px) {
+  #pageChrome {
+    padding: 13px 13px 0;
+  }
+
+  .shell-dropdown {
+    min-width: 182px;
   }
 }

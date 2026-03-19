@@ -13,13 +13,35 @@
 
 <body>
   <div id="pageChrome" aria-label="Seitenelemente">
-    <div class="shell-toolbar">
-      <button id="muteToggle" class="shell-btn" type="button" aria-pressed="false">
+    <div class="shell-toolbar shell-toolbar--desktop">
+      <button id="muteToggle" class="shell-btn" type="button" aria-pressed="false" data-mute-toggle>
         <span class="shell-btn__icon" data-mute-icon>🔊</span>
         <span class="shell-btn__text" data-mute-label>Ton aus</span>
       </button>
       <a class="shell-link" href="./pages/impressum.html">Impressum</a>
       <a class="shell-link" href="./pages/datenschutz.html">Datenschutz</a>
+    </div>
+
+    <div class="shell-mobile">
+      <button
+        id="shellMenuToggle"
+        class="shell-menu-trigger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="shellMobileMenu"
+        aria-label="Seitenmenü öffnen">
+        <span class="shell-menu-trigger__icon">✦</span>
+        <span class="shell-menu-trigger__label">Menü</span>
+      </button>
+
+      <div id="shellMobileMenu" class="shell-dropdown" hidden>
+        <button class="shell-dropdown__item" type="button" data-mute-toggle>
+          <span class="shell-btn__icon" data-mute-icon>🔊</span>
+          <span data-mute-label>Ton aus</span>
+        </button>
+        <a class="shell-dropdown__item" href="./pages/impressum.html" data-shell-close>Impressum</a>
+        <a class="shell-dropdown__item" href="./pages/datenschutz.html" data-shell-close>Datenschutz</a>
+      </div>
     </div>
   </div>
 
