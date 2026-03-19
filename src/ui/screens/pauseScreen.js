@@ -1,14 +1,14 @@
 // #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { t } from '../../core/localization.js';
-import { drawWoodPanel } from '../canvasUtils.js';
+import { drawWoodPanel } from '../shared/canvasUtils.js';
 import {
 
   OPTIONS_IDS,
   handleOptionsInput,
   drawOptionsContent,
   drawControlsContent,
-} from '../optionsPanel.js';
+} from '../shared/optionsPanel.js';
 // #endregion
 
 // #region Constants

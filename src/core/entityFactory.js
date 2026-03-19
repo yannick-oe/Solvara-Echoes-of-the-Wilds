@@ -5,7 +5,7 @@
 
 // #region Imports
 import { TILE_SIZE } from './constants.js';
-import { Player }    from '../entities/player.js';
+import { Player }    from '../entities/player/player.js';
 import { AntEnemy }  from '../entities/enemies/ant.js';
 import { FrogEnemy } from '../entities/enemies/frog.js';
 import { EagleEnemy } from '../entities/enemies/eagle.js';

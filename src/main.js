@@ -1,6 +1,6 @@
 // #region Imports
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './core/constants.js';
-import { GameManager }               from './core/gameManager.js';
+import { GameManager }               from './core/gameManager/gameManager.js';
 // #endregion
 
 /**
