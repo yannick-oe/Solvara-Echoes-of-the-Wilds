@@ -1,5 +1,5 @@
 // #region Shared Helpers
-const POOL_SIZE = 96;
+const POOL_SIZE = _isCoarsePointer() ? 64 : 96;
 
 export const PAD = 10;
 export const PANEL_PAD = 8;
@@ -41,6 +41,11 @@ export function makePool() {
   const pool = [];
   for (let i = 0; i < POOL_SIZE; i++) pool.push(makeParticle());
   return pool;
+}
+
+/** Checks whether coarse Pointer. @returns {boolean} - Whether the check passes. */
+function _isCoarsePointer() {
+  return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 }
 
 /** Creates particle. @returns {*} - Resulting value. */

@@ -1,26 +1,27 @@
 // #region Imports
 import { TILE_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
 import { TILE_REGISTRY, LEGACY_TILE_ALIASES } from '../config/tileConfig.js';
+import { SFX_IDS } from '../config/audioConfig.js';
 // #endregion
 
 // #region Constants
 const LEGACY_LANDING_SOUND_BY_TILE = {
-  g: 'assets/audio/sfx/grassLanding.mp3',
-  d: 'assets/audio/sfx/grassLanding.mp3',
+  g: SFX_IDS.LANDING_GRASS,
+  d: SFX_IDS.LANDING_GRASS,
 };
 const LEGACY_FOOTSTEP_SOUND_BY_TILE = {
-  g: 'assets/audio/sfx/grassLanding.mp3',
-  d: 'assets/audio/sfx/grassLanding.mp3',
+  g: SFX_IDS.FOOTSTEP_GRASS,
+  d: SFX_IDS.FOOTSTEP_GRASS,
 };
 
 /** Fallback sound for all solid tiles in walkable categories not listed above. */
 const FOOTSTEP_SOUND_BY_CATEGORY = {
-  ground:   'assets/audio/sfx/grassLanding.mp3',
-  slope:    'assets/audio/sfx/grassLanding.mp3',
-  platform: 'assets/audio/sfx/grassLanding.mp3',
-  arch:     'assets/audio/sfx/grassLanding.mp3',
-  cave:     'assets/audio/sfx/grassLanding.mp3',
-  temple:   'assets/audio/sfx/grassLanding.mp3',
+  ground:   SFX_IDS.FOOTSTEP_GRASS,
+  slope:    SFX_IDS.FOOTSTEP_GRASS,
+  platform: SFX_IDS.FOOTSTEP_GRASS,
+  arch:     SFX_IDS.FOOTSTEP_GRASS,
+  cave:     SFX_IDS.FOOTSTEP_GRASS,
+  temple:   SFX_IDS.FOOTSTEP_GRASS,
 };
 
 const LANDING_SOUND_BY_TILE  = buildSoundLookup(LEGACY_LANDING_SOUND_BY_TILE);

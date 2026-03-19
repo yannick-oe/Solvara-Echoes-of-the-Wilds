@@ -2,7 +2,7 @@
 import { GAME_STATES, PLAYER_START_HEARTS, STAR_COIN_COUNT } from '../constants.js';
 import { audioManager } from '../audioManager.js';
 import { intervalManager } from '../intervalManager.js';
-import { SFX_VOLUME } from '../../config/audioConfig.js';
+import { MUSIC_IDS, SFX_IDS } from '../../config/audioConfig.js';
 import {
   createPlayer,
   spawnEnemies,
@@ -37,9 +37,7 @@ export function initEntities(game) {
 /** Sets game State. @param {*} game - Game value. @param {*} nextState - Next State value. @returns {void} - Nothing. */
 export function setGameState(game, nextState) {
   game.state = nextState;
-  if (nextState === GAME_STATES.PLAYING) {
-    audioManager.playMusic('assets/audio/music/level01.ogg');
-  }
+  if (nextState === GAME_STATES.PLAYING) audioManager.playConfiguredMusic(MUSIC_IDS.LEVEL_01);
 }
 
 /** Handles reset Transient Entities. @param {*} game - Game value. @returns {void} - Nothing. */
@@ -76,7 +74,7 @@ export function startVictorySequence(game) {
 /** Handles player Death. @param {*} game - Game value. @returns {void} - Nothing. */
 export function handlePlayerDeath(game) {
   game._player.startDying();
-  audioManager.playSfx('assets/audio/sfx/deathSound.mp3', { volume: SFX_VOLUME.death });
+  audioManager.playConfiguredSfx(SFX_IDS.DEATH);
   audioManager.fadeOutMusic(300);
 
   game._deathTimeoutId = setTimeout(() => {

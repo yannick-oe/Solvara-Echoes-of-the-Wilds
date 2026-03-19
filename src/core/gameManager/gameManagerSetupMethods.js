@@ -15,6 +15,7 @@ import { VictoryScreen } from '../../ui/screens/victory/victoryScreen.js';
 import { PauseScreen } from '../../ui/screens/pauseScreen.js';
 import { TouchControls } from '../../ui/touch/touchControls.js';
 import { loadSelectedCharacter, saveSelectedCharacter } from '../../config/characterConfig.js';
+import { MUSIC_IDS } from '../../config/audioConfig.js';
 import { createGameState, initEntities, restartGameSession } from './gameLifecycle.js';
 
 // #endregion
@@ -25,6 +26,7 @@ export const gameManagerSetupMethods = {
     this.canvas = canvas;
     this.container = container;
     this.ctx = canvas.getContext('2d');
+    this.ctx.imageSmoothingEnabled = false;
     this.state = GAME_STATES.LOADING;
     this.gameState = createGameState();
     this._rafId = null;
@@ -38,6 +40,7 @@ export const gameManagerSetupMethods = {
     this._level = new Level();
     this._camera = new Camera();
     this._parallax = null;
+    this._lightingOverlayFill = null;
     this._player = null;
     this._camLookOffset = 0;
     this._resetWorldCollections();
@@ -95,7 +98,7 @@ export const gameManagerSetupMethods = {
   _returnToStartMenu(stopMusic) {
     if (stopMusic) audioManager.stopMusic();
     this._startScreen.reset();
-    audioManager.playMusic('assets/audio/music/startMenu.ogg');
+    audioManager.playConfiguredMusic(MUSIC_IDS.START_MENU);
     this.state = GAME_STATES.START;
   },
 
@@ -138,7 +141,7 @@ export const gameManagerSetupMethods = {
 /** Handles init Runtime Systems. @returns {void} - Nothing. */
   _initRuntimeSystems() {
     inputManager.init();
-    audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
+    audioManager.preloadConfiguredMusic(MUSIC_IDS.START_MENU);
     this._touchControls.init();
   },
 

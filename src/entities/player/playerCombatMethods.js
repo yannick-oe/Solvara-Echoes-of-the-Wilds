@@ -15,10 +15,20 @@ export const playerCombatMethods = {
 
 /** Handles try Start Roll. @param {*} dt - Frame delta time. @param {*} input - Current input state. @returns {*} - Resulting value. */
   _tryStartRoll(dt, input) {
+    if (this._tryInstantMobileRoll(input)) return;
     if (!this.onGround || this._rolling || this._hurtTimer > 0) return;
     const holdDir = input.left ? -1 : (input.right ? 1 : 0);
     if (input.down && holdDir !== 0) return this._chargeRoll(dt, holdDir);
     this._rollChargeTimer = 0;
+  },
+
+/** Handles try Instant Mobile Roll. @param {*} input - Current input state. @returns {boolean} - Whether the check passes. */
+  _tryInstantMobileRoll(input) {
+    if (!input.mobileActionPressed || this._profile.ability !== 'roll') return false;
+    if (!this.onGround || this._rolling || this._hurtTimer > 0) return false;
+    const dir = input.left ? -1 : (input.right ? 1 : (this.facingRight ? 1 : -1));
+    startRoll(this, dir);
+    return true;
   },
 
 /** Handles charge Roll. @param {*} dt - Frame delta time. @param {*} holdDir - Hold Dir value. @returns {void} - Nothing. */

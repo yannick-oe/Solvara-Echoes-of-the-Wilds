@@ -1,5 +1,6 @@
 // #region Imports
 import { Enemy } from './enemy.js';
+import { SFX_IDS } from '../../config/audioConfig.js';
 // #endregion
 
 // #region Constants
@@ -22,7 +23,7 @@ export class EagleEnemy extends Enemy {
     super(x, minY, EAGLE_W, EAGLE_H);
     this._minY = minY;
     this._maxY = maxY;
-    this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
+    this.deathSoundKey = SFX_IDS.ENEMY_KILL;
     this.velY        = PATROL_SPEED;
     this.velX        = 0;
     this._frameIndex = 0;

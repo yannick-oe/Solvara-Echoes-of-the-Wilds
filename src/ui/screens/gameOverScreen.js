@@ -2,10 +2,10 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants.js';
 import { t } from '../../core/localization.js';
 import { audioManager } from '../../core/audioManager.js';
+import { MUSIC_IDS } from '../../config/audioConfig.js';
 // #endregion
 
 // #region Constants
-const STING_SRC      = 'assets/audio/music/gameOver.mp3';
 const FONT_MAIN      = 'bold 58px serif';
 const FONT_HINT      = '14px monospace';
 const FALL_DURATION  = 0.46;
@@ -14,7 +14,7 @@ const START_OFFSET   = -265;
 const CHAR_GAP       = 2;
 const TITLE_Y_FRAC   = 0.46;
 const SWEEP_DURATION = 1.1;
-const PARTICLE_MAX   = 42;
+const PARTICLE_MAX   = _isCoarsePointer() ? 28 : 42;
 // #endregion
 
 // #region Class Definition
@@ -27,6 +27,11 @@ function easeOutBounce(x) {
                          return n1 * (x -= 2.625/ d1) * x + 0.984375;
 }
 
+/** Checks whether coarse Pointer. @returns {boolean} - Whether the check passes. */
+function _isCoarsePointer() {
+  return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+}
+
 export class GameOverScreen {
 
 /** Creates a new instance. @param {*} onRestart - On Restart value. @returns {void} - Nothing. */
@@ -37,9 +42,6 @@ export class GameOverScreen {
     this._particles   = [];
     this._stingPlayed = false;
     this._glowElapsed = -1;
-    this._stingEl         = new Audio(STING_SRC);
-    this._stingEl.preload = 'auto';
-    this._stingEl.loop    = false;
   }
 
 /** Handles show. @returns {void} - Nothing. */
@@ -171,9 +173,7 @@ export class GameOverScreen {
   _playStingOnce() {
     if (this._stingPlayed) return;
     this._stingPlayed = true;
-    this._stingEl.volume = Math.min(1, Math.max(0.3, audioManager.musicVolume));
-    this._stingEl.currentTime = 0;
-    this._stingEl.play().catch(() => {});
+    audioManager.playConfiguredSting(MUSIC_IDS.GAME_OVER);
   }
 
 /** Draws letters. @param {*} ctx - Ctx value. @returns {void} - Nothing. */

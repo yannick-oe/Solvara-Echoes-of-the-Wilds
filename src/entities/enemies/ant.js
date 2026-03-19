@@ -1,6 +1,7 @@
 // #region Imports
 import { Enemy } from './enemy.js';
 import { TILE_SIZE, GRAVITY, MAX_FALL_SPEED } from '../../core/constants.js';
+import { SFX_IDS } from '../../config/audioConfig.js';
 // #endregion
 
 // #region Constants
@@ -20,7 +21,7 @@ export class AntEnemy extends Enemy {
     super(x, y, 32, 32);
     this.speed       = 60;
     this.facingRight = true;
-    this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
+    this.deathSoundKey = SFX_IDS.ENEMY_KILL;
     this._frameIndex = 0;
     this._frameTimer = 0;
   }

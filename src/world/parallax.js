@@ -6,7 +6,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../core/constants.js';
 export class Parallax {
 /** Creates a new instance. @param {*} layers - Layers value. @returns {void} - Nothing. */
   constructor(layers) {
-    this._layers = layers;
+    this._layers = layers.map(layer => ({ ...layer, _metrics: null }));
   }
 
 /** Handles draw. @param {*} ctx - Ctx value. @param {*} camX - Cam X value. @returns {void} - Nothing. */
@@ -26,14 +26,22 @@ export class Parallax {
 
 /** Handles layer Metrics. @param {*} camX - Cam X value. @param {*} layer - Layer value. @returns {*} - Resulting value. */
   _layerMetrics(camX, layer) {
-    const { img, speed, drawH: layerH, alignBottom } = layer;
+    const { img, speed } = layer;
     if (!img) return null;
-    const drawH = layerH ?? CANVAS_HEIGHT;
-    const drawW = Math.round(img.naturalWidth * (drawH / img.naturalHeight));
-    const drawY = alignBottom ? CANVAS_HEIGHT - drawH : 0;
+    const { drawH, drawW, drawY } = this._staticLayerMetrics(layer, img);
     const rawOff = (-camX * speed) % drawW;
     const startX = Math.floor(((rawOff % drawW) + drawW) % drawW) - drawW;
     return { img, drawH, drawW, drawY, startX };
+  }
+
+/** Handles static Layer Metrics. @param {*} layer - Layer value. @param {*} img - Img value. @returns {*} - Resulting value. */
+  _staticLayerMetrics(layer, img) {
+    if (layer._metrics) return layer._metrics;
+    const drawH = layer.drawH ?? CANVAS_HEIGHT;
+    const drawW = Math.round(img.naturalWidth * (drawH / img.naturalHeight));
+    const drawY = layer.alignBottom ? CANVAS_HEIGHT - drawH : 0;
+    layer._metrics = { drawH, drawW, drawY };
+    return layer._metrics;
   }
 }
 // #endregion

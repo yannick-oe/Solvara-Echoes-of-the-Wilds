@@ -2,6 +2,7 @@
 import { GAME_STATES, TILE_SIZE } from '../constants.js';
 import { audioManager } from '../audioManager.js';
 import { inputManager } from '../input.js';
+import { MUSIC_IDS } from '../../config/audioConfig.js';
 import { runInteractionChecks } from './gameInteractionChecks.js';
 import { CAM_LOOKUP_OFFSET, CAM_LERP_SPEED } from './gameManagerShared.js';
 
@@ -57,7 +58,7 @@ export const gameManagerUpdateMethods = {
 
 /** Updates start Screen. @returns {void} - Nothing. */
   _updateStartScreen() {
-    audioManager.playMusic('assets/audio/music/startMenu.ogg');
+    audioManager.playConfiguredMusic(MUSIC_IDS.START_MENU);
     this._startScreen.handleInput(inputManager);
   },
 
@@ -95,7 +96,7 @@ export const gameManagerUpdateMethods = {
   _queueVictoryScreen() {
     this._victoryTransitionId = setTimeout(() => {
       this._victoryTransitionId = null;
-      audioManager.playSting('assets/audio/music/victory.mp3');
+      audioManager.playConfiguredSting(MUSIC_IDS.VICTORY);
       this._victoryScreen.show(this.gameState, this._finalLevelTime);
       this.state = GAME_STATES.VICTORY;
     }, 280);

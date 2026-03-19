@@ -1,6 +1,6 @@
 // #region Imports
 import { audioManager } from '../../core/audioManager.js';
-import { SFX_VOLUME } from '../../config/audioConfig.js';
+import { SFX_IDS } from '../../config/audioConfig.js';
 import { TILE_SIZE, GRAVITY, MAX_FALL_SPEED, JUMP_FORCE, PLAYER_SPEED } from '../../core/constants.js';
 import { resolveX, resolveY } from './playerPhysics.js';
 import { spawnDust } from './playerDust.js';
@@ -105,7 +105,7 @@ export const playerMotionMethods = {
     this._coyoteTimer = 0;
     this._jumpBuffer = 0;
     this._atLadderTop = false;
-    audioManager.playSfx('assets/audio/sfx/jumpSound.mp3', { volume: SFX_VOLUME.jump });
+    audioManager.playConfiguredSfx(SFX_IDS.JUMP);
     spawnDust(this._dustPool, this.x + this.w / 2, this.y + this.h, 4);
   },
 
@@ -113,7 +113,7 @@ export const playerMotionMethods = {
   _handleLandingFeedback(tileMap, wasGrounded) {
     if (wasGrounded || !this.onGround) return;
     const landSfx = tileMap.getLandingSound?.(this.x + this.w / 2, this.y + this.h);
-    if (landSfx) audioManager.playSfx(landSfx, { volume: SFX_VOLUME.landing });
+    if (landSfx) audioManager.playConfiguredSfx(landSfx);
     this._squashTimer = 0.10;
     this._squashScale = 0.92;
     this._stepTimer = 0.20;
@@ -126,7 +126,7 @@ export const playerMotionMethods = {
     const canStep = this.onGround && this._hurtTimer <= 0 && Math.abs(this.velX) > 20 && this._stepTimer <= 0;
     if (!canStep) return;
     const stepSfx = tileMap.getFootstepSound?.(this.x + this.w / 2, this.y + this.h);
-    if (stepSfx) audioManager.playSfx(stepSfx, { volume: SFX_VOLUME.footstep });
+    if (stepSfx) audioManager.playConfiguredSfx(stepSfx);
     this._stepTimer = 0.30;
   },
 };

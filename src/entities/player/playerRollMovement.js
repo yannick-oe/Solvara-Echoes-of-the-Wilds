@@ -2,7 +2,7 @@
 import { GRAVITY, JUMP_FORCE, MAX_FALL_SPEED } from '../../core/constants.js';
 import { ROLL_SPEED_INIT, ROLL_FRICTION, ROLL_MIN_SPEED } from '../../config/playerConfig.js';
 import { audioManager } from '../../core/audioManager.js';
-import { SFX_VOLUME } from '../../config/audioConfig.js';
+import { SFX_IDS } from '../../config/audioConfig.js';
 import { resolveX, resolveY } from './playerPhysics.js';
 import { spawnDust } from './playerDust.js';
 
@@ -15,7 +15,7 @@ export function startRoll(player, dir) {
   player._rollSpeed = ROLL_SPEED_INIT;
   player._rollChargeTimer = 0;
   player.facingRight = dir > 0;
-  audioManager.playLoopedSfx('roll', 'assets/audio/sfx/rollSound.mp3', { volume: SFX_VOLUME.roll });
+  audioManager.playConfiguredLoopedSfx('roll', SFX_IDS.ROLL);
   spawnDust(player._dustPool, player.x + player.w / 2, player.y + player.h, 6);
 }
 

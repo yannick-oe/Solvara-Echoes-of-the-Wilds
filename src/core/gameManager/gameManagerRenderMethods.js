@@ -8,7 +8,6 @@ export const gameManagerRenderMethods = {
 /** Handles draw. @returns {void} - Nothing. */
   _draw() {
     this._clearFrame();
-    this.ctx.imageSmoothingEnabled = false;
     this._drawStateFrame();
   },
 
@@ -81,13 +80,25 @@ export const gameManagerRenderMethods = {
 
 /** Draws lighting Overlay. @returns {void} - Nothing. */
   _drawLightingOverlay() {
-    const lightGrd = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    lightGrd.addColorStop(0, 'rgba(255,240,180,0.08)');
-    lightGrd.addColorStop(1, 'rgba(0,0,0,0.08)');
-    this.ctx.fillStyle = lightGrd;
+    this._ensureLightingOverlayFill();
+    this.ctx.fillStyle = this._lightingOverlayFill;
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.ctx.fillStyle = 'rgba(255,230,150,0.03)';
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  },
+
+/** Ensures lighting Overlay Fill. @returns {void} - Nothing. */
+  _ensureLightingOverlayFill() {
+    if (this._lightingOverlayFill) return;
+    this._lightingOverlayFill = this._buildLightingOverlayFill();
+  },
+
+/** Builds lighting Overlay Fill. @returns {*} - Resulting value. */
+  _buildLightingOverlayFill() {
+    const lightGrd = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    lightGrd.addColorStop(0, 'rgba(255,240,180,0.08)');
+    lightGrd.addColorStop(1, 'rgba(0,0,0,0.08)');
+    return lightGrd;
   },
 
 /** Draws props. @param {*} layer - Layer value. @returns {void} - Nothing. */

@@ -166,6 +166,7 @@ export const touchControlsDomMethods = {
 
 /** Sets roll Down. @param {*} im - Im value. @returns {void} - Nothing. */
   _setRollDown(im) {
+    im.mobileActionPressed = true;
     im.rollPressed = true;
   },
 

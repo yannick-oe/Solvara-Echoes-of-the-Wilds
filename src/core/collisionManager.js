@@ -7,7 +7,7 @@ import { Gem }          from '../entities/pickups/gem.js';
 import { Cherry }       from '../entities/pickups/cherry.js';
 import { DeathEffect }  from '../entities/effects/deathEffect.js';
 import { audioManager } from './audioManager.js';
-import { SFX_VOLUME }   from '../config/audioConfig.js';
+import { SFX_IDS }      from '../config/audioConfig.js';
 // #endregion
 
 // #region Public Methods
@@ -96,7 +96,7 @@ function canStompEnemy(player, enemy) {
 /** Handles kill Enemy. @param {*} enemy - Enemy value. @param {*} effects - Effects value. @returns {void} - Nothing. */
 function killEnemy(enemy, effects) {
   enemy.stompDie();
-  if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
+  if (enemy.deathSoundKey) audioManager.playConfiguredSfx(enemy.deathSoundKey);
   effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
 }
 
@@ -112,9 +112,7 @@ function notifyPickup(pickup, hud, camera) {
 /** Handles switch Interact. @param {*} player - Player value. @param {*} obj - Obj value. @returns {boolean} - Whether the check passes. */
 function _handleSwitchInteract(player, obj) {
   if (!(obj instanceof Switch)) return false;
-  if (player.intersects(obj) && obj.activate()) {
-    audioManager.playSfx('assets/audio/sfx/switchSound.mp3', { volume: SFX_VOLUME.switch });
-  }
+  if (player.intersects(obj) && obj.activate()) audioManager.playConfiguredSfx(SFX_IDS.SWITCH_TOGGLE);
   return true;
 }
 
@@ -128,19 +126,19 @@ function _handleDoorInteract(player, obj, onVictory) {
 
 /** Notifies star Coin. @param {*} pickup - Pickup value. @param {*} hud - Current HUD instance. @param {*} sx - Sx value. @param {*} sy - Sy value. @returns {void} - Nothing. */
 function notifyStarCoin(pickup, hud, sx, sy) {
-  audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3', { volume: SFX_VOLUME.pickup });
+  audioManager.playConfiguredSfx(SFX_IDS.PICKUP_STAR_COIN);
   hud.notify('starCoin', sx, sy, pickup.slotIndex);
 }
 
 /** Notifies gem. @param {*} hud - Current HUD instance. @param {*} sx - Sx value. @param {*} sy - Sy value. @returns {void} - Nothing. */
 function notifyGem(hud, sx, sy) {
-  audioManager.playSfx('assets/audio/sfx/pickupGem.mp3', { volume: SFX_VOLUME.pickup });
+  audioManager.playConfiguredSfx(SFX_IDS.PICKUP_GEM);
   hud.notify('gem', sx, sy);
 }
 
 /** Notifies cherry. @param {*} hud - Current HUD instance. @param {*} sx - Sx value. @param {*} sy - Sy value. @returns {void} - Nothing. */
 function notifyCherry(hud, sx, sy) {
-  audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3', { volume: SFX_VOLUME.pickup });
+  audioManager.playConfiguredSfx(SFX_IDS.PICKUP_CHERRY);
   hud.notify('heal', sx, sy);
 }
 
@@ -163,7 +161,7 @@ function applyEnemyDamage(player, enemy, gameState, hud, camera, onDeath) {
 
 /** Plays hurt Sfx. @returns {boolean} - Whether the check passes. */
 function playHurtSfx() {
-  audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
+  audioManager.playConfiguredSfx(SFX_IDS.HURT);
   return true;
 }
 

@@ -30,6 +30,9 @@ export class TouchControls {
     this._gameState = null;
     this._onDocTap = null;
     this._onResize = null;
+    this._visibilitySignature = '';
+    this._primaryText = '';
+    this._primaryLabel = '';
   }
 }
 

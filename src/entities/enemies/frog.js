@@ -1,6 +1,7 @@
 // #region Imports
 import { Enemy } from './enemy.js';
 import { TILE_SIZE, GRAVITY, MAX_FALL_SPEED } from '../../core/constants.js';
+import { SFX_IDS } from '../../config/audioConfig.js';
 // #endregion
 
 // #region Constants
@@ -23,7 +24,7 @@ export class FrogEnemy extends Enemy {
 /** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     super(x, y, FROG_W, FROG_H);
-    this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
+    this.deathSoundKey = SFX_IDS.ENEMY_KILL;
     this._state      = 'idle';
     this._idleTimer  = IDLE_DURATION;
     this._onGround   = false;

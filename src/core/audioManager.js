@@ -1,9 +1,11 @@
+// #region Imports
+import { getMusicTrack, getSfxTrack } from '../config/audioConfig.js';
+// #endregion
 // #region Defaults
 const DEFAULT_MASTER_VOLUME = 0.6;
 const DEFAULT_MUSIC_VOLUME = 0.6;
 const DEFAULT_SFX_VOLUME = 0.4;
 // #endregion
-
 // #region Class Definition
 class AudioManager {
 /** Creates a new instance. @returns {void} - Nothing. */
@@ -14,15 +16,14 @@ class AudioManager {
     this._loadSettings();
     this._initAudioUnlock();
   }
-
 /** Handles init Playback State. @returns {void} - Nothing. */
   _initPlaybackState() {
     this._musicEl = null;
     this._musicSrc = null;
+    this._musicBalance = 1;
     this._fadeInterval = null;
     this._deferredMusicSrc = null;
   }
-
 /** Handles init Volume State. @returns {void} - Nothing. */
   _initVolumeState() {
     this.masterVolume = DEFAULT_MASTER_VOLUME;
@@ -32,14 +33,13 @@ class AudioManager {
     this.sfxEnabled = true;
     this._lastNonZeroMasterVolume = DEFAULT_MASTER_VOLUME;
   }
-
 /** Handles init Audio Collections. @returns {void} - Nothing. */
   _initAudioCollections() {
     this._activeTransient = new Set();
     this._loopedSfx = new Map();
+    this._configuredSfxPlayTimes = new Map();
     this._uiListeners = new Set();
   }
-
 /** Handles init Audio Unlock. @returns {void} - Nothing. */
   _initAudioUnlock() {
     const handler = () => this._handleAudioGesture();
@@ -49,9 +49,9 @@ class AudioManager {
 
 /** Handles audio Gesture. @returns {void} - Nothing. */
   _handleAudioGesture() {
-    if (this._deferredMusicSrc) {
-      this.playMusic(this._deferredMusicSrc);
+    if (this._deferredMusicSrc && this._musicEl) {
       this._deferredMusicSrc = null;
+      this._musicEl.play().catch(() => {});
     } else if (this._musicEl && this._musicEl.paused && this.musicEnabled) {
       this._musicEl.play().catch(() => {});
     }
@@ -110,7 +110,7 @@ class AudioManager {
 
 /** Gets music Final Vol. @returns {*} - Current value. */
   get _musicFinalVol() {
-    return Math.min(1.0, this.masterVolume * this.musicVolume);
+    return this._effectiveMusicVolume(this._musicBalance ?? 1);
   }
 
 /** Sets master Volume. @param {*} value - Value to apply. @returns {void} - Nothing. */
@@ -122,7 +122,6 @@ class AudioManager {
     this._saveSettings();
     this._emitUiChange();
   }
-
 /** Sets music Volume. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setMusicVolume(value) {
     this.musicVolume = Math.max(0, Math.min(1, value));
@@ -130,7 +129,6 @@ class AudioManager {
     this._saveSettings();
     this._emitUiChange();
   }
-
 /** Sets sfx Volume Master. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setSfxVolumeMaster(value) {
     this.sfxVolumeMaster = Math.max(0, Math.min(1, value));
@@ -138,7 +136,6 @@ class AudioManager {
     this._saveSettings();
     this._emitUiChange();
   }
-
 /** Loads settings. @returns {void} - Nothing. */
   _loadSettings() {
     try {
@@ -153,7 +150,6 @@ class AudioManager {
       if (this.masterVolume > 0) this._lastNonZeroMasterVolume = this.masterVolume;
     } catch {}
   }
-
 /** Saves settings. @returns {void} - Nothing. */
   _saveSettings() {
     try {
@@ -166,38 +162,38 @@ class AudioManager {
       }));
     } catch {}
   }
-
-/** Plays music. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
-  playMusic(oggSrc) {
+/** Plays music. @param {*} oggSrc - Ogg Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
+  playMusic(oggSrc, options) {
+    const balance = this._resolveSfxBalance(options);
     this._cancelFade();
     if (!this.musicEnabled) return;
     if (this._musicSrc === oggSrc && this._musicEl && !this._musicEl.paused) return;
-    if (this._resumeIfSameTrack(oggSrc)) return;
-    this._replaceMusicElement(oggSrc);
+    if (this._resumeIfSameTrack(oggSrc, balance)) return;
+    this._replaceMusicElement(oggSrc, balance);
     this._playCurrentMusicOrDefer(oggSrc);
   }
-
-/** Handles resume If Same Track. @param {*} oggSrc - Ogg Src value. @returns {boolean} - Whether the check passes. */
-  _resumeIfSameTrack(oggSrc) {
+/** Handles resume If Same Track. @param {*} oggSrc - Ogg Src value. @param {*} balance - Balance value. @returns {boolean} - Whether the check passes. */
+  _resumeIfSameTrack(oggSrc, balance) {
     if (this._musicSrc !== oggSrc || !this._musicEl) return false;
+    this._musicBalance = balance;
+    this._syncRunningAudioVolumes();
     this._musicEl.play().catch(() => {});
     return true;
   }
-
-/** Handles replace Music Element. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
-  _replaceMusicElement(oggSrc) {
+/** Handles replace Music Element. @param {*} oggSrc - Ogg Src value. @param {*} balance - Balance value. @returns {void} - Nothing. */
+  _replaceMusicElement(oggSrc, balance) {
     if (this._musicEl) {
       this._musicEl.pause();
       this._musicEl.src = '';
       this._musicEl = null;
     }
     this._musicSrc = oggSrc;
+    this._musicBalance = balance;
     const audio = new Audio(oggSrc);
     audio.loop = true;
     audio.volume = this._musicFinalVol;
     this._musicEl = audio;
   }
-
 /** Checks whether muted. @returns {boolean} - Whether the check passes. */
   isMuted() {
     return this.masterVolume <= 0.0001;
@@ -208,12 +204,10 @@ class AudioManager {
     if (this.isMuted()) return this.setMasterVolume(this._lastNonZeroMasterVolume);
     this.setMasterVolume(0);
   }
-
 /** Gets ui State. @returns {*} - Resulting value. */
   getUiState() {
     return { muted: this.isMuted(), masterVolume: this.masterVolume };
   }
-
 /** Subscribes. @param {*} listener - Listener value. @returns {*} - Resulting value. */
   subscribe(listener) {
     this._uiListeners.add(listener);
@@ -221,19 +215,63 @@ class AudioManager {
     return () => this._uiListeners.delete(listener);
   }
 
-/** Plays current Music Or Defer. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
-  _playCurrentMusicOrDefer(oggSrc) {
-    const playResult = this._musicEl.play().catch(() => null);
-    if (playResult === undefined || (playResult && playResult.catch)) this._deferredMusicSrc = oggSrc;
+/** Plays configured music. @param {*} key - Key value. @returns {void} - Nothing. */
+  playConfiguredMusic(key) {
+    const track = getMusicTrack(key);
+    if (track) this.playMusic(track.src, track);
   }
 
-/** Handles preload Music. @param {*} src - Src value. @returns {void} - Nothing. */
-  preloadMusic(src) {
+/** Handles preload configured Music. @param {*} key - Key value. @returns {void} - Nothing. */
+  preloadConfiguredMusic(key) {
+    const track = getMusicTrack(key);
+    if (track) this.preloadMusic(track.src, track);
+  }
+
+/** Plays configured sting. @param {*} key - Key value. @returns {void} - Nothing. */
+  playConfiguredSting(key) {
+    const track = getMusicTrack(key);
+    if (track) this.playSting(track.src, track);
+  }
+
+/** Plays configured sfx. @param {*} key - Key value. @returns {void} - Nothing. */
+  playConfiguredSfx(key) {
+    const sfx = getSfxTrack(key);
+    if (!sfx || !this._canPlayConfiguredSfx(key, sfx)) return;
+    this.playSfx(sfx.src, sfx);
+  }
+
+/** Plays configured looped Sfx. @param {*} loopKey - Loop Key value. @param {*} sfxKey - Sfx Key value. @returns {void} - Nothing. */
+  playConfiguredLoopedSfx(loopKey, sfxKey) {
+    const sfx = getSfxTrack(sfxKey);
+    if (sfx) this.playLoopedSfx(loopKey, sfx.src, sfx);
+  }
+
+/** Plays current Music Or Defer. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
+  _playCurrentMusicOrDefer(oggSrc) {
+    const playResult = this._musicEl.play();
+    if (!playResult?.catch) return;
+    playResult.then(() => this._clearDeferredMusic(oggSrc)).catch(() => this._deferMusic(oggSrc));
+  }
+
+/** Clears deferred Music. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
+  _clearDeferredMusic(oggSrc) {
+    if (this._deferredMusicSrc === oggSrc) this._deferredMusicSrc = null;
+  }
+
+/** Handles defer Music. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
+  _deferMusic(oggSrc) {
+    this._deferredMusicSrc = oggSrc;
+  }
+
+/** Handles preload Music. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
+  preloadMusic(src, options) {
+    const balance = this._resolveSfxBalance(options);
     if (this._musicSrc === src && this._musicEl) return;
     if (this._musicEl) { this._musicEl.pause(); this._musicEl.src = ''; }
     const audio   = new Audio(src);
     audio.preload = 'auto';
     audio.loop    = true;
+    this._musicBalance = balance;
     audio.volume  = this._musicFinalVol;
     this._musicSrc = src;
     this._musicEl  = audio;
@@ -252,13 +290,13 @@ class AudioManager {
     this._musicSrc = null;
   }
 
-/** Plays sting. @param {*} src - Src value. @returns {void} - Nothing. */
-  playSting(src) {
+/** Plays sting. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
+  playSting(src, options) {
     if (!this.musicEnabled) return;
     this.stopMusic();
     const audio = new Audio(src);
     audio.loop = false;
-    this._playTransientAudio(audio, 'music');
+    this._playTransientAudio(audio, 'music', this._resolveSfxBalance(options));
   }
 
 /** Plays sfx. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
@@ -296,6 +334,17 @@ class AudioManager {
     return Math.min(1.5, Math.max(0, options.volume));
   }
 
+/** Checks whether can Play Configured Sfx. @param {*} key - Key value. @param {*} sfx - Sfx value. @returns {boolean} - Whether the check passes. */
+  _canPlayConfiguredSfx(key, sfx) {
+    const cooldown = sfx.cooldownMs ?? 0;
+    if (cooldown <= 0) return true;
+    const now = performance.now?.() ?? Date.now();
+    const last = this._configuredSfxPlayTimes.get(key) ?? -Infinity;
+    if (now - last < cooldown) return false;
+    this._configuredSfxPlayTimes.set(key, now);
+    return true;
+  }
+
 /** Plays transient Audio. @param {*} audio - Audio value. @param {*} kind - Kind value. @param {*} balance - Balance value. @returns {void} - Nothing. */
   _playTransientAudio(audio, kind, balance = 1) {
     this._tagAudio(audio, kind, balance);
@@ -311,6 +360,11 @@ class AudioManager {
     audio._solvaraBalance = balance;
   }
 
+/** Handles effective Music Volume. @param {*} balance - Balance value. @returns {number} - Computed numeric value. */
+  _effectiveMusicVolume(balance) {
+    return Math.min(1.0, this.masterVolume * this.musicVolume * balance);
+  }
+
 /** Handles effective Sfx Volume. @param {*} balance - Balance value. @returns {number} - Computed numeric value. */
   _effectiveSfxVolume(balance) {
     return Math.min(1.0, this.masterVolume * this.sfxVolumeMaster * balance);
@@ -318,7 +372,7 @@ class AudioManager {
 
 /** Applies tracked Volume. @param {*} audio - Audio value. @returns {void} - Nothing. */
   _applyTrackedVolume(audio) {
-    if (audio._solvaraKind === 'music') return void (audio.volume = this._musicFinalVol);
+    if (audio._solvaraKind === 'music') return void (audio.volume = this._effectiveMusicVolume(audio._solvaraBalance ?? 1));
     audio.volume = this._effectiveSfxVolume(audio._solvaraBalance ?? 1);
   }
 

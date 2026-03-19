@@ -32,6 +32,7 @@ class InputManager {
     this.fullscreenPressed = false;
     this.backPressed = false;
     this.rollPressed = false;
+    this.mobileActionPressed = false;
   }
 
 /** Handles bind Handlers. @returns {void} - Nothing. */
@@ -61,6 +62,7 @@ class InputManager {
     this.fullscreenPressed = false;
     this.backPressed  = false;
     this.rollPressed  = false;
+    this.mobileActionPressed = false;
   }
 
 /** Sets touch. @param {*} action - Action value. @param {*} value - Value to apply. @returns {void} - Nothing. */

@@ -29,8 +29,11 @@ export const touchControlsVisibilityMethods = {
 /** Updates visibility. @returns {void} - Nothing. */
   _updateVisibility() {
     if (!this._layer) return;
+    const signature = this._buildVisibilitySignature();
+    if (signature === this._visibilitySignature) return;
+    this._visibilitySignature = signature;
     const mobileLandscape = this._isLandscapeTouchLayout();
-    this._layer.style.display = mobileLandscape ? 'block' : 'none';
+    this._setButtonDisplay(this._layer, mobileLandscape);
     if (!mobileLandscape) return;
     const overlayVisible = shouldShowTouchControls(this._gameState);
     const showBack = this._shouldShowBackButton();
@@ -46,6 +49,17 @@ export const touchControlsVisibilityMethods = {
     return isMobileLayout() && !isPortraitMobile();
   },
 
+/** Builds visibility Signature. @returns {string} - Derived text value. */
+  _buildVisibilitySignature() {
+    const flags = this._getMobileUiFlags();
+    return [
+      this._gameState,
+      this._isLandscapeTouchLayout() ? '1' : '0',
+      flags.startSubOpen ? '1' : '0',
+      flags.pauseSubOpen ? '1' : '0',
+    ].join('|');
+  },
+
 /** Checks whether show Back Button. @returns {boolean} - Whether the check passes. */
   _shouldShowBackButton() {
     const flags = this._getMobileUiFlags();
@@ -56,26 +70,24 @@ export const touchControlsVisibilityMethods = {
 
 /** Sets directional Visibility. @param {*} overlayVisible - Overlay Visible value. @returns {void} - Nothing. */
   _setDirectionalVisibility(overlayVisible) {
-    const display = overlayVisible ? 'flex' : 'none';
-    for (const btn of this._menuButtons) btn.style.display = display;
+    for (const btn of this._menuButtons) this._setButtonDisplay(btn, overlayVisible);
   },
 
 /** Sets primary Action Visibility. @param {*} overlayVisible - Overlay Visible value. @returns {void} - Nothing. */
   _setPrimaryActionVisibility(overlayVisible) {
-    if (this._jumpBtn) this._jumpBtn.style.display = overlayVisible ? 'flex' : 'none';
+    this._setButtonDisplay(this._jumpBtn, overlayVisible);
   },
 
 /** Sets secondary Action Visibility. @returns {void} - Nothing. */
   _setSecondaryActionVisibility() {
-    if (!this._rollBtn) return;
-    this._rollBtn.style.display = isGameplayTouchState(this._gameState) ? 'flex' : 'none';
+    this._setButtonDisplay(this._rollBtn, isGameplayTouchState(this._gameState));
   },
 
 /** Sets utility Visibility. @param {*} showBack - Show Back value. @returns {void} - Nothing. */
   _setUtilityVisibility(showBack) {
-    if (this._pauseBtn) this._pauseBtn.style.display = this._shouldShowPauseButton() ? 'flex' : 'none';
-    if (this._fullscreenBtn) this._fullscreenBtn.style.display = 'flex';
-    if (this._backBtn) this._backBtn.style.display = showBack ? 'flex' : 'none';
+    this._setButtonDisplay(this._pauseBtn, this._shouldShowPauseButton());
+    this._setButtonDisplay(this._fullscreenBtn, true);
+    this._setButtonDisplay(this._backBtn, showBack);
   },
 
 /** Checks whether show Pause Button. @returns {boolean} - Whether the check passes. */
@@ -92,8 +104,26 @@ export const touchControlsVisibilityMethods = {
 
 /** Sets primary Button Text. @param {*} text - Text value. @param {*} label - Label value. @returns {void} - Nothing. */
   _setPrimaryButtonText(text, label) {
+    if (this._primaryText === text && this._primaryLabel === label) return;
+    this._primaryText = text;
+    this._primaryLabel = label;
     this._menuPrimaryBtn.textContent = text;
     this._menuPrimaryBtn.setAttribute('aria-label', label);
+  },
+
+/** Sets button Display. @param {*} btn - Btn value. @param {*} visible - Visible value. @returns {void} - Nothing. */
+  _setButtonDisplay(btn, visible) {
+    if (!btn) return;
+    const next = visible ? 'flex' : 'none';
+    if (btn === this._layer) return this._setLayerDisplay(next);
+    if (btn.style.display === next) return;
+    btn.style.display = next;
+  },
+
+/** Sets layer Display. @param {*} next - Next value. @returns {void} - Nothing. */
+  _setLayerDisplay(next) {
+    if (this._layer.style.display === next) return;
+    this._layer.style.display = next === 'none' ? 'none' : 'block';
   },
 
 /** Clears all Input Flags. @returns {void} - Nothing. */
@@ -106,6 +136,7 @@ export const touchControlsVisibilityMethods = {
     im.jump = false;
     im.enterPressed = false;
     im.rollPressed = false;
+    im.mobileActionPressed = false;
     im.mobileUpActive = false;
     for (const btn of this._buttons) btn.classList.remove('tc-active');
   },
