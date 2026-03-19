@@ -96,11 +96,17 @@ export const touchControlsDomMethods = {
     this._makeBackBtn({ top: EDGE, left: EDGE }, size);
     this._applyHudClearTop(this._pauseBtn);
     this._applyHudClearTop(this._fullscreenBtn);
+    this._applyMenuClearTop(this._backBtn);
   },
 
 /** Applies hud Clear Top. @param {*} btn - Btn value. @returns {void} - Nothing. */
   _applyHudClearTop(btn) {
     if (btn) btn.style.top = 'calc(16vh + env(safe-area-inset-top, 0px))';
+  },
+
+/** Applies menu Clear Top. @param {*} btn - Btn value. @returns {void} - Nothing. */
+  _applyMenuClearTop(btn) {
+    if (btn) btn.style.top = 'calc(74px + env(safe-area-inset-top, 0px))';
   },
 
 /** Creates direction Btn. @param {*} label - Label value. @param {*} id - Id value. @param {*} action - Action value. @param {*} pos - Pos value. @param {*} size - Size value. @param {*} withSAI - With SAI value. @returns {void} - Nothing. */
