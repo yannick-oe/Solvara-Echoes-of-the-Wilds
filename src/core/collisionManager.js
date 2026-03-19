@@ -11,12 +11,7 @@ import { SFX_VOLUME }   from '../config/audioConfig.js';
 // #endregion
 
 // #region Public Methods
-/**
- * Handles check stomp.
- * @param {object} param1 Composite input parameter.
- * @param {Array} enemies Input parameter.
- * @param {object} effects } Input parameter.
- */
+/** Checks stomp. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
 export function checkStomp({ player, enemies, effects }) {
   if (player.velY <= 0) return;
   for (const enemy of enemies) {
@@ -26,10 +21,7 @@ export function checkStomp({ player, enemies, effects }) {
   }
 }
 
-/**
- * Checks roll hits against enemies.
- * @param {object} ctx - { player, enemies, effects }
- */
+/** Checks roll Kill. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
 export function checkRollKill({ player, enemies, effects }) {
   if (!player.isRolling()) return;
   for (const enemy of enemies) {
@@ -39,10 +31,7 @@ export function checkRollKill({ player, enemies, effects }) {
   }
 }
 
-/**
- * Checks projectile hits against enemies.
- * @param {object} ctx - { projectiles, enemies, effects }
- */
+/** Checks projectile Hits. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
 export function checkProjectileHits({ projectiles, enemies, effects }) {
   for (const projectile of projectiles) {
     if (!projectile.active) continue;
@@ -50,10 +39,7 @@ export function checkProjectileHits({ projectiles, enemies, effects }) {
   }
 }
 
-/**
- * Checks pickup collection.
- * @param {object} ctx - { player, pickups, gameState, hud, camera }
- */
+/** Checks pickups. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
 export function checkPickups({ player, pickups, gameState, hud, camera }) {
   for (const pickup of pickups) {
     if (!pickup.active || !player.intersects(pickup)) continue;
@@ -62,30 +48,16 @@ export function checkPickups({ player, pickups, gameState, hud, camera }) {
   }
 }
 
-/**
- * Checks interactions with switches and doors.
- * @param {object} ctx - { player, interactables, onVictory }
- */
+/** Checks interactables. @param {object} param1 - Destructured parameter. @returns {boolean} - Whether the check passes. */
 export function checkInteractables({ player, interactables, onVictory }) {
   for (const obj of interactables) {
-    if (obj instanceof Switch) {
-      if (player.intersects(obj) && obj.activate()) {
-        audioManager.playSfx('assets/audio/sfx/switchSound.mp3', { volume: SFX_VOLUME.switch });
-      }
-    } else if (obj instanceof Door) {
-      if (obj.isOpen && player.intersects(obj)) {
-        onVictory?.();
-        return true;
-      }
-    }
+    if (_handleSwitchInteract(player, obj)) continue;
+    if (_handleDoorInteract(player, obj, onVictory)) return true;
   }
   return false;
 }
 
-/**
- * Checks collisions with hazards (lethal on contact).
- * @param {object} ctx - { player, hazards, gameState, hud, camera, onDeath }
- */
+/** Checks hazards. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
 export function checkHazards({ player, hazards, gameState, hud, camera, onDeath }) {
   for (const hz of hazards) {
     if (!hz.active) continue;
@@ -99,10 +71,7 @@ export function checkHazards({ player, hazards, gameState, hud, camera, onDeath 
   }
 }
 
-/**
- * Checks damage from enemy contact.
- * @param {object} ctx - { player, enemies, gameState, hud, camera, onDeath }
- */
+/** Checks enemy Damage. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
 export function checkEnemyDamage({ player, enemies, gameState, hud, camera, onDeath }) {
   if (player.dying || player.isRolling()) return;
   for (const enemy of enemies) {
@@ -112,42 +81,26 @@ export function checkEnemyDamage({ player, enemies, gameState, hud, camera, onDe
   }
 }
 
-/**
- * Returns whether enemy is active and alive.
- * @param {object} enemy Input parameter.
- */
+/** Checks whether active Enemy. @param {*} enemy - Enemy value. @returns {boolean} - Whether the check passes. */
 function isActiveEnemy(enemy) {
   return enemy.active && !enemy.dead;
 }
 
-/**
- * Returns whether player can stomp enemy.
- * @param {object} player Input parameter.
- * @param {object} enemy Input parameter.
- */
+/** Checks whether stomp Enemy. @param {*} player - Player value. @param {*} enemy - Enemy value. @returns {boolean} - Whether the check passes. */
 function canStompEnemy(player, enemy) {
   if (!isActiveEnemy(enemy)) return false;
   if (!player.intersects(enemy)) return false;
   return player.y + player.h <= enemy.y + enemy.h / 3;
 }
 
-/**
- * Kills enemy, plays sound, and spawns death effect.
- * @param {object} enemy Input parameter.
- * @param {Array} effects Input parameter.
- */
+/** Handles kill Enemy. @param {*} enemy - Enemy value. @param {*} effects - Effects value. @returns {void} - Nothing. */
 function killEnemy(enemy, effects) {
   enemy.stompDie();
   if (enemy.deathSound) audioManager.playSfx(enemy.deathSound, { volume: SFX_VOLUME.enemyKill });
   effects.push(new DeathEffect(enemy.x + enemy.w / 2, enemy.y));
 }
 
-/**
- * Sends pickup feedback and audio.
- * @param {object} pickup Input parameter.
- * @param {object} hud Input parameter.
- * @param {object} camera Input parameter.
- */
+/** Notifies pickup. @param {*} pickup - Pickup value. @param {*} hud - Current HUD instance. @param {*} camera - Current camera instance. @returns {*} - Resulting value. */
 function notifyPickup(pickup, hud, camera) {
   const sx = pickup.x + pickup.w / 2 - camera.x;
   const sy = pickup.y + pickup.h / 2 - camera.y;
@@ -156,59 +109,48 @@ function notifyPickup(pickup, hud, camera) {
   if (pickup instanceof Cherry) notifyCherry(hud, sx, sy);
 }
 
-/**
- * Sends star coin pickup feedback.
- * @param {object} pickup Input parameter.
- * @param {object} hud Input parameter.
- * @param {number} sx Input parameter.
- * @param {number} sy Input parameter.
- */
+/** Handles switch Interact. @param {*} player - Player value. @param {*} obj - Obj value. @returns {boolean} - Whether the check passes. */
+function _handleSwitchInteract(player, obj) {
+  if (!(obj instanceof Switch)) return false;
+  if (player.intersects(obj) && obj.activate()) {
+    audioManager.playSfx('assets/audio/sfx/switchSound.mp3', { volume: SFX_VOLUME.switch });
+  }
+  return true;
+}
+
+/** Handles door Interact. @param {*} player - Player value. @param {*} obj - Obj value. @param {*} onVictory - On Victory value. @returns {boolean} - Whether the check passes. */
+function _handleDoorInteract(player, obj, onVictory) {
+  if (!(obj instanceof Door)) return false;
+  if (!obj.isOpen || !player.intersects(obj)) return false;
+  onVictory?.();
+  return true;
+}
+
+/** Notifies star Coin. @param {*} pickup - Pickup value. @param {*} hud - Current HUD instance. @param {*} sx - Sx value. @param {*} sy - Sy value. @returns {void} - Nothing. */
 function notifyStarCoin(pickup, hud, sx, sy) {
   audioManager.playSfx('assets/audio/sfx/pickupStarCoin.mp3', { volume: SFX_VOLUME.pickup });
   hud.notify('starCoin', sx, sy, pickup.slotIndex);
 }
 
-/**
- * Sends gem pickup feedback.
- * @param {object} hud Input parameter.
- * @param {number} sx Input parameter.
- * @param {number} sy Input parameter.
- */
+/** Notifies gem. @param {*} hud - Current HUD instance. @param {*} sx - Sx value. @param {*} sy - Sy value. @returns {void} - Nothing. */
 function notifyGem(hud, sx, sy) {
   audioManager.playSfx('assets/audio/sfx/pickupGem.mp3', { volume: SFX_VOLUME.pickup });
   hud.notify('gem', sx, sy);
 }
 
-/**
- * Sends cherry pickup feedback.
- * @param {object} hud Input parameter.
- * @param {number} sx Input parameter.
- * @param {number} sy Input parameter.
- */
+/** Notifies cherry. @param {*} hud - Current HUD instance. @param {*} sx - Sx value. @param {*} sy - Sy value. @returns {void} - Nothing. */
 function notifyCherry(hud, sx, sy) {
   audioManager.playSfx('assets/audio/sfx/pickupCherry.mp3', { volume: SFX_VOLUME.pickup });
   hud.notify('heal', sx, sy);
 }
 
-/**
- * Returns whether enemy should damage player.
- * @param {object} player Input parameter.
- * @param {object} enemy Input parameter.
- */
+/** Checks whether enemy Deal Damage. @param {*} player - Player value. @param {*} enemy - Enemy value. @returns {boolean} - Whether the check passes. */
 function shouldEnemyDealDamage(player, enemy) {
   if (!isActiveEnemy(enemy) || !player.intersects(enemy)) return false;
   return !(player.velY > 0 && player.y + player.h <= enemy.y + enemy.h / 3);
 }
 
-/**
- * Applies enemy contact damage and feedback.
- * @param {object} player Input parameter.
- * @param {object} enemy Input parameter.
- * @param {object} gameState Input parameter.
- * @param {object} hud Input parameter.
- * @param {object} camera Input parameter.
- * @param {Function} onDeath Input parameter.
- */
+/** Applies enemy Damage. @param {*} player - Player value. @param {*} enemy - Enemy value. @param {*} gameState - Current game state. @param {*} hud - Current HUD instance. @param {*} camera - Current camera instance. @param {*} onDeath - On Death value. @returns {boolean} - Whether the check passes. */
 function applyEnemyDamage(player, enemy, gameState, hud, camera, onDeath) {
   if (!player.takeDamage(enemy.x + enemy.w / 2)) return false;
   gameState.hearts--;
@@ -219,20 +161,13 @@ function applyEnemyDamage(player, enemy, gameState, hud, camera, onDeath) {
   return true;
 }
 
-/**
- * Plays hurt sound and returns continue flag.
- */
+/** Plays hurt Sfx. @returns {boolean} - Whether the check passes. */
 function playHurtSfx() {
   audioManager.playSfx('assets/audio/sfx/hurtSound.mp3', { volume: SFX_VOLUME.hurt });
   return true;
 }
 
-/**
- * Applies a projectile hit to the first intersecting active enemy.
- * @param {object} projectile Input parameter.
- * @param {Array} enemies Input parameter.
- * @param {Array} effects Input parameter.
- */
+/** Applies projectile Hit. @param {*} projectile - Projectile value. @param {*} enemies - Enemies value. @param {*} effects - Effects value. @returns {boolean} - Whether the check passes. */
 function _applyProjectileHit(projectile, enemies, effects) {
   for (const enemy of enemies) {
     if (!isActiveEnemy(enemy) || !projectile.intersects(enemy)) continue;

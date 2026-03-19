@@ -1,16 +1,11 @@
 // #region Class Definition
 class ImageCache {
-  /**
-   * Creates a new instance.
-   */
+/** Creates a new instance. @returns {void} - Nothing. */
   constructor() {
     this._cache = {};
   }
 
-  /**
-   * Handles preload.
-   * @param {Array} entries Input parameter.
-   */
+/** Handles preload. @param {*} entries - Entries value. @returns {*} - Resulting value. */
   preload(entries) {
     const promises = entries.map(({ key, src }) =>
       new Promise((resolve, reject) => {
@@ -23,10 +18,7 @@ class ImageCache {
     return Promise.all(promises);
   }
 
-  /**
-   * Handles get.
-   * @param {string} key Input parameter.
-   */
+/** Handles get. @param {*} key - Key value. @returns {*} - Resulting value. */
   get(key) {
     return this._cache[key] ?? null;
   }

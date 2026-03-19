@@ -137,10 +137,7 @@ const LEGACY_TILE_REGISTRY = {
   pvb6: { txCol: 15, txRow: 21, pass: false, category: 'cave',     label: 'Purple Block Floor 3'     },
 };
 
-/**
- * Builds a descriptive canonical tile key from tile definition.
- * @param {object} def Input parameter.
- */
+/** Builds canonical Key. @param {*} def - Def value. @returns {*} - Resulting value. */
 function buildCanonicalKey(def) {
   const key = toCamelKey(def.label);
   if (!def.oneWay) return key;
@@ -149,10 +146,7 @@ function buildCanonicalKey(def) {
   return key;
 }
 
-/**
- * Converts a human-readable label to lower camel-case.
- * @param {string} label Input parameter.
- */
+/** Handles to Camel Key. @param {*} label - Label value. @returns {string} - Derived text value. */
 function toCamelKey(label) {
   const words = extractKeyWords(label);
   const [first, ...rest] = words;
@@ -160,29 +154,20 @@ function toCamelKey(label) {
   return `${first.toLowerCase()}${tail}`;
 }
 
-/**
- * Extracts normalized key words from a tile label.
- * @param {string} label Input parameter.
- */
+/** Handles extract Key Words. @param {*} label - Label value. @returns {*} - Resulting value. */
 function extractKeyWords(label) {
   const sanitized = label.replace(/[()./,-]/g, ' ').replace(/\s+/g, ' ').trim();
   return sanitized.match(/[A-Za-z0-9]+/g) ?? ['tile'];
 }
 
-/**
- * Capitalizes the first letter and strips non-alphanumerics.
- * @param {string} value Input parameter.
- */
+/** Handles cap. @param {*} value - Value to apply. @returns {string} - Derived text value. */
 function cap(value) {
   const clean = value.replace(/[^A-Za-z0-9]/g, '');
   if (!clean) return 'Tile';
   return clean[0].toUpperCase() + clean.slice(1);
 }
 
-/**
- * Builds canonical registry and legacy alias map.
- * @param {object} legacyRegistry Input parameter.
- */
+/** Builds canonical Registry. @param {*} legacyRegistry - Legacy Registry value. @returns {*} - Resulting value. */
 function buildCanonicalRegistry(legacyRegistry) {
   const registry = {};
   const aliases = {};
@@ -195,11 +180,7 @@ function buildCanonicalRegistry(legacyRegistry) {
   return { registry, aliases };
 }
 
-/**
- * Ensures generated canonical key uniqueness.
- * @param {object} registry Input parameter.
- * @param {string} baseKey Input parameter.
- */
+/** Handles unique Canonical Key. @param {*} registry - Registry value. @param {*} baseKey - Base Key value. @returns {*} - Resulting value. */
 function uniqueCanonicalKey(registry, baseKey) {
   if (!registry[baseKey]) return baseKey;
   let index = 2;

@@ -58,26 +58,18 @@ export const CHARACTER_PROFILES = {
 // #endregion
 
 // #region Public Methods
-/**
- * Resolves a safe character id.
- * @param {string} value Input parameter.
- */
+/** Handles normalize Character Id. @param {*} value - Value to apply. @returns {*} - Resulting value. */
 export function normalizeCharacterId(value) {
   return CHARACTER_IDS.includes(value) ? value : 'fox';
 }
 
-/**
- * Returns character profile by id.
- * @param {string} characterId Input parameter.
- */
+/** Gets character Profile. @param {*} characterId - Character Id value. @returns {*} - Resulting value. */
 export function getCharacterProfile(characterId) {
   const key = normalizeCharacterId(characterId);
   return CHARACTER_PROFILES[key];
 }
 
-/**
- * Loads persisted character selection.
- */
+/** Loads selected Character. @returns {*} - Resulting value. */
 export function loadSelectedCharacter() {
   try {
     const raw = localStorage.getItem(CHARACTER_STORAGE_KEY);
@@ -87,10 +79,7 @@ export function loadSelectedCharacter() {
   }
 }
 
-/**
- * Saves character selection.
- * @param {string} characterId Input parameter.
- */
+/** Saves selected Character. @param {*} characterId - Character Id value. @returns {void} - Nothing. */
 export function saveSelectedCharacter(characterId) {
   try {
     localStorage.setItem(CHARACTER_STORAGE_KEY, normalizeCharacterId(characterId));

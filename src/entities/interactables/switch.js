@@ -10,21 +10,14 @@ const DRAW_H = 32;
 // #region Class Definition
 export class Switch extends Entity {
 
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   * @param {object} linkedDoor Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @param {*} linkedDoor - Linked Door value. @returns {void} - Nothing. */
   constructor(x, y, linkedDoor = null) {
     super(x, y, 24, 24);
     this.activated  = false;
     this.linkedDoor = linkedDoor;
     }
 
-  /**
-   * Handles activate.
-   */
+/** Handles activate. @returns {boolean} - Whether the check passes. */
   activate() {
     if (!this.activated) {
       this.activated = true;
@@ -34,12 +27,7 @@ export class Switch extends Entity {
     return false;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     const imgKey = this.activated ? 'PROP_CRANK_DOWN' : 'PROP_CRANK_UP';
     const img    = imageCache.get(imgKey);

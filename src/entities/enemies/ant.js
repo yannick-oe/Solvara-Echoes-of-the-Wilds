@@ -15,11 +15,7 @@ const ANIM_FPS    = 10;
 // #region Class Definition
 export class AntEnemy extends Enemy {
 
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     super(x, y, 32, 32);
     this.speed       = 60;
@@ -29,11 +25,7 @@ export class AntEnemy extends Enemy {
     this._frameTimer = 0;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   * @param {object} tileMap Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   update(dt, tileMap) {
     if (this.dead) return;
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
@@ -43,62 +35,33 @@ export class AntEnemy extends Enemy {
     this._checkEdge(tileMap);
     this.y += this.velY * dt;
     this._resolveFloor(tileMap);
-    this._frameTimer += dt;
-    if (this._frameTimer >= 1 / ANIM_FPS) {
-      this._frameTimer -= 1 / ANIM_FPS;
-      this._frameIndex  = (this._frameIndex + 1) % FRAME_COUNT;
-    }
+    this._advanceAnimation(dt);
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {*} - Resulting value. */
   draw(ctx, _cam, imageCache) {
     if (this.dead) return;
     const img = imageCache.get(`ANT_${this._frameIndex}`);
     if (!img) return;
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
-    if (!this.facingRight) {
-      ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
-    } else {
-      ctx.save();
-      ctx.translate(dx + DRAW_W, dy);
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
-      ctx.restore();
-    }
+    if (!this.facingRight) return ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
+    this._drawFlipped(ctx, img, dx, dy);
   }
 
-  /**
-   * Handles resolve wall.
-   * @param {object} tileMap Input parameter.
-   */
+/** Resolves wall. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   _resolveWall(tileMap) {
     const ts       = TILE_SIZE;
-    const topRow   = Math.floor(this.y / ts);
-    const botRow   = Math.floor((this.y + this.h - 1) / ts);
-    const checkCol = this.facingRight
-      ? Math.floor((this.x + this.w - 1) / ts)
-      : Math.floor(this.x / ts);
+    const { topRow, botRow } = this._wallRows(ts);
+    const checkCol = this._wallCheckCol(ts);
     for (let row = topRow; row <= botRow; row++) {
-      if (tileMap.isSolid(checkCol, row)) {
-        this.x           = this.facingRight
-          ? checkCol * ts - this.w
-          : (checkCol + 1) * ts;
-        this.facingRight = !this.facingRight;
-        return;
-      }
+      if (!tileMap.isSolid(checkCol, row)) continue;
+      this._bounceFromWall(checkCol, ts);
+      return;
     }
   }
 
-  /**
-   * Handles check edge.
-   * @param {object} tileMap Input parameter.
-   */
+/** Checks edge. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   _checkEdge(tileMap) {
     const ts         = TILE_SIZE;
     const groundRow  = Math.floor((this.y + this.h) / ts);
@@ -110,10 +73,7 @@ export class AntEnemy extends Enemy {
     }
   }
 
-  /**
-   * Handles resolve floor.
-   * @param {object} tileMap Input parameter.
-   */
+/** Resolves floor. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   _resolveFloor(tileMap) {
     if (this.velY < 0) return;
     const ts       = TILE_SIZE;
@@ -127,6 +87,43 @@ export class AntEnemy extends Enemy {
         return;
       }
     }
+  }
+
+/** Handles advance Animation. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
+  _advanceAnimation(dt) {
+    this._frameTimer += dt;
+    if (this._frameTimer < 1 / ANIM_FPS) return;
+    this._frameTimer -= 1 / ANIM_FPS;
+    this._frameIndex = (this._frameIndex + 1) % FRAME_COUNT;
+  }
+
+/** Draws flipped. @param {*} ctx - Ctx value. @param {*} img - Img value. @param {*} dx - Dx value. @param {*} dy - Dy value. @returns {void} - Nothing. */
+  _drawFlipped(ctx, img, dx, dy) {
+    ctx.save();
+    ctx.translate(dx + DRAW_W, dy);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, 0, DRAW_W, DRAW_H);
+    ctx.restore();
+  }
+
+/** Handles wall Rows. @param {*} ts - Ts value. @returns {*} - Resulting value. */
+  _wallRows(ts) {
+    return {
+      topRow: Math.floor(this.y / ts),
+      botRow: Math.floor((this.y + this.h - 1) / ts),
+    };
+  }
+
+/** Handles wall Check Col. @param {*} ts - Ts value. @returns {*} - Resulting value. */
+  _wallCheckCol(ts) {
+    if (this.facingRight) return Math.floor((this.x + this.w - 1) / ts);
+    return Math.floor(this.x / ts);
+  }
+
+/** Handles bounce From Wall. @param {*} checkCol - Check Col value. @param {*} ts - Ts value. @returns {void} - Nothing. */
+  _bounceFromWall(checkCol, ts) {
+    this.x = this.facingRight ? checkCol * ts - this.w : (checkCol + 1) * ts;
+    this.facingRight = !this.facingRight;
   }
 }
 // #endregion

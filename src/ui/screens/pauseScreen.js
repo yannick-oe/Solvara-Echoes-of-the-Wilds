@@ -32,10 +32,7 @@ const ZONE_Y = PAUSE_ITEMS.map((_, i) =>
 // #region Class Definition
 export class PauseScreen {
 
-  /**
-   * Creates a new instance.
-   * @param {object} callbacks Input parameter.
-   */
+/** Creates a new instance. @param {*} callbacks - Callback collection. @returns {void} - Nothing. */
   constructor(callbacks) {
     this._onResume      = callbacks.onResume;
     this._onRestart     = callbacks.onRestart;
@@ -44,9 +41,7 @@ export class PauseScreen {
     this._reset();
   }
 
-  /**
-   * Handles reset.
-   */
+/** Handles reset. @returns {void} - Nothing. */
   _reset() {
     this._selectedIndex = 0;
     this._subScreen     = null;
@@ -57,59 +52,42 @@ export class PauseScreen {
     this._prevRight = false;
   }
 
-  /** Resets the pause screen state. */
+/** Handles reset. @returns {void} - Nothing. */
   reset() { this._reset(); }
 
-  /**
-   * Returns whether a subpanel is currently open.
-   */
+/** Checks whether sub Panel Open. @returns {boolean} - Whether the check passes. */
   isSubPanelOpen() {
     return this._subScreen !== null;
   }
 
-  /**
-   * Handles handle input.
-   * @param {object} input Input parameter.
-   */
+/** Handles input. @param {*} input - Current input state. @returns {*} - Resulting value. */
   handleInput(input) {
     if (this._handleSubScreenInput(input)) return;
     if (input.pausePressed) return this._onResume();
     this._handleMainMenuInput(input);
   }
 
-  /**
-   * Handles input while a pause subpanel is open.
-   * @param {object} input Input parameter.
-   */
+/** Handles sub Screen Input. @param {*} input - Current input state. @returns {*} - Resulting value. */
   _handleSubScreenInput(input) {
     if (this._subScreen === 'options') return this._handleOptionsSubInput(input);
     if (this._subScreen === 'controls') return this._handleControlsSubInput(input);
     return false;
   }
 
-  /**
-   * Handles options subpanel input and returns consumed state.
-   * @param {object} input Input parameter.
-   */
+/** Handles options Sub Input. @param {*} input - Current input state. @returns {boolean} - Whether the check passes. */
   _handleOptionsSubInput(input) {
     if (input.pausePressed) { this._subScreen = null; return true; }
     this._handleOptionsInput(input);
     return true;
   }
 
-  /**
-   * Handles controls subpanel input and returns consumed state.
-   * @param {object} input Input parameter.
-   */
+/** Handles controls Sub Input. @param {*} input - Current input state. @returns {boolean} - Whether the check passes. */
   _handleControlsSubInput(input) {
     if (input.backPressed || input.pausePressed) this._subScreen = null;
     return true;
   }
 
-  /**
-   * Handles pause menu navigation and activation.
-   * @param {object} input Input parameter.
-   */
+/** Handles main Menu Input. @param {*} input - Current input state. @returns {void} - Nothing. */
   _handleMainMenuInput(input) {
     const upNow   = input.up;
     const downNow = input.down;
@@ -125,16 +103,10 @@ export class PauseScreen {
     if (input.jumpPressed || input.enterPressed) this._activate(PAUSE_ITEMS[this._selectedIndex]);
   }
 
-  /**
-   * Handles handle options input.
-   * @param {object} input Input parameter.
-   */
+/** Handles options Input. @param {*} input - Current input state. @returns {void} - Nothing. */
   _handleOptionsInput(input) { handleOptionsInput(this, input); }
 
-  /**
-   * Handles activate.
-   * @param {object} item Input parameter.
-   */
+/** Handles activate. @param {*} item - Item value. @returns {*} - Resulting value. */
   _activate(item) {
     if (item === 'continue') return this._onResume();
     if (item === 'restartLevel') return this._onRestart();
@@ -142,10 +114,7 @@ export class PauseScreen {
     this._openSubScreen(item);
   }
 
-  /**
-   * Opens a pause sub screen when selected from menu.
-   * @param {string} item Input parameter.
-   */
+/** Handles open Sub Screen. @param {*} item - Item value. @returns {void} - Nothing. */
   _openSubScreen(item) {
     if (item === 'options') {
       this._subScreen = 'options';
@@ -155,10 +124,7 @@ export class PauseScreen {
     if (item === 'controls') this._subScreen = 'controls';
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   draw(ctx) {
     const now = performance.now() / 1000;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.60)';
@@ -170,11 +136,7 @@ export class PauseScreen {
     }
   }
 
-  /**
-   * Handles draw main menu.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} now Input parameter.
-   */
+/** Draws main Menu. @param {*} ctx - Ctx value. @param {*} now - Now value. @returns {void} - Nothing. */
   _drawMainMenu(ctx, now) {
     drawWoodPanel(ctx, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, false);
     this._drawPauseMenuTitle(ctx, now);
@@ -182,11 +144,7 @@ export class PauseScreen {
     PAUSE_ITEMS.forEach((id, i) => this._drawPauseMenuRow(ctx, id, ZONE_Y[i], i === this._selectedIndex));
   }
 
-  /**
-   * Draws pause menu title text.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {number} now Input parameter.
-   */
+/** Draws pause Menu Title. @param {*} ctx - Ctx value. @param {*} now - Now value. @returns {void} - Nothing. */
   _drawPauseMenuTitle(ctx, now) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -199,10 +157,7 @@ export class PauseScreen {
     ctx.restore();
   }
 
-  /**
-   * Draws title separator and row separators.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws pause Menu Separators. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawPauseMenuSeparators(ctx) {
     this._drawPauseTitleSeparator(ctx);
     ctx.strokeStyle = 'rgba(25, 12, 4, 0.20)';
@@ -210,10 +165,7 @@ export class PauseScreen {
     for (let i = 1; i < PAUSE_ITEMS.length; i++) this._drawPauseRowSeparator(ctx, i);
   }
 
-  /**
-   * Draws main title separator line.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws pause Title Separator. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawPauseTitleSeparator(ctx) {
     ctx.strokeStyle = 'rgba(59, 38, 21, 0.65)';
     ctx.lineWidth   = 2;
@@ -223,11 +175,7 @@ export class PauseScreen {
     ctx.stroke();
   }
 
-  /**
-   * Draws one menu row separator.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {number} i Input parameter.
-   */
+/** Draws pause Row Separator. @param {*} ctx - Ctx value. @param {*} i - I value. @returns {void} - Nothing. */
   _drawPauseRowSeparator(ctx, i) {
     const sy = TITLE_SEP_Y + ITEM_ZONE_H * i;
     ctx.beginPath();
@@ -236,13 +184,7 @@ export class PauseScreen {
     ctx.stroke();
   }
 
-  /**
-   * Draws one pause menu row.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {string} id Input parameter.
-   * @param {number} y Input parameter.
-   * @param {boolean} selected Input parameter.
-   */
+/** Draws pause Menu Row. @param {*} ctx - Ctx value. @param {*} id - Id value. @param {*} y - Y value. @param {*} selected - Selected value. @returns {void} - Nothing. */
   _drawPauseMenuRow(ctx, id, y, selected) {
     if (selected) this._drawPauseSelectedRow(ctx, y);
     ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
@@ -251,11 +193,7 @@ export class PauseScreen {
     ctx.fillText(t(id), CX, y);
   }
 
-  /**
-   * Draws selected row background and pointer marker.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Draws pause Selected Row. @param {*} ctx - Ctx value. @param {*} y - Y value. @returns {void} - Nothing. */
   _drawPauseSelectedRow(ctx, y) {
     const hl = ctx.createLinearGradient(PANEL_X, y, PANEL_X + PANEL_W, y);
     hl.addColorStop(0, 'rgba(20, 10, 4, 0.00)');
@@ -267,11 +205,7 @@ export class PauseScreen {
     this._drawPausePointer(ctx, y);
   }
 
-  /**
-   * Draws selected-row pointer glyph.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Draws pause Pointer. @param {*} ctx - Ctx value. @param {*} y - Y value. @returns {void} - Nothing. */
   _drawPausePointer(ctx, y) {
     ctx.save();
     ctx.shadowColor = 'rgba(240,192,0,0.55)';
@@ -283,10 +217,7 @@ export class PauseScreen {
     ctx.restore();
   }
 
-  /**
-   * Handles draw sub panel.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws sub Panel. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawSubPanel(ctx) {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -297,10 +228,7 @@ export class PauseScreen {
     this._drawSubPanelFooter(ctx);
   }
 
-  /**
-   * Draws pause sub panel header text.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws sub Panel Header. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawSubPanelHeader(ctx) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -313,10 +241,7 @@ export class PauseScreen {
     ctx.restore();
   }
 
-  /**
-   * Draws pause sub panel footer hint.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws sub Panel Footer. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawSubPanelFooter(ctx) {
     ctx.font      = '11px monospace';
     ctx.fillStyle = '#c8b090';
@@ -324,18 +249,12 @@ export class PauseScreen {
     ctx.fillText(t('returnHint'), CX, SUB_Y + SUB_H - 20);
   }
 
-  /**
-   * Handles draw options content.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws options Content. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawOptionsContent(ctx) {
     drawOptionsContent(ctx, this._optionIndex, SUB_X, SUB_Y, SUB_W, SUB_H, CX);
   }
 
-  /**
-   * Handles draw controls content.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws controls Content. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawControlsContent(ctx) {
     drawControlsContent(ctx, SUB_X, SUB_Y, SUB_W, this._getSelectedCharacter());
   }

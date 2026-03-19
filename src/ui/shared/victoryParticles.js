@@ -1,28 +1,21 @@
 // #region Public Methods
-/**
- * Handles format time.
- * @param {number} seconds Input parameter.
- */
+/** Handles format Time. @param {*} seconds - Seconds value. @returns {string} - Derived text value. */
 export function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-/** @param {number} x */
+/** Handles ease Out Back. @param {*} x - X value. @returns {number} - Computed numeric value. */
 export function easeOutBack(x) {
   const c1 = 1.70158, c3 = c1 + 1;
   return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
 }
 
-/** @param {number} x */
+/** Handles ease Out Quad. @param {*} x - X value. @returns {number} - Computed numeric value. */
 export function easeOutQuad(x) { return 1 - (1 - x) * (1 - x); }
 
-/**
- * Creates a particle pool with inactive entries.
- *
- * @param {number} size
- */
+/** Creates pool. @param {*} size - Size value. @returns {*} - Resulting value. */
 export function makePool(size) {
   const pool = [];
   for (let i = 0; i < size; i++) {
@@ -32,13 +25,7 @@ export function makePool(size) {
   return pool;
 }
 
-/**
- * Initializes an atmosphere particle (slowly rising).
- *
- * @param {object} p
- * @param {number} canvasWidth
- * @param {number} canvasHeight
- */
+/** Handles init Atmo Particle. @param {*} p - P value. @param {*} canvasWidth - Canvas Width value. @param {*} canvasHeight - Canvas Height value. @returns {void} - Nothing. */
 export function initAtmoParticle(p, canvasWidth, canvasHeight) {
   p.active  = true;
   p.x       = Math.random() * canvasWidth;
@@ -53,13 +40,7 @@ export function initAtmoParticle(p, canvasWidth, canvasHeight) {
   p.color   = c < 0.50 ? '#ffd700' : c < 0.80 ? '#ffe88f' : '#fff3c4';
 }
 
-/**
- * Initializes a spark particle (explodes from cx/cy).
- *
- * @param {object} p
- * @param {number} cx
- * @param {number} cy
- */
+/** Handles init Spark Particle. @param {*} p - P value. @param {*} cx - Cx value. @param {*} cy - Cy value. @returns {void} - Nothing. */
 export function initSparkParticle(p, cx, cy) {
   const angle = Math.random() * Math.PI * 2;
   const speed = 45 + Math.random() * 88;

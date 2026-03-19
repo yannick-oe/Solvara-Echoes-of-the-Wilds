@@ -11,32 +11,19 @@ const SIZE        = 24;
 // #region Class Definition
 export class Gem extends Pickup {
 
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     super(x, y, 20, 20, FRAME_COUNT, FRAME_SEC);
   }
 
-  /**
-   * Handles collect.
-   * @param {object} player Input parameter.
-   * @param {string} gameState Input parameter.
-   */
+/** Handles collect. @param {*} player - Player value. @param {*} gameState - Current game state. @returns {void} - Nothing. */
   collect(player, gameState) {
     super.collect(player, gameState);
     gameState.score          += 25;
     gameState.gemsCollected  += 1;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     if (!this.active) return;
     const img = imageCache.get(`GEM_${this._frameIndex}`);

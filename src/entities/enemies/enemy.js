@@ -5,13 +5,7 @@ import { Entity } from '../entity.js';
 
 // #region Class Definition
 export class Enemy extends Entity {
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   * @param {number} w Input parameter.
-   * @param {number} h Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @returns {void} - Nothing. */
   constructor(x, y, w, h) {
     super(x, y, w, h);
     this.facingRight = true;
@@ -20,27 +14,16 @@ export class Enemy extends Entity {
     this.deathSound  = null;
   }
 
-  /**
-   * Handles stomp defeat.
-   */
+/** Handles stomp Die. @returns {void} - Nothing. */
   stompDie() {
     this.dead   = true;
     this.active = false;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   * @param {object} tileMap Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   update(dt, tileMap) {}
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, cam, imageCache) {}
 }
 // #endregion

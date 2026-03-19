@@ -15,10 +15,12 @@ export const COUNT_SPEED = 260;
 export const GEM_PULSE_PERIOD = 2.6;
 export const HEART_PULSE_PERIOD = 3.2;
 
+/** Handles ease Out. @param {*} t - T value. @returns {number} - Computed numeric value. */
 export function easeOut(t) {
   return 1 - (1 - t) ** 2;
 }
 
+/** Handles init Particle. @param {*} p - P value. @param {*} x - X value. @param {*} y - Y value. @param {*} color - Color value. @returns {void} - Nothing. */
 export function initParticle(p, x, y, color) {
   const angle = Math.random() * Math.PI * 2;
   const speed = 38 + Math.random() * 90;
@@ -33,12 +35,14 @@ export function initParticle(p, x, y, color) {
   p.color = color;
 }
 
+/** Creates pool. @returns {*} - Resulting value. */
 export function makePool() {
   const pool = [];
   for (let i = 0; i < POOL_SIZE; i++) pool.push(makeParticle());
   return pool;
 }
 
+/** Creates particle. @returns {*} - Resulting value. */
 function makeParticle() {
   return {
     active: false, x: 0, y: 0, vx: 0, vy: 0,

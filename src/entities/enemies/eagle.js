@@ -17,12 +17,7 @@ const PATROL_SPEED = 80;
 // #region Class Definition
 export class EagleEnemy extends Enemy {
 
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} minY Input parameter.
-   * @param {number} maxY Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} minY - Min Y value. @param {*} maxY - Max Y value. @returns {void} - Nothing. */
   constructor(x, minY, maxY) {
     super(x, minY, EAGLE_W, EAGLE_H);
     this._minY = minY;
@@ -34,33 +29,15 @@ export class EagleEnemy extends Enemy {
     this._frameTimer = 0;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   update(dt) {
     if (this.dead) return;
     this.y += this.velY * dt;
-    if (this.velY > 0 && this.y >= this._maxY) {
-      this.y    = this._maxY;
-      this.velY = -PATROL_SPEED;
-    } else if (this.velY < 0 && this.y <= this._minY) {
-      this.y    = this._minY;
-      this.velY = PATROL_SPEED;
-    }
-    this._frameTimer += dt;
-    if (this._frameTimer >= 1 / ANIM_FPS) {
-      this._frameTimer -= 1 / ANIM_FPS;
-      this._frameIndex  = (this._frameIndex + 1) % FRAME_COUNT;
-    }
+    this._clampPatrolBounds();
+    this._advanceAnimation(dt);
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     if (this.dead) return;
     const img = imageCache.get(`EAGLE_${this._frameIndex}`);
@@ -68,6 +45,26 @@ export class EagleEnemy extends Enemy {
     const dx = this.x + DRAW_OX;
     const dy = this.y + DRAW_OY;
     ctx.drawImage(img, dx, dy, DRAW_W, DRAW_H);
+  }
+
+/** Handles clamp Patrol Bounds. @returns {*} - Resulting value. */
+  _clampPatrolBounds() {
+    if (this.velY > 0 && this.y >= this._maxY) return this._setPatrolY(this._maxY, -PATROL_SPEED);
+    if (this.velY < 0 && this.y <= this._minY) this._setPatrolY(this._minY, PATROL_SPEED);
+  }
+
+/** Sets patrol Y. @param {*} y - Y value. @param {*} velY - Vel Y value. @returns {void} - Nothing. */
+  _setPatrolY(y, velY) {
+    this.y = y;
+    this.velY = velY;
+  }
+
+/** Handles advance Animation. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
+  _advanceAnimation(dt) {
+    this._frameTimer += dt;
+    if (this._frameTimer < 1 / ANIM_FPS) return;
+    this._frameTimer -= 1 / ANIM_FPS;
+    this._frameIndex = (this._frameIndex + 1) % FRAME_COUNT;
   }
 }
 // #endregion

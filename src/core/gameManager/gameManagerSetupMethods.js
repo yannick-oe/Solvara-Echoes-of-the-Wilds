@@ -17,6 +17,7 @@ import { loadSelectedCharacter, saveSelectedCharacter } from '../../config/chara
 import { createGameState, initEntities, restartGameSession } from './gameLifecycle.js';
 
 export const gameManagerSetupMethods = {
+/** Handles init Core State. @param {*} canvas - Canvas value. @param {*} container - Container value. @returns {void} - Nothing. */
   _initCoreState(canvas, container) {
     this.canvas = canvas;
     this.container = container;
@@ -29,12 +30,19 @@ export const gameManagerSetupMethods = {
     this._selectedCharacter = loadSelectedCharacter();
   },
 
+/** Handles init World State. @returns {void} - Nothing. */
   _initWorldState() {
     this._level = new Level();
     this._camera = new Camera();
     this._parallax = null;
     this._player = null;
     this._camLookOffset = 0;
+    this._resetWorldCollections();
+    this._hud = new Hud(imageCache);
+  },
+
+/** Handles reset World Collections. @returns {void} - Nothing. */
+  _resetWorldCollections() {
     this._enemies = [];
     this._projectiles = [];
     this._effects = [];
@@ -42,9 +50,9 @@ export const gameManagerSetupMethods = {
     this._interactables = [];
     this._hazards = [];
     this._props = [];
-    this._hud = new Hud(imageCache);
   },
 
+/** Handles init Session State. @returns {void} - Nothing. */
   _initSessionState() {
     this._deathTimeoutId = null;
     this._victoryPoseTimer = 0;
@@ -53,6 +61,7 @@ export const gameManagerSetupMethods = {
     this._victoryTransitionId = null;
   },
 
+/** Handles init Ui Screens. @returns {void} - Nothing. */
   _initUiScreens() {
     this._startScreen = new StartScreen(() => this.restart(this._startScreen.getSelectedCharacter()));
     this._startScreen.setSelectedCharacter(this._selectedCharacter);
@@ -61,6 +70,7 @@ export const gameManagerSetupMethods = {
     this._pauseScreen = this._createPauseScreen();
   },
 
+/** Creates victory Screen. @returns {*} - Resulting value. */
   _createVictoryScreen() {
     return new VictoryScreen({
       onRestart: () => this.restart(),
@@ -68,6 +78,7 @@ export const gameManagerSetupMethods = {
     });
   },
 
+/** Creates pause Screen. @returns {*} - Resulting value. */
   _createPauseScreen() {
     return new PauseScreen({
       onResume: () => { this.state = GAME_STATES.PLAYING; },
@@ -77,6 +88,7 @@ export const gameManagerSetupMethods = {
     });
   },
 
+/** Handles return To Start Menu. @param {*} stopMusic - Stop Music value. @returns {void} - Nothing. */
   _returnToStartMenu(stopMusic) {
     if (stopMusic) audioManager.stopMusic();
     this._startScreen.reset();
@@ -84,6 +96,7 @@ export const gameManagerSetupMethods = {
     this.state = GAME_STATES.START;
   },
 
+/** Handles init Touch Controls. @param {*} container - Container value. @returns {void} - Nothing. */
   _initTouchControls(container) {
     this._touchControls = new TouchControls(
       container,
@@ -93,6 +106,7 @@ export const gameManagerSetupMethods = {
     );
   },
 
+/** Handles start. @returns {void} - Nothing. */
   async start() {
     this._drawLoadingScreen();
     await this._loadWorldAssets();
@@ -101,6 +115,7 @@ export const gameManagerSetupMethods = {
     this._enterStartState();
   },
 
+/** Loads world Assets. @returns {void} - Nothing. */
   async _loadWorldAssets() {
     await imageCache.preload(ASSET_ENTRIES);
     await imageCache.preload(PROP_ASSET_ENTRIES);
@@ -108,6 +123,7 @@ export const gameManagerSetupMethods = {
     initEntities(this);
   },
 
+/** Handles init World Render Systems. @returns {void} - Nothing. */
   _initWorldRenderSystems() {
     this._camera.y = 0;
     this._parallax = new Parallax([
@@ -116,17 +132,20 @@ export const gameManagerSetupMethods = {
     ]);
   },
 
+/** Handles init Runtime Systems. @returns {void} - Nothing. */
   _initRuntimeSystems() {
     inputManager.init();
     audioManager.preloadMusic('assets/audio/music/startMenu.ogg');
     this._touchControls.init();
   },
 
+/** Handles enter Start State. @returns {void} - Nothing. */
   _enterStartState() {
     this.state = GAME_STATES.START;
     this._rafId = requestAnimationFrame(this._loop);
   },
 
+/** Handles restart. @param {*} characterId - Character Id value. @returns {void} - Nothing. */
   restart(characterId = this._selectedCharacter) {
     this._selectedCharacter = characterId;
     this._startScreen.setSelectedCharacter(characterId);
@@ -134,6 +153,7 @@ export const gameManagerSetupMethods = {
     restartGameSession(this, characterId);
   },
 
+/** Draws loading Screen. @returns {void} - Nothing. */
   _drawLoadingScreen() {
     const { ctx } = this;
     ctx.fillStyle = '#0a0a1a';
@@ -145,16 +165,19 @@ export const gameManagerSetupMethods = {
     ctx.fillText('Loading…', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   },
 
+/** Toggles fullscreen. @returns {*} - Resulting value. */
   _toggleFullscreen() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) return this._requestFullscreen();
     this._exitFullscreen();
   },
 
+/** Handles request Fullscreen. @returns {void} - Nothing. */
   _requestFullscreen() {
     const req = this.container.requestFullscreen ?? this.container.webkitRequestFullscreen;
     req?.call(this.container)?.catch?.(() => {});
   },
 
+/** Handles exit Fullscreen. @returns {void} - Nothing. */
   _exitFullscreen() {
     const exit = document.exitFullscreen ?? document.webkitExitFullscreen;
     exit?.call(document)?.catch?.(() => {});

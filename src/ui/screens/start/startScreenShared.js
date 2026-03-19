@@ -15,6 +15,7 @@ export const PANEL_H = 380;
 export const PANEL_X = (CANVAS_WIDTH - PANEL_W) / 2;
 export const PANEL_Y = (CANVAS_HEIGHT - PANEL_H) / 2;
 
+/** Creates fireflies. @returns {*} - Resulting value. */
 export function createFireflies() {
   return Array.from({ length: 12 }, () => ({
     x: Math.random() * CANVAS_WIDTH,

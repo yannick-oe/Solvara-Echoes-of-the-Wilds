@@ -7,9 +7,7 @@ const DUST_POOL_SIZE = 24;
 // #endregion
 
 // #region Public Methods
-/**
- * Handles make dust pool.
- */
+/** Creates dust Pool. @returns {*} - Resulting value. */
 export function makeDustPool() {
   return Array.from({ length: DUST_POOL_SIZE }, () => ({
     active: false, x: 0, y: 0, vx: 0, vy: 0,
@@ -17,13 +15,7 @@ export function makeDustPool() {
   }));
 }
 
-/**
- * Spawns dust particles at a ground position.
- * @param {object[]} pool
- * @param {number} cx       - Center X
- * @param {number} groundY  - Ground Y
- * @param {number} [count=5]
- */
+/** Spawns dust. @param {*} pool - Pool value. @param {*} cx - Cx value. @param {*} groundY - Ground Y value. @param {*} count - Count value. @returns {void} - Nothing. */
 export function spawnDust(pool, cx, groundY, count = 5) {
   let spawned = 0;
   for (const p of pool) {
@@ -33,12 +25,7 @@ export function spawnDust(pool, cx, groundY, count = 5) {
   }
 }
 
-/**
- * Initializes one dust particle instance.
- * @param {object} p Input parameter.
- * @param {number} cx Input parameter.
- * @param {number} groundY Input parameter.
- */
+/** Handles init Dust Particle. @param {*} p - P value. @param {*} cx - Cx value. @param {*} groundY - Ground Y value. @returns {void} - Nothing. */
 function _initDustParticle(p, cx, groundY) {
   const angle = Math.PI + (Math.random() - 0.5) * Math.PI;
   const speed = 25 + Math.random() * 55;
@@ -53,11 +40,7 @@ function _initDustParticle(p, cx, groundY) {
   p.a = 0.55 + Math.random() * 0.25;
 }
 
-/**
- * Updates all active particles.
- * @param {object[]} pool
- * @param {number} dt
- */
+/** Updates dust. @param {*} pool - Pool value. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
 export function updateDust(pool, dt) {
   for (const p of pool) {
     if (!p.active) continue;
@@ -69,24 +52,25 @@ export function updateDust(pool, dt) {
   }
 }
 
-/**
- * Draws all active particles.
- * @param {object[]} pool
- * @param {CanvasRenderingContext2D} ctx
- */
+/** Draws dust. @param {*} pool - Pool value. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
 export function drawDust(pool, ctx) {
   ctx.save();
   for (const p of pool) {
     if (!p.active) continue;
-    const lifeF = p.life / p.maxLife;
-    ctx.globalAlpha = p.a * lifeF;
-    ctx.fillStyle   = '#c8b89a';
-    ctx.shadowColor = '#a09070';
-    ctx.shadowBlur  = p.r * 1.5;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * lifeF, 0, Math.PI * 2);
-    ctx.fill();
+    _drawDustParticle(ctx, p);
   }
   ctx.restore();
+}
+
+/** Draws dust Particle. @param {*} ctx - Ctx value. @param {*} p - P value. @returns {void} - Nothing. */
+function _drawDustParticle(ctx, p) {
+  const lifeF = p.life / p.maxLife;
+  ctx.globalAlpha = p.a * lifeF;
+  ctx.fillStyle = '#c8b89a';
+  ctx.shadowColor = '#a09070';
+  ctx.shadowBlur = p.r * 1.5;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.r * lifeF, 0, Math.PI * 2);
+  ctx.fill();
 }
 // #endregion

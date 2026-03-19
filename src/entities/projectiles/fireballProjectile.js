@@ -17,12 +17,7 @@ const FIREBALL_FRAMES = 5;
 
 // #region Class Definition
 export class FireballProjectile extends Entity {
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   * @param {number} dir Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @param {*} dir - Dir value. @returns {void} - Nothing. */
   constructor(x, y, dir) {
     super(x, y, FIREBALL_W, FIREBALL_H);
     this._dir = dir >= 0 ? 1 : -1;
@@ -33,11 +28,7 @@ export class FireballProjectile extends Entity {
     this.velX = FIREBALL_SPEED * this._dir;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   * @param {object} tileMap Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @param {*} tileMap - Current tile map. @returns {*} - Resulting value. */
   update(dt, tileMap) {
     if (!this.active) return;
     this._tickAnim(dt);
@@ -47,12 +38,7 @@ export class FireballProjectile extends Entity {
     if (this._hitsBlockingTile(tileMap)) this._deactivate();
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {*} - Resulting value. */
   draw(ctx, _cam, imageCache) {
     if (!this.active) return;
     const img = imageCache.get(`IMP_FIREBALL_${this._frameIndex}`);
@@ -65,17 +51,12 @@ export class FireballProjectile extends Entity {
     ctx.restore();
   }
 
-  /**
-   * Deactivates projectile.
-   */
+/** Handles deactivate. @returns {void} - Nothing. */
   deactivate() {
     this._deactivate();
   }
 
-  /**
-   * Advances fireball animation frame.
-   * @param {number} dt Input parameter.
-   */
+/** Handles tick Anim. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _tickAnim(dt) {
     this._frameTimer += dt;
     const frameDuration = 1 / FIREBALL_FPS;
@@ -84,17 +65,12 @@ export class FireballProjectile extends Entity {
     this._frameIndex = (this._frameIndex + 1) % FIREBALL_FRAMES;
   }
 
-  /**
-   * Returns true if projectile traveled past max range.
-   */
+/** Checks whether out Of Range. @returns {boolean} - Whether the check passes. */
   _isOutOfRange() {
     return Math.abs(this.x - this._originX) >= FIREBALL_MAX_RANGE;
   }
 
-  /**
-   * Returns true if projectile hits solid blocking tile.
-   * @param {object} tileMap Input parameter.
-   */
+/** Handles hits Blocking Tile. @param {*} tileMap - Current tile map. @returns {boolean} - Whether the check passes. */
   _hitsBlockingTile(tileMap) {
     const ts = TILE_SIZE;
     const left = Math.floor(this.x / ts);
@@ -107,9 +83,7 @@ export class FireballProjectile extends Entity {
     return false;
   }
 
-  /**
-   * Internal deactivate helper.
-   */
+/** Handles deactivate. @returns {void} - Nothing. */
   _deactivate() {
     this.active = false;
   }

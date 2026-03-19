@@ -136,10 +136,12 @@ export const TOUCH_BUTTON_STATE_STYLE = `
   }
 `;
 
+/** Checks whether touch Device. @returns {boolean} - Whether the check passes. */
 export function isTouchDevice() {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 }
 
+/** Checks whether mobile Layout. @returns {boolean} - Whether the check passes. */
 export function isMobileLayout() {
   if (!isTouchDevice()) return false;
   const coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -148,20 +150,24 @@ export function isMobileLayout() {
   return coarse && noHover && maxDim <= TABLET_MAX_DIM;
 }
 
+/** Checks whether portrait Mobile. @returns {boolean} - Whether the check passes. */
 export function isPortraitMobile() {
   return isMobileLayout() && window.innerWidth < window.innerHeight;
 }
 
+/** Checks whether show Touch Controls. @param {*} state - State value. @returns {boolean} - Whether the check passes. */
 export function shouldShowTouchControls(state) {
   return isMobileLayout() &&
     !isPortraitMobile() &&
     (state === GAME_STATES.START || state === GAME_STATES.PLAYING || state === GAME_STATES.PAUSED);
 }
 
+/** Checks whether menu Touch State. @param {*} state - State value. @returns {boolean} - Whether the check passes. */
 export function isMenuTouchState(state) {
   return state === GAME_STATES.START || state === GAME_STATES.PAUSED;
 }
 
+/** Checks whether gameplay Touch State. @param {*} state - State value. @returns {boolean} - Whether the check passes. */
 export function isGameplayTouchState(state) {
   return state === GAME_STATES.PLAYING;
 }

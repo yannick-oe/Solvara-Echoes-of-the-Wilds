@@ -23,11 +23,7 @@ export const OPTIONS_IDS = ['masterVolume', 'musicVolume', 'sfxVolumeMaster', 'l
 // #endregion
 
 // #region Public Methods
-/**
- * Handles handle options input.
- * @param {object} screen Input parameter.
- * @param {object} input Input parameter.
- */
+/** Handles options Input. @param {*} screen - Screen value. @param {*} input - Current input state. @returns {void} - Nothing. */
 export function handleOptionsInput(screen, input) {
   if (input.backPressed) { screen._subScreen = null; return; }
   _updateOptionNavigation(screen, input);
@@ -36,11 +32,7 @@ export function handleOptionsInput(screen, input) {
   _applyOptionChange(row, leftEdge, rightEdge, input);
 }
 
-/**
- * Updates options row navigation state.
- * @param {object} screen Input parameter.
- * @param {object} input Input parameter.
- */
+/** Updates option Navigation. @param {*} screen - Screen value. @param {*} input - Current input state. @returns {void} - Nothing. */
 function _updateOptionNavigation(screen, input) {
   if (input.up && !screen._prevUp) screen._optionIndex = (screen._optionIndex - 1 + OPTIONS_IDS.length) % OPTIONS_IDS.length;
   if (input.down && !screen._prevDown) screen._optionIndex = (screen._optionIndex + 1) % OPTIONS_IDS.length;
@@ -48,11 +40,7 @@ function _updateOptionNavigation(screen, input) {
   screen._prevDown = input.down;
 }
 
-/**
- * Consumes horizontal input edges and stores prev-state.
- * @param {object} screen Input parameter.
- * @param {object} input Input parameter.
- */
+/** Handles consume Horizontal Edges. @param {*} screen - Screen value. @param {*} input - Current input state. @returns {*} - Resulting value. */
 function _consumeHorizontalEdges(screen, input) {
   const leftEdge  = input.left && !screen._prevLeft;
   const rightEdge = input.right && !screen._prevRight;
@@ -61,13 +49,7 @@ function _consumeHorizontalEdges(screen, input) {
   return { leftEdge, rightEdge };
 }
 
-/**
- * Applies selected option row changes.
- * @param {string} row Input parameter.
- * @param {boolean} leftEdge Input parameter.
- * @param {boolean} rightEdge Input parameter.
- * @param {object} input Input parameter.
- */
+/** Applies option Change. @param {*} row - Row value. @param {*} leftEdge - Left Edge value. @param {*} rightEdge - Right Edge value. @param {*} input - Current input state. @returns {*} - Resulting value. */
 function _applyOptionChange(row, leftEdge, rightEdge, input) {
   if (row === 'masterVolume') return _applyVolumeDelta(leftEdge, rightEdge, audioManager.masterVolume, v => audioManager.setMasterVolume(v));
   if (row === 'musicVolume') return _applyVolumeDelta(leftEdge, rightEdge, audioManager.musicVolume, v => audioManager.setMusicVolume(v));
@@ -75,41 +57,20 @@ function _applyOptionChange(row, leftEdge, rightEdge, input) {
   if (row === 'language') _toggleLanguage(leftEdge, rightEdge, input);
 }
 
-/**
- * Applies +/- 0.1 volume changes from horizontal edges.
- * @param {boolean} leftEdge Input parameter.
- * @param {boolean} rightEdge Input parameter.
- * @param {number} value Input parameter.
- * @param {Function} setter Input parameter.
- */
+/** Applies volume Delta. @param {*} leftEdge - Left Edge value. @param {*} rightEdge - Right Edge value. @param {*} value - Value to apply. @param {*} setter - Setter value. @returns {void} - Nothing. */
 function _applyVolumeDelta(leftEdge, rightEdge, value, setter) {
   if (leftEdge) setter(value - 0.1);
   if (rightEdge) setter(value + 0.1);
 }
 
-/**
- * Toggles language when left/right/confirm input is pressed.
- * @param {boolean} leftEdge Input parameter.
- * @param {boolean} rightEdge Input parameter.
- * @param {object} input Input parameter.
- */
+/** Toggles language. @param {*} leftEdge - Left Edge value. @param {*} rightEdge - Right Edge value. @param {*} input - Current input state. @returns {void} - Nothing. */
 function _toggleLanguage(leftEdge, rightEdge, input) {
   if (!(leftEdge || rightEdge || input.enterPressed || input.jumpPressed)) return;
   const next = LANGS[(LANGS.indexOf(currentLang) + 1) % LANGS.length];
   setLang(next);
 }
 
-/**
- * Draws the contents of the options panel (volume sliders + language).
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {number}                  optionIndex
- * @param {number}                  panelX
- * @param {number}                  panelY
- * @param {number}                  panelW
- * @param {number}                  panelH
- * @param {number}                  cx
- */
+/** Draws options Content. @param {*} ctx - Ctx value. @param {*} optionIndex - Option Index value. @param {*} panelX - Panel X value. @param {*} panelY - Panel Y value. @param {*} panelW - Panel W value. @param {*} _panelH - Panel H value. @param {*} cx - Cx value. @returns {void} - Nothing. */
 export function drawOptionsContent(ctx, optionIndex, panelX, panelY, panelW, _panelH, cx) {
   const rowY0   = panelY + 78;
   const rowStep = 62;
@@ -120,17 +81,7 @@ export function drawOptionsContent(ctx, optionIndex, panelX, panelY, panelW, _pa
   });
 }
 
-/**
- * Draws one options row and value widget.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {string} id Input parameter.
- * @param {boolean} selected Input parameter.
- * @param {number} panelX Input parameter.
- * @param {number} panelW Input parameter.
- * @param {number} panelH Input parameter.
- * @param {number} y Input parameter.
- * @param {number} cx Input parameter.
- */
+/** Draws option Row. @param {*} ctx - Ctx value. @param {*} id - Id value. @param {*} selected - Selected value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} panelH - Panel H value. @param {*} y - Y value. @param {*} cx - Cx value. @returns {void} - Nothing. */
 function _drawOptionRow(ctx, id, selected, panelX, panelW, panelH, y, cx) {
   if (selected) _drawOptionHighlight(ctx, panelX, panelW, y);
   _drawOptionLabel(ctx, id, selected, panelX, y);
@@ -138,13 +89,7 @@ function _drawOptionRow(ctx, id, selected, panelX, panelW, panelH, y, cx) {
   else if (id === 'language') _drawLanguageRow(ctx, selected, panelX, panelW, y);
 }
 
-/**
- * Draws selected options-row background highlight.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} panelX Input parameter.
- * @param {number} panelW Input parameter.
- * @param {number} y Input parameter.
- */
+/** Draws option Highlight. @param {*} ctx - Ctx value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} y - Y value. @returns {void} - Nothing. */
 function _drawOptionHighlight(ctx, panelX, panelW, y) {
   const hl = ctx.createLinearGradient(panelX, y, panelX + panelW, y);
   hl.addColorStop(0, 'rgba(20, 10, 4, 0.00)');
@@ -155,14 +100,7 @@ function _drawOptionHighlight(ctx, panelX, panelW, y) {
   ctx.fillRect(panelX, y - 28, panelW, 56);
 }
 
-/**
- * Draws option label text.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {string} id Input parameter.
- * @param {boolean} selected Input parameter.
- * @param {number} panelX Input parameter.
- * @param {number} y Input parameter.
- */
+/** Draws option Label. @param {*} ctx - Ctx value. @param {*} id - Id value. @param {*} selected - Selected value. @param {*} panelX - Panel X value. @param {*} y - Y value. @returns {void} - Nothing. */
 function _drawOptionLabel(ctx, id, selected, panelX, y) {
   ctx.fillStyle = selected ? '#fff4c0' : '#f6e3c3';
   ctx.font      = selected ? 'bold 13px monospace' : '12px monospace';
@@ -171,25 +109,12 @@ function _drawOptionLabel(ctx, id, selected, panelX, y) {
   ctx.fillText(t(id), panelX + 28, y - 10);
 }
 
-/**
- * Returns true when row uses a volume slider.
- * @param {string} id Input parameter.
- */
+/** Checks whether volume Option. @param {*} id - Id value. @returns {boolean} - Whether the check passes. */
 function _isVolumeOption(id) {
   return id === 'masterVolume' || id === 'musicVolume' || id === 'sfxVolumeMaster';
 }
 
-/**
- * Draws a volume bar row inside the options panel.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {string} id Input parameter.
- * @param {boolean} selected Input parameter.
- * @param {number} panelX Input parameter.
- * @param {number} panelW Input parameter.
- * @param {number} _panelH Input parameter.
- * @param {number} y Input parameter.
- * @param {number} cx Input parameter.
- */
+/** Draws volume Bar. @param {*} ctx - Ctx value. @param {*} id - Id value. @param {*} selected - Selected value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} _panelH - Panel H value. @param {*} y - Y value. @param {*} cx - Cx value. @returns {void} - Nothing. */
 function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   const vol = _volumeForRow(id);
   const barX = panelX + 28;
@@ -203,19 +128,14 @@ function _drawVolumeBar(ctx, id, selected, panelX, panelW, _panelH, y, cx) {
   _drawVolumeKnob(ctx, selected, cx, barX, barY, barW, barH, vol);
 }
 
-/**
- * Returns current volume value for a row id.
- * @param {string} id Input parameter.
- */
+/** Handles volume For Row. @param {*} id - Id value. @returns {*} - Resulting value. */
 function _volumeForRow(id) {
   if (id === 'masterVolume') return audioManager.masterVolume;
   if (id === 'musicVolume') return audioManager.musicVolume;
   return audioManager.sfxVolumeMaster;
 }
 
-/**
- * Draws volume percentage label.
- */
+/** Draws volume Percent. @param {*} ctx - Ctx value. @param {*} selected - Selected value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} y - Y value. @param {*} vol - Vol value. @returns {void} - Nothing. */
 function _drawVolumePercent(ctx, selected, panelX, panelW, y, vol) {
   ctx.fillStyle = selected ? '#fff4c0' : '#d6c7a2';
   ctx.font      = selected ? 'bold 12px monospace' : '11px monospace';
@@ -223,18 +143,14 @@ function _drawVolumePercent(ctx, selected, panelX, panelW, y, vol) {
   ctx.fillText(Math.round(vol * 100) + '%', panelX + panelW - 28, y - 10);
 }
 
-/**
- * Draws empty volume track.
- */
+/** Draws volume Track. @param {*} ctx - Ctx value. @param {*} barX - Bar X value. @param {*} barY - Bar Y value. @param {*} barW - Bar W value. @param {*} barH - Bar H value. @returns {void} - Nothing. */
 function _drawVolumeTrack(ctx, barX, barY, barW, barH) {
   ctx.fillStyle = 'rgba(20, 10, 4, 0.55)';
   rrect(ctx, barX, barY, barW, barH, 4);
   ctx.fill();
 }
 
-/**
- * Draws filled volume segment.
- */
+/** Draws volume Fill. @param {*} ctx - Ctx value. @param {*} barX - Bar X value. @param {*} barY - Bar Y value. @param {*} barW - Bar W value. @param {*} barH - Bar H value. @param {*} vol - Vol value. @returns {void} - Nothing. */
 function _drawVolumeFill(ctx, barX, barY, barW, barH, vol) {
   const fillW = Math.round(barW * vol);
   if (fillW <= 4) return;
@@ -247,9 +163,7 @@ function _drawVolumeFill(ctx, barX, barY, barW, barH, vol) {
   ctx.fill();
 }
 
-/**
- * Draws volume tick marks.
- */
+/** Draws volume Ticks. @param {*} ctx - Ctx value. @param {*} barX - Bar X value. @param {*} barY - Bar Y value. @param {*} barW - Bar W value. @param {*} barH - Bar H value. @returns {void} - Nothing. */
 function _drawVolumeTicks(ctx, barX, barY, barW, barH) {
   ctx.strokeStyle = 'rgba(255,220,120,0.25)';
   ctx.lineWidth = 1;
@@ -262,9 +176,7 @@ function _drawVolumeTicks(ctx, barX, barY, barW, barH) {
   }
 }
 
-/**
- * Draws volume knob and selected-row hint.
- */
+/** Draws volume Knob. @param {*} ctx - Ctx value. @param {*} selected - Selected value. @param {*} cx - Cx value. @param {*} barX - Bar X value. @param {*} barY - Bar Y value. @param {*} barW - Bar W value. @param {*} barH - Bar H value. @param {*} vol - Vol value. @returns {void} - Nothing. */
 function _drawVolumeKnob(ctx, selected, cx, barX, barY, barW, barH, vol) {
   const kx = barX + Math.round(barW * vol);
   ctx.fillStyle = selected ? '#f0c040' : '#c8a060';
@@ -272,6 +184,11 @@ function _drawVolumeKnob(ctx, selected, cx, barX, barY, barW, barH, vol) {
   ctx.arc(kx, barY + barH / 2, 7, 0, Math.PI * 2);
   ctx.fill();
   if (!selected) return;
+  _drawVolumeHint(ctx, cx, barY, barH);
+}
+
+/** Draws volume Hint. @param {*} ctx - Ctx value. @param {*} cx - Cx value. @param {*} barY - Bar Y value. @param {*} barH - Bar H value. @returns {void} - Nothing. */
+function _drawVolumeHint(ctx, cx, barY, barH) {
   ctx.strokeStyle = 'rgba(240,192,0,0.5)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
@@ -281,14 +198,7 @@ function _drawVolumeKnob(ctx, selected, cx, barX, barY, barW, barH, vol) {
   ctx.fillText('◄  ►', cx, barY + barH / 2);
 }
 
-/**
- * Draws the language selection row inside the options panel.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {boolean} selected Input parameter.
- * @param {number} panelX Input parameter.
- * @param {number} panelW Input parameter.
- * @param {number} y Input parameter.
- */
+/** Draws language Row. @param {*} ctx - Ctx value. @param {*} selected - Selected value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} y - Y value. @returns {void} - Nothing. */
 function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
   const langDisplay = currentLang === 'en' ? 'English' : 'Deutsch';
   ctx.save();
@@ -301,15 +211,7 @@ function _drawLanguageRow(ctx, selected, panelX, panelW, y) {
   ctx.restore();
 }
 
-/**
- * Draws the contents of the controls panel (key bindings).
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} panelX
- * @param {number} panelY
- * @param {number} panelW
- * @param {string} characterId
- */
+/** Draws controls Content. @param {*} ctx - Ctx value. @param {*} panelX - Panel X value. @param {*} panelY - Panel Y value. @param {*} panelW - Panel W value. @param {*} characterId - Character Id value. @returns {void} - Nothing. */
 export function drawControlsContent(ctx, panelX, panelY, panelW, characterId = 'fox') {
   const rows = _buildControlsRows(characterId);
   ctx.textBaseline = 'middle';
@@ -318,19 +220,13 @@ export function drawControlsContent(ctx, panelX, panelY, panelW, characterId = '
   _drawControlBlock(ctx, rows.lower, panelX, panelW, panelY + 205, 26);
 }
 
-/**
- * Builds controls rows for upper and lower blocks.
- * @param {string} characterId Input parameter.
- */
+/** Builds controls Rows. @param {*} characterId - Character Id value. @returns {*} - Resulting value. */
 function _buildControlsRows(characterId) {
   const activeCharacter = normalizeCharacterId(characterId);
   return { upper: _upperControlRows(activeCharacter), lower: _lowerControlRows() };
 }
 
-/**
- * Builds upper controls rows.
- * @param {string} activeCharacter Input parameter.
- */
+/** Handles upper Control Rows. @param {*} activeCharacter - Active Character value. @returns {*} - Resulting value. */
 function _upperControlRows(activeCharacter) {
   return [
     [t('move'), 'Arrow Keys / WASD'],
@@ -340,7 +236,7 @@ function _upperControlRows(activeCharacter) {
   ];
 }
 
-/** Builds lower controls rows. */
+/** Handles lower Control Rows. @returns {*} - Resulting value. */
 function _lowerControlRows() {
   return [
     [t('climb'), 'W / S  ↑ / ↓'],
@@ -351,16 +247,12 @@ function _lowerControlRows() {
   ];
 }
 
-/**
- * Draws a block of controls rows.
- */
+/** Draws control Block. @param {*} ctx - Ctx value. @param {*} rows - Rows value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} startY - Start Y value. @param {*} step - Step value. @returns {void} - Nothing. */
 function _drawControlBlock(ctx, rows, panelX, panelW, startY, step) {
   rows.forEach(([label, keys], i) => _drawControlRow(ctx, label, keys, panelX, panelW, startY + i * step));
 }
 
-/**
- * Draws one controls row label + binding.
- */
+/** Draws control Row. @param {*} ctx - Ctx value. @param {*} label - Label value. @param {*} keys - Keys value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} y - Y value. @returns {void} - Nothing. */
 function _drawControlRow(ctx, label, keys, panelX, panelW, y) {
   ctx.fillStyle = '#f6e3c3';
   ctx.font      = '13px monospace';
@@ -371,9 +263,7 @@ function _drawControlRow(ctx, label, keys, panelX, panelW, y) {
   ctx.fillText(keys, panelX + panelW - 30, y);
 }
 
-/**
- * Draws divider line between controls blocks.
- */
+/** Draws controls Divider. @param {*} ctx - Ctx value. @param {*} panelX - Panel X value. @param {*} panelW - Panel W value. @param {*} y - Y value. @returns {void} - Nothing. */
 function _drawControlsDivider(ctx, panelX, panelW, y) {
   ctx.strokeStyle = 'rgba(59, 38, 21, 0.35)';
   ctx.lineWidth   = 1;
@@ -383,10 +273,7 @@ function _drawControlsDivider(ctx, panelX, panelW, y) {
   ctx.stroke();
 }
 
-/**
- * Builds the action row text for the current character.
- * @param {string} characterId Input parameter.
- */
+/** Builds action Control Row. @param {*} characterId - Character Id value. @returns {*} - Resulting value. */
 function _buildActionControlRow(characterId) {
   if (characterId === 'imp') {
     return [t('specialFireball'), t('specialFireballInput')];

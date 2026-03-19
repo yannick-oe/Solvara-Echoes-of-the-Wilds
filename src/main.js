@@ -7,9 +7,7 @@ import { GameManager }               from './core/gameManager/gameManager.js';
  * Handles init.
  */
 // #region Public Methods
-/**
- * Handles init.
- */
+/** Handles init. @returns {void} - Nothing. */
 function init() {
   const container = document.getElementById('gameContainer');
   const canvas    = document.getElementById('gameCanvas');

@@ -3,6 +3,7 @@ import { gameManagerUpdateMethods } from './gameManagerUpdateMethods.js';
 import { gameManagerRenderMethods } from './gameManagerRenderMethods.js';
 
 export class GameManager {
+/** Creates a new instance. @param {*} canvas - Canvas value. @param {*} container - Container value. @returns {void} - Nothing. */
   constructor(canvas, container) {
     this._initCoreState(canvas, container);
     this._initWorldState();

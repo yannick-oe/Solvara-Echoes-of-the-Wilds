@@ -14,11 +14,7 @@ import { TILE_SIZE } from '../../core/constants.js';
  * @param {import('../world/tileMap.js').TileMap} tileMap
  */
 // #region Public Methods
-/**
- * Handles resolve x.
- * @param {object} player Input parameter.
- * @param {object} tileMap Input parameter.
- */
+/** Resolves x. @param {*} player - Player value. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
 export function resolveX(player, tileMap) {
   if (player.velX === 0) return;
   const ts = TILE_SIZE;
@@ -32,23 +28,14 @@ export function resolveX(player, tileMap) {
   }
 }
 
-/**
- * Returns the horizontal collision check column.
- * @param {object} player Input parameter.
- * @param {number} ts Input parameter.
- */
+/** Gets xCheck Col. @param {*} player - Player value. @param {*} ts - Ts value. @returns {*} - Resulting value. */
 function getXCheckCol(player, ts) {
   return player.velX > 0
     ? Math.floor((player.x + player.w - 1) / ts)
     : Math.floor(player.x / ts);
 }
 
-/**
- * Snaps player against horizontal wall and clears velocity.
- * @param {object} player Input parameter.
- * @param {number} checkCol Input parameter.
- * @param {number} ts Input parameter.
- */
+/** Handles snap Player X. @param {*} player - Player value. @param {*} checkCol - Check Col value. @param {*} ts - Ts value. @returns {void} - Nothing. */
 function snapPlayerX(player, checkCol, ts) {
   player.x = player.velX > 0
     ? checkCol * ts - player.w
@@ -56,11 +43,7 @@ function snapPlayerX(player, checkCol, ts) {
   player.velX = 0;
 }
 
-/**
- * Vertical collision: detects floors, ceilings, and one-way platforms.
- * @param {import('./player.js').Player} player
- * @param {import('../world/tileMap.js').TileMap} tileMap
- */
+/** Resolves y. @param {*} player - Player value. @param {*} tileMap - Current tile map. @returns {*} - Resulting value. */
 export function resolveY(player, tileMap) {
   const ts = TILE_SIZE;
   const leftCol = Math.floor(player.x / ts);
@@ -69,14 +52,7 @@ export function resolveY(player, tileMap) {
   resolveUp(player, tileMap, ts, leftCol, rightCol);
 }
 
-/**
- * Resolves downward movement against floor and one-way platforms.
- * @param {object} player Input parameter.
- * @param {object} tileMap Input parameter.
- * @param {number} ts Input parameter.
- * @param {number} leftCol Input parameter.
- * @param {number} rightCol Input parameter.
- */
+/** Resolves down. @param {*} player - Player value. @param {*} tileMap - Current tile map. @param {*} ts - Ts value. @param {*} leftCol - Left Col value. @param {*} rightCol - Right Col value. @returns {void} - Nothing. */
 function resolveDown(player, tileMap, ts, leftCol, rightCol) {
   const bottomRow = Math.floor((player.y + player.h) / ts);
   for (let col = leftCol; col <= rightCol; col++) {
@@ -85,14 +61,7 @@ function resolveDown(player, tileMap, ts, leftCol, rightCol) {
   }
 }
 
-/**
- * Resolves upward movement against ceilings.
- * @param {object} player Input parameter.
- * @param {object} tileMap Input parameter.
- * @param {number} ts Input parameter.
- * @param {number} leftCol Input parameter.
- * @param {number} rightCol Input parameter.
- */
+/** Resolves up. @param {*} player - Player value. @param {*} tileMap - Current tile map. @param {*} ts - Ts value. @param {*} leftCol - Left Col value. @param {*} rightCol - Right Col value. @returns {void} - Nothing. */
 function resolveUp(player, tileMap, ts, leftCol, rightCol) {
   const topRow = Math.floor(player.y / ts);
   for (let col = leftCol; col <= rightCol; col++) {
@@ -103,14 +72,7 @@ function resolveUp(player, tileMap, ts, leftCol, rightCol) {
   }
 }
 
-/**
- * Tries landing on a solid tile.
- * @param {object} player Input parameter.
- * @param {object} tileMap Input parameter.
- * @param {number} col Input parameter.
- * @param {number} row Input parameter.
- * @param {number} ts Input parameter.
- */
+/** Handles try Solid Landing. @param {*} player - Player value. @param {*} tileMap - Current tile map. @param {*} col - Col value. @param {*} row - Row value. @param {*} ts - Ts value. @returns {boolean} - Whether the check passes. */
 function trySolidLanding(player, tileMap, col, row, ts) {
   if (!tileMap.isSolid(col, row)) return false;
   player.y = row * ts - player.h;
@@ -119,14 +81,7 @@ function trySolidLanding(player, tileMap, col, row, ts) {
   return true;
 }
 
-/**
- * Tries landing on one-way platform.
- * @param {object} player Input parameter.
- * @param {object} tileMap Input parameter.
- * @param {number} col Input parameter.
- * @param {number} row Input parameter.
- * @param {number} ts Input parameter.
- */
+/** Handles try One Way Landing. @param {*} player - Player value. @param {*} tileMap - Current tile map. @param {*} col - Col value. @param {*} row - Row value. @param {*} ts - Ts value. @returns {boolean} - Whether the check passes. */
 function tryOneWayLanding(player, tileMap, col, row, ts) {
   if (player._dropThroughTimer > 0 || !tileMap.isOneWay(col, row)) return false;
   const platformTop = row * ts;

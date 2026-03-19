@@ -1,8 +1,5 @@
 // #region Helpers
-/**
- * Returns true on touch-primary devices (Android/iOS mobile, tablet).
- * Used only for default audio volume calibration; saved settings override this.
- */
+/** Checks whether mobile Device. @returns {boolean} - Whether the check passes. */
 function _isMobileDevice() {
   return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 }
@@ -10,9 +7,7 @@ function _isMobileDevice() {
 
 // #region Class Definition
 class AudioManager {
-  /**
-   * Creates a new instance.
-   */
+/** Creates a new instance. @returns {void} - Nothing. */
   constructor() {
     this._musicEl  = null;
     this._musicSrc = null;
@@ -28,20 +23,14 @@ class AudioManager {
     this._initAudioUnlock();
   }
 
-  /**
-   * Registers persistent touch/pointer listeners to unlock and play deferred music.
-   * Unlike one-time listeners, this persists to catch NEW music play attempts.
-   */
+/** Handles init Audio Unlock. @returns {void} - Nothing. */
   _initAudioUnlock() {
     const handler = () => this._handleAudioGesture();
     document.addEventListener('touchstart',  handler, { capture: true, passive: true });
     document.addEventListener('pointerdown', handler, { capture: true, passive: true });
   }
 
-  /**
-   * Handles audio unlock when user gesture fires.
-   * Plays deferred music if one was flagged, or resumes existing music.
-   */
+/** Handles audio Gesture. @returns {void} - Nothing. */
   _handleAudioGesture() {
     if (this._deferredMusicSrc) {
       this.playMusic(this._deferredMusicSrc);
@@ -51,10 +40,7 @@ class AudioManager {
     }
   }
 
-  /**
-   * Handles set music enabled.
-   * @param {boolean} enabled Input parameter.
-   */
+/** Sets music Enabled. @param {*} enabled - Enabled value. @returns {void} - Nothing. */
   setMusicEnabled(enabled) {
     this.musicEnabled = enabled;
     if (!enabled) {
@@ -64,10 +50,7 @@ class AudioManager {
     }
   }
 
-  /**
-   * Handles fade out music.
-   * @param {number} durationMs Input parameter.
-   */
+/** Fades out Music. @param {*} durationMs - Duration Ms value. @returns {void} - Nothing. */
   fadeOutMusic(durationMs) {
     this._cancelFade();
     if (!this._musicEl) return;
@@ -75,28 +58,19 @@ class AudioManager {
     this._startFadeInterval(state);
   }
 
-  /**
-   * Creates fade interval state object.
-   * @param {number} durationMs Input parameter.
-   */
+/** Creates fade State. @param {*} durationMs - Duration Ms value. @returns {*} - Resulting value. */
   _createFadeState(durationMs) {
     const steps = 16;
     const stepMs = Math.max(10, Math.round(durationMs / steps));
     return { steps, stepMs, startVol: this._musicEl.volume, step: 0 };
   }
 
-  /**
-   * Starts fade interval with precomputed state.
-   * @param {object} state Input parameter.
-   */
+/** Starts fade Interval. @param {*} state - State value. @returns {void} - Nothing. */
   _startFadeInterval(state) {
     this._fadeInterval = setInterval(() => this._runFadeStep(state), state.stepMs);
   }
 
-  /**
-   * Runs one music fade step.
-   * @param {object} state Input parameter.
-   */
+/** Runs fade Step. @param {*} state - State value. @returns {*} - Resulting value. */
   _runFadeStep(state) {
     state.step++;
     if (!this._musicEl) return this._cancelFade();
@@ -107,9 +81,7 @@ class AudioManager {
     this.stopMusic();
   }
 
-  /**
-   * Handles cancel fade.
-   */
+/** Checks whether cel Fade. @returns {void} - Nothing. */
   _cancelFade() {
     if (this._fadeInterval !== null) {
       clearInterval(this._fadeInterval);
@@ -118,45 +90,32 @@ class AudioManager {
     }
   }
 
-  /**
-   * Gets music final vol.
-   */
+/** Gets music Final Vol. @returns {*} - Current value. */
   get _musicFinalVol() {
     return Math.min(1.0, this.masterVolume * this.musicVolume);
   }
 
-  /**
-   * Handles set master volume.
-   * @param {number} value Input parameter.
-   */
+/** Sets master Volume. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setMasterVolume(value) {
     this.masterVolume = Math.max(0, Math.min(1, value));
     if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
     this._saveSettings();
   }
 
-  /**
-   * Handles set music volume.
-   * @param {number} value Input parameter.
-   */
+/** Sets music Volume. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setMusicVolume(value) {
     this.musicVolume = Math.max(0, Math.min(1, value));
     if (this._musicEl) this._musicEl.volume = this._musicFinalVol;
     this._saveSettings();
   }
 
-  /**
-   * Handles set sfx volume master.
-   * @param {number} value Input parameter.
-   */
+/** Sets sfx Volume Master. @param {*} value - Value to apply. @returns {void} - Nothing. */
   setSfxVolumeMaster(value) {
     this.sfxVolumeMaster = Math.max(0, Math.min(1, value));
     this._saveSettings();
   }
 
-  /**
-   * Handles load settings.
-   */
+/** Loads settings. @returns {void} - Nothing. */
   _loadSettings() {
     try {
       const raw = localStorage.getItem('solvaraAudioSettings');
@@ -170,9 +129,7 @@ class AudioManager {
     } catch {}
   }
 
-  /**
-   * Handles save settings.
-   */
+/** Saves settings. @returns {void} - Nothing. */
   _saveSettings() {
     try {
       localStorage.setItem('solvaraAudioSettings', JSON.stringify({
@@ -185,11 +142,7 @@ class AudioManager {
     } catch {}
   }
 
-  /**
-   * Handles play music.
-   * On mobile with no user gesture context, defers play to next gesture.
-   * @param {string} oggSrc Input parameter.
-   */
+/** Plays music. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
   playMusic(oggSrc) {
     this._cancelFade();
     if (!this.musicEnabled) return;
@@ -199,20 +152,14 @@ class AudioManager {
     this._playCurrentMusicOrDefer(oggSrc);
   }
 
-  /**
-   * Resumes paused track when source is unchanged.
-   * @param {string} oggSrc Input parameter.
-   */
+/** Handles resume If Same Track. @param {*} oggSrc - Ogg Src value. @returns {boolean} - Whether the check passes. */
   _resumeIfSameTrack(oggSrc) {
     if (this._musicSrc !== oggSrc || !this._musicEl) return false;
     this._musicEl.play().catch(() => {});
     return true;
   }
 
-  /**
-   * Replaces current music element with new source.
-   * @param {string} oggSrc Input parameter.
-   */
+/** Handles replace Music Element. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
   _replaceMusicElement(oggSrc) {
     if (this._musicEl) {
       this._musicEl.pause();
@@ -226,19 +173,13 @@ class AudioManager {
     this._musicEl = audio;
   }
 
-  /**
-   * Tries playing current music and stores deferred source when blocked.
-   * @param {string} oggSrc Input parameter.
-   */
+/** Plays current Music Or Defer. @param {*} oggSrc - Ogg Src value. @returns {void} - Nothing. */
   _playCurrentMusicOrDefer(oggSrc) {
     const playResult = this._musicEl.play().catch(() => null);
     if (playResult === undefined || (playResult && playResult.catch)) this._deferredMusicSrc = oggSrc;
   }
 
-  /**
-   * Handles preload music.
-   * @param {string} src Input parameter.
-   */
+/** Handles preload Music. @param {*} src - Src value. @returns {void} - Nothing. */
   preloadMusic(src) {
     if (this._musicSrc === src && this._musicEl) return;
     if (this._musicEl) { this._musicEl.pause(); this._musicEl.src = ''; }
@@ -250,9 +191,7 @@ class AudioManager {
     this._musicEl  = audio;
   }
 
-  /**
-   * Handles stop music.
-   */
+/** Stops music. @returns {void} - Nothing. */
   stopMusic() {
     if (this._fadeInterval !== null) {
       clearInterval(this._fadeInterval);
@@ -265,10 +204,7 @@ class AudioManager {
     this._musicSrc = null;
   }
 
-  /**
-   * Handles play sting.
-   * @param {string} src Input parameter.
-   */
+/** Plays sting. @param {*} src - Src value. @returns {void} - Nothing. */
   playSting(src) {
     if (!this.musicEnabled) return;
     this.stopMusic();
@@ -278,11 +214,7 @@ class AudioManager {
     audio.play().catch(() => {});
   }
 
-  /**
-   * Handles play sfx.
-   * @param {string} src Input parameter.
-   * @param {object} options Input parameter.
-   */
+/** Plays sfx. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
   playSfx(src, options) {
     if (!this.sfxEnabled) return;
     const audio  = new Audio(src);
@@ -293,12 +225,7 @@ class AudioManager {
     audio.play().catch(() => {});
   }
 
-  /**
-   * Handles play looped sfx.
-   * @param {string} key Input parameter.
-   * @param {string} src Input parameter.
-   * @param {object} options Input parameter.
-   */
+/** Plays looped Sfx. @param {*} key - Key value. @param {*} src - Src value. @param {*} options - Optional configuration values. @returns {void} - Nothing. */
   playLoopedSfx(key, src, options) {
     this.stopLoopedSfx(key);
     if (!this.sfxEnabled) return;
@@ -312,10 +239,7 @@ class AudioManager {
     this._loopedSfx.set(key, audio);
   }
 
-  /**
-   * Handles stop looped sfx.
-   * @param {string} key Input parameter.
-   */
+/** Stops looped Sfx. @param {*} key - Key value. @returns {void} - Nothing. */
   stopLoopedSfx(key) {
     const audio = this._loopedSfx.get(key);
     if (audio) {

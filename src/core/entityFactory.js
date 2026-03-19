@@ -37,10 +37,7 @@ export function createPlayer(levelContent, characterId = 'fox', onSpawnProjectil
   return new Player(x, y, { characterId, onSpawnProjectile });
 }
 
-/**
- * Creates all enemies from level data.
- * @param {object} levelContent
- */
+/** Spawns enemies. @param {*} levelContent - Level Content value. @returns {*} - Resulting value. */
 export function spawnEnemies(levelContent) {
   const defs = levelContent?.enemies ?? [];
   return defs.map(def => {
@@ -53,10 +50,7 @@ export function spawnEnemies(levelContent) {
   }).filter(Boolean);
 }
 
-/**
- * Creates all collectibles from level data.
- * @param {object} levelContent
- */
+/** Spawns pickups. @param {*} levelContent - Level Content value. @returns {*} - Resulting value. */
 export function spawnPickups(levelContent) {
   const defs = levelContent?.pickups ?? [];
   return defs.map(def => {
@@ -69,10 +63,7 @@ export function spawnPickups(levelContent) {
   }).filter(Boolean);
 }
 
-/**
- * Creates doors and switches from level data.
- * @param {object} levelContent
- */
+/** Spawns interactables. @param {*} levelContent - Level Content value. @returns {*} - Resulting value. */
 export function spawnInteractables(levelContent) {
   const defs  = levelContent?.interactables ?? [];
   const doors = {};
@@ -88,10 +79,7 @@ export function spawnInteractables(levelContent) {
   return result;
 }
 
-/**
- * Creates all hazards (spikes, etc.) from level data.
- * @param {object} levelContent
- */
+/** Spawns hazards. @param {*} levelContent - Level Content value. @returns {*} - Resulting value. */
 export function spawnHazards(levelContent) {
   const defs = levelContent?.hazards ?? [];
   return defs.map(def => {
@@ -106,34 +94,38 @@ export function spawnHazards(levelContent) {
   }).filter(Boolean);
 }
 
-/**
- * Creates all decorative props from level data.
- * @param {object} levelContent
- */
+/** Spawns props. @param {*} levelContent - Level Content value. @returns {*} - Resulting value. */
 export function spawnProps(levelContent) {
   const defs = levelContent?.props ?? [];
   return defs.map(def => _createPropInstance(def)).filter(Boolean);
 }
 
-/**
- * Creates one decorative prop instance from level definition.
- * @param {object} def Input parameter.
- */
+/** Creates prop Instance. @param {*} def - Def value. @returns {*} - Resulting value. */
 function _createPropInstance(def) {
   const entry = PROP_REGISTRY[def.asset];
   if (!entry) return null;
-  const baseScale = entry.defaultScale ?? 1;
+  return _buildPropInstance(entry, def);
+}
+
+/** Builds prop Instance. @param {*} entry - Entry value. @param {*} def - Def value. @returns {*} - Resulting value. */
+function _buildPropInstance(entry, def) {
   const uniformScale = def.scale ?? 1;
   return {
     key: entry.key,
-    x: def.x ?? 0,
-    y: def.y ?? 0,
+    x: def.x ?? 0, y: def.y ?? 0,
     layer: def.layer ?? 'back',
+    ..._buildPropScale(entry, def, uniformScale),
+    flipX: def.flipX ?? false, flipY: def.flipY ?? false,
+    alpha: def.alpha ?? 1,
+  };
+}
+
+/** Builds prop Scale. @param {*} entry - Entry value. @param {*} def - Def value. @param {*} uniformScale - Uniform Scale value. @returns {number} - Computed numeric value. */
+function _buildPropScale(entry, def, uniformScale) {
+  const baseScale = entry.defaultScale ?? 1;
+  return {
     scaleX: baseScale * (def.scaleX ?? uniformScale),
     scaleY: baseScale * (def.scaleY ?? uniformScale),
-    flipX: def.flipX ?? false,
-    flipY: def.flipY ?? false,
-    alpha: def.alpha ?? 1,
   };
 }
 // #endregion

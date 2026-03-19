@@ -4,6 +4,7 @@ import { victoryScreenUpdateMethods } from './victoryScreenUpdateMethods.js';
 import { victoryScreenRenderMethods } from './victoryScreenRenderMethods.js';
 
 export class VictoryScreen {
+/** Creates a new instance. @param {object} param1 - Destructured parameter. @returns {void} - Nothing. */
   constructor({ onRestart, onMainMenu }) {
     this._onRestart = onRestart;
     this._onMainMenu = onMainMenu;

@@ -17,13 +17,7 @@ const FALLBACK_ANIM = { prefix: 'PLAYER_IDLE', frames: 1, fps: 0 };
 // #endregion
 
 // #region Public Methods
-/**
- * Handles update anim.
- * @param {object} player Input parameter.
- * @param {number} dt Input parameter.
- * @param {object} input Input parameter.
- * @param {string} lookUpOverride Input parameter.
- */
+/** Updates anim. @param {*} player - Player value. @param {*} dt - Frame delta time. @param {*} input - Current input state. @param {*} lookUpOverride - Look Up Override value. @returns {void} - Nothing. */
 export function updateAnim(player, dt, input, lookUpOverride = false) {
   if (_forceWallGrabDuringPushOff(player)) return;
   const next = _resolveNextAnimState(player, input, lookUpOverride);
@@ -32,10 +26,7 @@ export function updateAnim(player, dt, input, lookUpOverride = false) {
   _advanceAnimFrame(player, dt);
 }
 
-/**
- * Forces wall-grab hold frame during push-off grace.
- * @param {object} player Input parameter.
- */
+/** Handles force Wall Grab During Push Off. @param {*} player - Player value. @returns {boolean} - Whether the check passes. */
 function _forceWallGrabDuringPushOff(player) {
   if (!(player._wallPushOffTimer > 0 && player._wallGrabSide === 0)) return false;
   if (player.state === 'wallGrab') return true;
@@ -45,12 +36,7 @@ function _forceWallGrabDuringPushOff(player) {
   return true;
 }
 
-/**
- * Resolves next animation state from current player/input state.
- * @param {object} player Input parameter.
- * @param {object} input Input parameter.
- * @param {boolean} lookUpOverride Input parameter.
- */
+/** Resolves next Anim State. @param {*} player - Player value. @param {*} input - Current input state. @param {*} lookUpOverride - Look Up Override value. @returns {string} - Derived text value. */
 function _resolveNextAnimState(player, input, lookUpOverride) {
   const FALL_THRESHOLD = 60;
   if (player._hurtTimer > 0) return 'hurt';
@@ -65,11 +51,7 @@ function _resolveNextAnimState(player, input, lookUpOverride) {
   return 'idle';
 }
 
-/**
- * Applies static ladder pose when climb is idle.
- * @param {object} player Input parameter.
- * @param {string} next Input parameter.
- */
+/** Applies static Climb Frame. @param {*} player - Player value. @param {*} next - Next value. @returns {boolean} - Whether the check passes. */
 function _applyStaticClimbFrame(player, next) {
   if (!(next === 'climb' && !player._climbMoving)) return false;
   if (player.state === 'climb') return true;
@@ -79,11 +61,7 @@ function _applyStaticClimbFrame(player, next) {
   return true;
 }
 
-/**
- * Applies animation state transition and reset.
- * @param {object} player Input parameter.
- * @param {string} next Input parameter.
- */
+/** Applies anim State Change. @param {*} player - Player value. @param {*} next - Next value. @returns {boolean} - Whether the check passes. */
 function _applyAnimStateChange(player, next) {
   if (next === player.state) return false;
   player.state = next;
@@ -92,11 +70,7 @@ function _applyAnimStateChange(player, next) {
   return true;
 }
 
-/**
- * Advances frame timer for current animation.
- * @param {object} player Input parameter.
- * @param {number} dt Input parameter.
- */
+/** Handles advance Anim Frame. @param {*} player - Player value. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
 function _advanceAnimFrame(player, dt) {
   const anim = player._animDefs[player.state] ?? FALLBACK_ANIM;
   if (anim.fps === 0) return;

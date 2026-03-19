@@ -3,15 +3,7 @@
  * @module canvasUtils
  */
 // #region Public Methods
-/**
- * Handles rrect.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Handles rrect. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 export function rrect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -26,15 +18,7 @@ export function rrect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-/**
- * Draws the ornate wooden panel background used on all menu screens.
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
-  * @param {boolean|number} [drawPlanks=true] - true/number to draw planks, false to skip. Number = number of items (planks = items - 1)
- */
+/** Draws wood Panel. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} drawPlanks - Draw Planks value. @returns {void} - Nothing. */
 export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   const r = 8;
   _drawWoodBase(ctx, x, y, w, h, r);
@@ -45,15 +29,7 @@ export function drawWoodPanel(ctx, x, y, w, h, drawPlanks = true) {
   _drawCornerNails(ctx, x, y, w, h);
 }
 
-/**
- * Handles draw wood base.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Draws wood Base. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 function _drawWoodBase(ctx, x, y, w, h, r) {
   ctx.save();
   ctx.shadowColor = 'rgba(0, 0, 0, 0.70)';
@@ -69,15 +45,7 @@ function _drawWoodBase(ctx, x, y, w, h, r) {
   ctx.fill();
 }
 
-/**
- * Handles draw wood grain.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Draws wood Grain. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 function _drawWoodGrain(ctx, x, y, w, h, r) {
   const grain = ctx.createLinearGradient(x, y, x, y + h);
   grain.addColorStop(0, 'rgba(40, 20, 5, 0.60)');
@@ -90,15 +58,7 @@ function _drawWoodGrain(ctx, x, y, w, h, r) {
   ctx.fill();
 }
 
-/**
- * Handles draw wood caps.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Draws wood Caps. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 function _drawWoodCaps(ctx, x, y, w, h, r) {
   ctx.fillStyle = 'rgba(28, 14, 4, 0.52)';
   ctx.fillRect(x + r, y, w - r * 2, 11);
@@ -106,15 +66,7 @@ function _drawWoodCaps(ctx, x, y, w, h, r) {
   ctx.fillRect(x + r, y + h - 11, w - r * 2, 11);
 }
 
-/**
- * Handles draw wood planks.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {boolean|number} drawPlanks Input parameter.
- */
+/** Draws wood Planks. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} drawPlanks - Draw Planks value. @returns {void} - Nothing. */
 function _drawWoodPlanks(ctx, x, y, w, h, drawPlanks) {
   const shouldDraw = typeof drawPlanks === 'number' ? drawPlanks > 1 : drawPlanks;
   if (!shouldDraw) return;
@@ -130,15 +82,7 @@ function _drawWoodPlanks(ctx, x, y, w, h, drawPlanks) {
   }
 }
 
-/**
- * Handles draw wood borders.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Draws wood Borders. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 function _drawWoodBorders(ctx, x, y, w, h, r) {
   ctx.strokeStyle = '#3b2615';
   ctx.lineWidth = 4;
@@ -150,14 +94,7 @@ function _drawWoodBorders(ctx, x, y, w, h, r) {
   ctx.stroke();
 }
 
-/**
- * Draws the four decorative diamond corner nails on a wood panel.
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
- */
+/** Draws corner Nails. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @returns {void} - Nothing. */
 function _drawCornerNails(ctx, x, y, w, h) {
   const corners = _cornerPoints(x, y, w, h);
   ctx.fillStyle   = '#4a2f1a';
@@ -166,13 +103,7 @@ function _drawCornerNails(ctx, x, y, w, h) {
   for (const [ox, oy] of corners) _drawCornerNail(ctx, ox, oy);
 }
 
-/**
- * Handles corner points.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- */
+/** Handles corner Points. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @returns {*} - Resulting value. */
 function _cornerPoints(x, y, w, h) {
   return [
     [x + 7, y + 7],
@@ -182,12 +113,7 @@ function _cornerPoints(x, y, w, h) {
   ];
 }
 
-/**
- * Handles draw one corner nail.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} ox Input parameter.
- * @param {number} oy Input parameter.
- */
+/** Draws corner Nail. @param {*} ctx - Ctx value. @param {*} ox - Ox value. @param {*} oy - Oy value. @returns {void} - Nothing. */
 function _drawCornerNail(ctx, ox, oy) {
   ctx.beginPath();
   ctx.moveTo(ox, oy - 4);
@@ -199,14 +125,7 @@ function _drawCornerNail(ctx, ox, oy) {
   ctx.stroke();
 }
 
-/**
- * Draws a standardised HUD/panel background with rounded corners.
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
- */
+/** Draws hud Panel. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @returns {void} - Nothing. */
 export function drawHudPanel(ctx, x, y, w, h) {
   const r = 7;
   ctx.save();
@@ -215,15 +134,7 @@ export function drawHudPanel(ctx, x, y, w, h) {
   ctx.restore();
 }
 
-/**
- * Handles fill hud panel.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Handles fill Hud Panel. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 function _fillHudPanel(ctx, x, y, w, h, r) {
   ctx.shadowColor = 'rgba(0,0,0,0.55)';
   ctx.shadowBlur = 10;
@@ -236,15 +147,7 @@ function _fillHudPanel(ctx, x, y, w, h, r) {
   ctx.fill();
 }
 
-/**
- * Handles stroke hud panel.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} x Input parameter.
- * @param {number} y Input parameter.
- * @param {number} w Input parameter.
- * @param {number} h Input parameter.
- * @param {number} r Input parameter.
- */
+/** Handles stroke Hud Panel. @param {*} ctx - Ctx value. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @param {*} r - R value. @returns {void} - Nothing. */
 function _strokeHudPanel(ctx, x, y, w, h, r) {
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;

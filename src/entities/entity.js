@@ -1,12 +1,6 @@
 // #region Class Definition
 export class Entity {
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   * @param {number} w Input parameter.
-   * @param {number} h Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @returns {void} - Nothing. */
   constructor(x, y, w, h) {
     this.x    = x;
     this.y    = y;
@@ -17,17 +11,12 @@ export class Entity {
     this.active = true;
   }
 
-  /**
-   * Handles get bounds.
-   */
+/** Gets bounds. @returns {*} - Resulting value. */
   getBounds() {
     return { x: this.x, y: this.y, w: this.w, h: this.h };
   }
 
-  /**
-   * Handles intersects.
-   * @param {object} other Input parameter.
-   */
+/** Handles intersects. @param {*} other - Other value. @returns {number} - Computed numeric value. */
   intersects(other) {
     return (
       this.x         < other.x + other.w &&
@@ -37,18 +26,10 @@ export class Entity {
     );
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   update(dt) {}
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, cam, imageCache) {}
 }
 // #endregion

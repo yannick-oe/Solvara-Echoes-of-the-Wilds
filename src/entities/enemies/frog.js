@@ -20,11 +20,7 @@ const JUMP_SPEED_X   = 140;
 // #region Class Definition
 export class FrogEnemy extends Enemy {
 
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     super(x, y, FROG_W, FROG_H);
     this.deathSound  = 'assets/audio/sfx/enemyKill.mp3';
@@ -36,11 +32,7 @@ export class FrogEnemy extends Enemy {
     this.facingRight = Math.random() < 0.5;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   * @param {object} tileMap Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   update(dt, tileMap) {
     if (this.dead) return;
     this._applyGravity(dt);
@@ -52,18 +44,12 @@ export class FrogEnemy extends Enemy {
     this._finishJumpOnLanding();
   }
 
-  /**
-   * Handles apply gravity.
-   * @param {number} dt Input parameter.
-   */
+/** Applies gravity. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _applyGravity(dt) {
     this.velY = Math.min(this.velY + GRAVITY * dt, MAX_FALL_SPEED);
   }
 
-  /**
-   * Handles update idle state.
-   * @param {number} dt Input parameter.
-   */
+/** Updates idle State. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _updateIdleState(dt) {
     if (this._state !== 'idle') return;
     this.velX = 0;
@@ -72,10 +58,7 @@ export class FrogEnemy extends Enemy {
     this._advanceIdleFrame(dt);
   }
 
-  /**
-   * Handles advance idle frame.
-   * @param {number} dt Input parameter.
-   */
+/** Handles advance Idle Frame. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _advanceIdleFrame(dt) {
     this._frameTimer += dt;
     const frameDur = 1 / IDLE_FPS;
@@ -84,18 +67,14 @@ export class FrogEnemy extends Enemy {
     this._frameIndex = (this._frameIndex + 1) % IDLE_FRAMES;
   }
 
-  /**
-   * Handles update jump x.
-   * @param {number} dt Input parameter.
-   * @param {object} tileMap Input parameter.
-   */
+/** Updates jump X. @param {*} dt - Frame delta time. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   _updateJumpX(dt, tileMap) {
     if (this._state !== 'jumping') return;
     this.x += this.velX * dt;
     this._resolveWall(tileMap);
   }
 
-  /** Handles finish jump on landing. */
+/** Handles finish Jump On Landing. @returns {void} - Nothing. */
   _finishJumpOnLanding() {
     if (!(this._state === 'jumping' && this._onGround)) return;
     this._state = 'idle';
@@ -105,12 +84,7 @@ export class FrogEnemy extends Enemy {
     this._frameTimer = 0;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {*} - Resulting value. */
   draw(ctx, _cam, imageCache) {
     if (this.dead) return;
     const img = this._currentSprite(imageCache);
@@ -121,23 +95,14 @@ export class FrogEnemy extends Enemy {
     this._drawFlipped(ctx, img, dx, dy);
   }
 
-  /**
-   * Handles current sprite.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles current Sprite. @param {*} imageCache - Image Cache value. @returns {*} - Resulting value. */
   _currentSprite(imageCache) {
     if (this._state === 'idle') return imageCache.get(`FROG_IDLE_${this._frameIndex}`);
     const fi = this.velY < 0 ? 0 : 1;
     return imageCache.get(`FROG_JUMP_${fi}`);
   }
 
-  /**
-   * Handles draw flipped.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} img Input parameter.
-   * @param {number} dx Input parameter.
-   * @param {number} dy Input parameter.
-   */
+/** Draws flipped. @param {*} ctx - Ctx value. @param {*} img - Img value. @param {*} dx - Dx value. @param {*} dy - Dy value. @returns {void} - Nothing. */
   _drawFlipped(ctx, img, dx, dy) {
     ctx.save();
     ctx.translate(dx + DRAW_W, dy);
@@ -146,9 +111,7 @@ export class FrogEnemy extends Enemy {
     ctx.restore();
   }
 
-  /**
-   * Handles begin jump.
-   */
+/** Handles begin Jump. @returns {void} - Nothing. */
   _beginJump() {
     this._state = 'jumping';
     this.velY   = JUMP_VEL_Y;
@@ -160,47 +123,59 @@ export class FrogEnemy extends Enemy {
   }
 
 
-  /**
-   * Handles resolve floor.
-   * @param {object} tileMap Input parameter.
-   */
+/** Resolves floor. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   _resolveFloor(tileMap) {
     if (this.velY < 0) return;
-    const ts       = TILE_SIZE;
-    const leftCol  = Math.floor(this.x / ts);
-    const rightCol = Math.floor((this.x + this.w - 1) / ts);
-    const botRow   = Math.floor((this.y + this.h - 1) / ts);
+    const { ts, leftCol, rightCol, botRow } = this._floorProbe();
     for (let col = leftCol; col <= rightCol; col++) {
-      if (tileMap.isSolid(col, botRow)) {
-        this.y         = botRow * ts - this.h;
-        this.velY      = 0;
-        this._onGround = true;
-        return;
-      }
+      if (!tileMap.isSolid(col, botRow)) continue;
+      this._landOnFloor(botRow, ts);
+      return;
     }
   }
 
-  /**
-   * Handles resolve wall.
-   * @param {object} tileMap Input parameter.
-   */
+/** Resolves wall. @param {*} tileMap - Current tile map. @returns {void} - Nothing. */
   _resolveWall(tileMap) {
     if (this.velX === 0) return;
-    const ts       = TILE_SIZE;
-    const topRow   = Math.floor(this.y / ts);
-    const botRow   = Math.floor((this.y + this.h - 1) / ts);
-    const checkCol = this.velX > 0
-      ? Math.floor((this.x + this.w - 1) / ts)
-      : Math.floor(this.x / ts);
+    const { ts, topRow, botRow, checkCol } = this._wallProbe();
     for (let row = topRow; row <= botRow; row++) {
-      if (tileMap.isSolid(checkCol, row)) {
-        this.x    = this.velX > 0
-          ? checkCol * ts - this.w
-          : (checkCol + 1) * ts;
-        this.velX = 0;
-        break;
-      }
+      if (!tileMap.isSolid(checkCol, row)) continue;
+      this._stopAtWall(checkCol, ts);
+      break;
     }
+  }
+
+/** Handles floor Probe. @returns {*} - Resulting value. */
+  _floorProbe() {
+    return {
+      ts: TILE_SIZE,
+      leftCol: Math.floor(this.x / TILE_SIZE),
+      rightCol: Math.floor((this.x + this.w - 1) / TILE_SIZE),
+      botRow: Math.floor((this.y + this.h - 1) / TILE_SIZE),
+    };
+  }
+
+/** Handles land On Floor. @param {*} botRow - Bot Row value. @param {*} ts - Ts value. @returns {void} - Nothing. */
+  _landOnFloor(botRow, ts) {
+    this.y = botRow * ts - this.h;
+    this.velY = 0;
+    this._onGround = true;
+  }
+
+/** Handles wall Probe. @returns {*} - Resulting value. */
+  _wallProbe() {
+    return {
+      ts: TILE_SIZE,
+      topRow: Math.floor(this.y / TILE_SIZE),
+      botRow: Math.floor((this.y + this.h - 1) / TILE_SIZE),
+      checkCol: this.velX > 0 ? Math.floor((this.x + this.w - 1) / TILE_SIZE) : Math.floor(this.x / TILE_SIZE),
+    };
+  }
+
+/** Stops at Wall. @param {*} checkCol - Check Col value. @param {*} ts - Ts value. @returns {void} - Nothing. */
+  _stopAtWall(checkCol, ts) {
+    this.x = this.velX > 0 ? checkCol * ts - this.w : (checkCol + 1) * ts;
+    this.velX = 0;
   }
 }
 // #endregion

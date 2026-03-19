@@ -9,29 +9,18 @@ const DRAW_H = 96;
 
 // #region Class Definition
 export class Door extends Entity {
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     super(x, y, 32, 96);
     this.isOpen = false;
   }
 
-  /**
-   * Handles unlock.
-   */
+/** Handles unlock. @returns {void} - Nothing. */
   unlock() {
     this.isOpen = true;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     const imgKey = this.isOpen ? 'PROP_DOOR_OPENED' : 'PROP_DOOR';
     const img    = imageCache.get(imgKey);

@@ -13,23 +13,14 @@ const HIT_H   = 16;
 
 // #region Class Definition
 export class FloorSpike extends Entity {
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     super(x + HIT_OX, y + HIT_OY, HIT_W, HIT_H);
     this._drawX = x;
     this._drawY = y;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     const img = imageCache.get('PROP_SPIKES');
     if (!img) return;

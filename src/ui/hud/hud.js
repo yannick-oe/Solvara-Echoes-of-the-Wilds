@@ -3,6 +3,7 @@ import { hudUpdateMethods } from './hudUpdateMethods.js';
 import { hudRenderMethods } from './hudRenderMethods.js';
 
 export class Hud {
+/** Creates a new instance. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   constructor(imageCache) {
     this._imageCache = imageCache;
     this._displayScore = 0;

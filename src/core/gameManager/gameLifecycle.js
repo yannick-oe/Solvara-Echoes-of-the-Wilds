@@ -15,9 +15,7 @@ import {
 // #endregion
 
 // #region Public Methods
-/**
- * Creates a new default game state object.
- */
+/** Creates game State. @returns {*} - Resulting value. */
 export function createGameState() {
   return {
     hearts: PLAYER_START_HEARTS,
@@ -28,31 +26,15 @@ export function createGameState() {
   };
 }
 
-/**
- * Rebuilds world entities from the loaded level content.
- * @param {object} game Input parameter.
- */
+/** Handles init Entities. @param {*} game - Game value. @returns {void} - Nothing. */
 export function initEntities(game) {
   const levelContent = game._level.content;
-  game._player = createPlayer(
-    levelContent,
-    game._selectedCharacter,
-    projectile => game._projectiles.push(projectile),
-  );
-  game._enemies = spawnEnemies(levelContent);
-  game._pickups = spawnPickups(levelContent);
-  game._interactables = spawnInteractables(levelContent);
-  game._hazards = spawnHazards(levelContent);
-  game._props = spawnProps(levelContent);
-  game._projectiles = [];
-  game._effects = [];
+  _resetTransientEntities(game);
+  game._player = _createLevelPlayer(game, levelContent);
+  _spawnLevelEntities(game, levelContent);
 }
 
-/**
- * Applies a game state transition and triggers state-bound side effects.
- * @param {object} game Input parameter.
- * @param {object} nextState Input parameter.
- */
+/** Sets game State. @param {*} game - Game value. @param {*} nextState - Next State value. @returns {void} - Nothing. */
 export function setGameState(game, nextState) {
   game.state = nextState;
   if (nextState === GAME_STATES.PLAYING) {
@@ -60,20 +42,38 @@ export function setGameState(game, nextState) {
   }
 }
 
-/**
- * Starts the delayed transition from victory pose to victory screen.
- * @param {object} game Input parameter.
- */
+/** Handles reset Transient Entities. @param {*} game - Game value. @returns {void} - Nothing. */
+function _resetTransientEntities(game) {
+  game._projectiles = [];
+  game._effects = [];
+}
+
+/** Creates level Player. @param {*} game - Game value. @param {*} levelContent - Level Content value. @returns {*} - Resulting value. */
+function _createLevelPlayer(game, levelContent) {
+  return createPlayer(
+    levelContent,
+    game._selectedCharacter,
+    projectile => game._projectiles.push(projectile),
+  );
+}
+
+/** Spawns level Entities. @param {*} game - Game value. @param {*} levelContent - Level Content value. @returns {void} - Nothing. */
+function _spawnLevelEntities(game, levelContent) {
+  game._enemies = spawnEnemies(levelContent);
+  game._pickups = spawnPickups(levelContent);
+  game._interactables = spawnInteractables(levelContent);
+  game._hazards = spawnHazards(levelContent);
+  game._props = spawnProps(levelContent);
+}
+
+/** Starts victory Sequence. @param {*} game - Game value. @returns {void} - Nothing. */
 export function startVictorySequence(game) {
   game._player.startVictoryPose();
   game._victoryPoseTimer = 0.65;
   game._finalLevelTime = game._levelTimer;
 }
 
-/**
- * Handles player death flow including audio fade and game-over transition.
- * @param {object} game Input parameter.
- */
+/** Handles player Death. @param {*} game - Game value. @returns {void} - Nothing. */
 export function handlePlayerDeath(game) {
   game._player.startDying();
   audioManager.playSfx('assets/audio/sfx/deathSound.mp3', { volume: SFX_VOLUME.death });
@@ -86,10 +86,7 @@ export function handlePlayerDeath(game) {
   }, 400);
 }
 
-/**
- * Resets runtime timers and world state and re-enters the playing phase.
- * @param {object} game Input parameter.
- */
+/** Handles restart Game Session. @param {*} game - Game value. @param {*} characterId - Character Id value. @returns {void} - Nothing. */
 export function restartGameSession(game, characterId = game._selectedCharacter) {
   _clearPendingSessionTimeouts(game);
   intervalManager.stopAll();
@@ -99,10 +96,7 @@ export function restartGameSession(game, characterId = game._selectedCharacter) 
   setGameState(game, GAME_STATES.PLAYING);
 }
 
-/**
- * Clears pending death/victory timeout handles.
- * @param {object} game Input parameter.
- */
+/** Clears pending Session Timeouts. @param {*} game - Game value. @returns {void} - Nothing. */
 function _clearPendingSessionTimeouts(game) {
   if (game._deathTimeoutId !== null) {
     clearTimeout(game._deathTimeoutId);
@@ -114,11 +108,7 @@ function _clearPendingSessionTimeouts(game) {
   }
 }
 
-/**
- * Resets runtime game-session state fields.
- * @param {object} game Input parameter.
- * @param {string} characterId Input parameter.
- */
+/** Handles reset Session State. @param {*} game - Game value. @param {*} characterId - Character Id value. @returns {void} - Nothing. */
 function _resetSessionState(game, characterId) {
   game._selectedCharacter = characterId;
   game._levelTimer = 0;
@@ -127,10 +117,7 @@ function _resetSessionState(game, characterId) {
   game.gameState = createGameState();
 }
 
-/**
- * Resets camera and look offset to defaults.
- * @param {object} game Input parameter.
- */
+/** Handles reset Camera State. @param {*} game - Game value. @returns {void} - Nothing. */
 function _resetCameraState(game) {
   game._camera.x = 0;
   game._camera.y = 0;

@@ -6,9 +6,7 @@ import { imageCache } from '../core/imageCache.js';
 
 // #region Class Definition
 export class Level {
-  /**
-   * Creates a new instance.
-   */
+/** Creates a new instance. @returns {void} - Nothing. */
   constructor() {
     /** @type {TileMap|null} */
     this.tileMap  = null;
@@ -17,27 +15,20 @@ export class Level {
     this._data    = null;
   }
 
-  /**
-   * Loads the level JSON file and creates the TileMap.
-   * Must be called after imageCache.preload().
-   * @param {string} jsonPath
-   */
+/** Handles load. @param {*} jsonPath - Json Path value. @returns {void} - Nothing. */
   async load(jsonPath) {
     const response = await fetch(jsonPath);
     this._data     = await response.json();
     this.tileMap   = new TileMap(this._data, imageCache.get('TILESET'));
   }
 
-  /** World width in pixels (TILE_SIZE-based). */
+/** Gets width. @returns {number} - Current value. */
   get width()  { return this._data ? this._data.meta.columns * TILE_SIZE : 0; }
 
-  /** World height in pixels (TILE_SIZE-based). */
+/** Gets height. @returns {number} - Current value. */
   get height() { return this._data ? this._data.meta.rows    * TILE_SIZE : 0; }
 
-  /**
-   * Returns the `content` block from the level JSON.
-   * Contains playerSpawn, enemies, pickups, hazards, and interactables.
-   */
+/** Gets content. @returns {*} - Current value. */
   get content() { return this._data?.content ?? null; }
 }
 // #endregion

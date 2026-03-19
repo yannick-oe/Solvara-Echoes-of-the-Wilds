@@ -11,11 +11,7 @@ const FRAME_SCALE = [1.35, 1.0, 0.88, 0.78];
 // #region Class Definition
 export class DeathEffect extends Entity {
 
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @returns {void} - Nothing. */
   constructor(x, y) {
     const W = 56, H = 56;
     super(x - W / 2, y - 10, W, H);
@@ -24,10 +20,7 @@ export class DeathEffect extends Entity {
     this.done        = false;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   update(dt) {
     if (this.done) return;
     this._frameTimer += dt;
@@ -41,12 +34,7 @@ export class DeathEffect extends Entity {
     }
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     if (this.done) return;
     const img = imageCache.get(`DEATH_EFFECT_${this._frameIndex}`);

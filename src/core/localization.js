@@ -113,18 +113,12 @@ export let currentLang = 'en';
 // #endregion
 
 // #region Public Methods
-/**
- * Handles set lang.
- * @param {string} lang Input parameter.
- */
+/** Sets lang. @param {*} lang - Lang value. @returns {void} - Nothing. */
 export function setLang(lang) {
   if (LANGS.includes(lang)) currentLang = lang;
 }
 
-/**
- * Handles t.
- * @param {string} key Input parameter.
- */
+/** Handles t. @param {*} key - Key value. @returns {*} - Resulting value. */
 export function t(key) {
   return TEXT[currentLang]?.[key] ?? TEXT.en[key] ?? key;
 }

@@ -10,33 +10,19 @@ const SIZE        = 45;
 
 // #region Class Definition
 export class StarCoin extends Pickup {
-  /**
-   * Creates a new instance.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   * @param {number} slotIndex Input parameter.
-   */
+/** Creates a new instance. @param {*} x - X value. @param {*} y - Y value. @param {*} slotIndex - Slot Index value. @returns {void} - Nothing. */
   constructor(x, y, slotIndex) {
     super(x, y, 24, 24, FRAME_COUNT, FRAME_SEC);
     this.slotIndex = slotIndex;
   }
 
-  /**
-   * Handles collect.
-   * @param {object} player Input parameter.
-   * @param {string} gameState Input parameter.
-   */
+/** Handles collect. @param {*} player - Player value. @param {*} gameState - Current game state. @returns {void} - Nothing. */
   collect(player, gameState) {
     super.collect(player, gameState);
     gameState.starCoins[this.slotIndex] = true;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} _cam Input parameter.
-   * @param {object} imageCache Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} _cam - Cam value. @param {*} imageCache - Image Cache value. @returns {void} - Nothing. */
   draw(ctx, _cam, imageCache) {
     if (!this.active) return;
     const img = imageCache.get(`STAR_COIN_${this._frameIndex}`);

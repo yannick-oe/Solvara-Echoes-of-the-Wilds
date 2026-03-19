@@ -18,10 +18,7 @@ const PARTICLE_MAX   = 42;
 // #endregion
 
 // #region Class Definition
-/**
- * Handles ease out bounce.
- * @param {number} x Input parameter.
- */
+/** Handles ease Out Bounce. @param {*} x - X value. @returns {*} - Resulting value. */
 function easeOutBounce(x) {
   const n1 = 7.5625, d1 = 2.75;
   if (x < 1 / d1)       return n1 * x * x;
@@ -32,10 +29,7 @@ function easeOutBounce(x) {
 
 export class GameOverScreen {
 
-  /**
-   * Creates a new instance.
-   * @param {object} onRestart Input parameter.
-   */
+/** Creates a new instance. @param {*} onRestart - On Restart value. @returns {void} - Nothing. */
   constructor(onRestart) {
     this._onRestart   = onRestart;
     this._elapsed     = 0;
@@ -48,9 +42,7 @@ export class GameOverScreen {
     this._stingEl.loop    = false;
   }
 
-  /**
-   * Handles show.
-   */
+/** Handles show. @returns {void} - Nothing. */
   show() {
     this._elapsed     = 0;
     this._letterDefs  = null;
@@ -59,10 +51,7 @@ export class GameOverScreen {
     this._glowElapsed = -1;
   }
 
-  /**
-   * Handles update.
-   * @param {number} dt Input parameter.
-   */
+/** Handles update. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   update(dt) {
     this._elapsed += dt;
     this._tickParticles(dt);
@@ -70,7 +59,7 @@ export class GameOverScreen {
     this._tickGlowTimer(dt);
   }
 
-  /** Updates particle movement/lifetime and prunes expired particles. */
+/** Handles tick Particles. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _tickParticles(dt) {
     for (const p of this._particles) {
       p.x += p.vx * dt;
@@ -81,34 +70,28 @@ export class GameOverScreen {
     this._particles = this._particles.filter(p => p.life > 0);
   }
 
-  /** Spawns extra particles when pool density drops. */
+/** Handles maybe Spawn Particles. @returns {void} - Nothing. */
   _maybeSpawnParticles() {
     if (this._particles.length >= PARTICLE_MAX * 0.55) return;
     if (Math.random() >= 0.25) return;
     this._particles.push(...this._spawnParticles(4));
   }
 
-  /** Starts/advances glow sweep timer after all letters land. */
+/** Handles tick Glow Timer. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _tickGlowTimer(dt) {
     const allLandTime = (('GAME OVER'.length - 1) * STAGGER) + FALL_DURATION;
     if (this._elapsed >= allLandTime && this._glowElapsed < 0) this._glowElapsed = 0;
     if (this._glowElapsed >= 0) this._glowElapsed += dt;
   }
 
-  /**
-   * Handles handle input.
-   * @param {object} input Input parameter.
-   */
+/** Handles input. @param {*} input - Current input state. @returns {void} - Nothing. */
   handleInput(input) {
     if (input.jumpPressed || input.enterPressed || input.escPressed) {
       this._onRestart();
     }
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   draw(ctx) {
     this._drawBackdrop(ctx);
     this._drawParticles(ctx);
@@ -118,7 +101,7 @@ export class GameOverScreen {
     this._drawOptionalHint(ctx);
   }
 
-  /** Draws gradient background and vignette overlay. */
+/** Draws backdrop. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawBackdrop(ctx) {
     const bg = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     bg.addColorStop(0, '#0e0b1a');
@@ -132,17 +115,17 @@ export class GameOverScreen {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
-  /** Ensures cached letter metrics are initialized once. */
+/** Handles ensure Letter Defs. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _ensureLetterDefs(ctx) {
     if (!this._letterDefs) this._initLetterDefs(ctx);
   }
 
-  /** Draws glow sweep when timer is active. */
+/** Draws optional Glow. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawOptionalGlow(ctx) {
     if (this._glowElapsed >= 0 && this._glowElapsed < SWEEP_DURATION) this._drawGlowSweep(ctx);
   }
 
-  /** Draws retry hint after the reveal delay. */
+/** Draws optional Hint. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawOptionalHint(ctx) {
     const allLandTime = (('GAME OVER'.length - 1) * STAGGER) + FALL_DURATION;
     const hintStart = allLandTime + 0.55;
@@ -151,16 +134,13 @@ export class GameOverScreen {
     this._drawHintText(ctx, alpha);
   }
 
-  /**
-   * Handles init letter defs.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Handles init Letter Defs. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _initLetterDefs(ctx) {
     this._letterDefs = this._buildLetterDefs(ctx);
     this._playStingOnce();
   }
 
-  /** Builds timed letter descriptors for GAME OVER reveal. */
+/** Builds letter Defs. @param {*} ctx - Ctx value. @returns {*} - Resulting value. */
   _buildLetterDefs(ctx) {
     ctx.save();
     ctx.font = FONT_MAIN;
@@ -170,7 +150,7 @@ export class GameOverScreen {
     return defs;
   }
 
-  /** Measures glyph widths and computes letter positions. */
+/** Handles measure Letter Defs. @param {*} ctx - Ctx value. @returns {*} - Resulting value. */
   _measureLetterDefs(ctx) {
     const chars = 'GAME OVER'.split('');
     const finalY = Math.round(CANVAS_HEIGHT * TITLE_Y_FRAC);
@@ -180,14 +160,14 @@ export class GameOverScreen {
     return chars.map((char, i) => this._createLetterDef(char, i, widths, finalY, () => curX, v => { curX = v; }));
   }
 
-  /** Creates one letter definition and advances x cursor. */
+/** Creates letter Def. @param {*} char - Char value. @param {*} i - I value. @param {*} widths - Widths value. @param {*} finalY - Final Y value. @param {*} getX - Get X value. @param {*} setX - Set X value. @returns {*} - Resulting value. */
   _createLetterDef(char, i, widths, finalY, getX, setX) {
     const lx = getX();
     setX(lx + widths[i] + CHAR_GAP);
     return { char, x: lx, finalY, startY: finalY + START_OFFSET, delay: i * STAGGER };
   }
 
-  /** Plays one-shot game-over sting if not already played. */
+/** Plays sting Once. @returns {void} - Nothing. */
   _playStingOnce() {
     if (this._stingPlayed) return;
     this._stingPlayed = true;
@@ -196,10 +176,7 @@ export class GameOverScreen {
     this._stingEl.play().catch(() => {});
   }
 
-  /**
-   * Handles draw letters.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws letters. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawLetters(ctx) {
     ctx.save();
     ctx.font = FONT_MAIN;
@@ -209,7 +186,7 @@ export class GameOverScreen {
     ctx.restore();
   }
 
-  /** Draws one animated falling title letter. */
+/** Draws one Letter. @param {*} ctx - Ctx value. @param {*} def - Def value. @returns {void} - Nothing. */
   _drawOneLetter(ctx, def) {
     const localTime = this._elapsed - def.delay;
     if (localTime <= 0) return;
@@ -224,10 +201,7 @@ export class GameOverScreen {
     ctx.fillText(def.char, def.x, curY);
   }
 
-  /**
-   * Handles draw glow sweep.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws glow Sweep. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawGlowSweep(ctx) {
     const t    = this._glowElapsed / SWEEP_DURATION;
     const posX = -80 + (CANVAS_WIDTH + 160) * t;
@@ -242,11 +216,7 @@ export class GameOverScreen {
     ctx.fillRect(posX - 70, textTop, 140, textH);
   }
 
-  /**
-   * Handles draw hint text.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {number} alpha Input parameter.
-   */
+/** Draws hint Text. @param {*} ctx - Ctx value. @param {*} alpha - Alpha value. @returns {void} - Nothing. */
   _drawHintText(ctx, alpha) {
     ctx.save();
     ctx.globalAlpha  = alpha;
@@ -259,10 +229,7 @@ export class GameOverScreen {
     ctx.restore();
   }
 
-  /**
-   * Handles draw particles.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   */
+/** Draws particles. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
   _drawParticles(ctx) {
     ctx.save();
     for (const p of this._particles) {
@@ -276,17 +243,14 @@ export class GameOverScreen {
     ctx.restore();
   }
 
-  /**
-   * Handles spawn particles.
-   * @param {number} count Input parameter.
-   */
+/** Spawns particles. @param {*} count - Count value. @returns {*} - Resulting value. */
   _spawnParticles(count) {
     const list = [];
     for (let i = 0; i < count; i++) list.push(this._createParticle());
     return list;
   }
 
-  /** Creates one ambient particle object. */
+/** Creates particle. @returns {*} - Resulting value. */
   _createParticle() {
     const life = 2.8 + Math.random() * 3.2;
     return {

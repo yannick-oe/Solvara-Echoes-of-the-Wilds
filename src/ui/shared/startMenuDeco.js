@@ -5,20 +5,14 @@ import { rrect } from './canvasUtils.js';
 // #endregion
 
 // #region Public Methods
-/**
- * Handles draw background.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- */
+/** Draws background. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
 export function drawBackground(ctx) {
   _fillSky(ctx);
   _drawBackLayer(ctx);
   _drawMiddleLayer(ctx);
 }
 
-/**
- * Handles fill sky.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- */
+/** Handles fill Sky. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
 function _fillSky(ctx) {
   const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
   sky.addColorStop(0, '#1e3a52');
@@ -28,10 +22,7 @@ function _fillSky(ctx) {
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
-/**
- * Handles draw back layer.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- */
+/** Draws back Layer. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
 function _drawBackLayer(ctx) {
   const bgBack = imageCache.get('BG_FOREST_BACK');
   if (!bgBack) return;
@@ -40,10 +31,7 @@ function _drawBackLayer(ctx) {
   ctx.drawImage(bgBack, 0, 0, drawW, CANVAS_HEIGHT);
 }
 
-/**
- * Handles draw middle layer.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- */
+/** Draws middle Layer. @param {*} ctx - Ctx value. @returns {void} - Nothing. */
 function _drawMiddleLayer(ctx) {
   const bgMiddle = imageCache.get('BG_FOREST_MIDDLE');
   if (!bgMiddle) return;
@@ -54,13 +42,7 @@ function _drawMiddleLayer(ctx) {
   for (let x = 0; x < CANVAS_WIDTH; x += drawW) ctx.drawImage(bgMiddle, Math.floor(x), drawY, drawW, drawH);
 }
 
-/**
- * Draws the ornate frame behind the game title.
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} cx      - Horizontal center of the canvas
- * @param {number} titleY  - Y position of the title text
- */
+/** Draws title Banner. @param {*} ctx - Ctx value. @param {*} cx - Cx value. @param {*} titleY - Title Y value. @returns {void} - Nothing. */
 export function drawTitleBanner(ctx, cx, titleY) {
   const frame = _titleFrame(cx, titleY);
   _drawBannerGlow(ctx, cx, frame);
@@ -70,11 +52,7 @@ export function drawTitleBanner(ctx, cx, titleY) {
   _drawBannerCorners(ctx, frame);
 }
 
-/**
- * Handles title frame metrics.
- * @param {number} cx Input parameter.
- * @param {number} titleY Input parameter.
- */
+/** Handles title Frame. @param {*} cx - Cx value. @param {*} titleY - Title Y value. @returns {*} - Resulting value. */
 function _titleFrame(cx, titleY) {
   const w = 380;
   const h = 104;
@@ -83,12 +61,7 @@ function _titleFrame(cx, titleY) {
   return { x, y, w, h, r: 6 };
 }
 
-/**
- * Handles draw banner glow.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} cx Input parameter.
- * @param {object} frame Input parameter.
- */
+/** Draws banner Glow. @param {*} ctx - Ctx value. @param {*} cx - Cx value. @param {*} frame - Frame value. @returns {void} - Nothing. */
 function _drawBannerGlow(ctx, cx, frame) {
   const glow = ctx.createRadialGradient(cx, frame.y + frame.h / 2, 8, cx, frame.y + frame.h / 2, 230);
   glow.addColorStop(0, 'rgba(220, 155, 35, 0.20)');
@@ -98,11 +71,7 @@ function _drawBannerGlow(ctx, cx, frame) {
   ctx.fillRect(frame.x - 60, frame.y - 32, frame.w + 120, frame.h + 64);
 }
 
-/**
- * Handles draw banner body.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {object} frame Input parameter.
- */
+/** Draws banner Body. @param {*} ctx - Ctx value. @param {*} frame - Frame value. @returns {void} - Nothing. */
 function _drawBannerBody(ctx, frame) {
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,0.75)';
@@ -117,11 +86,7 @@ function _drawBannerBody(ctx, frame) {
   ctx.fill();
 }
 
-/**
- * Handles draw banner grain.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {object} frame Input parameter.
- */
+/** Draws banner Grain. @param {*} ctx - Ctx value. @param {*} frame - Frame value. @returns {void} - Nothing. */
 function _drawBannerGrain(ctx, frame) {
   const g = ctx.createLinearGradient(frame.x, frame.y, frame.x, frame.y + frame.h);
   g.addColorStop(0, 'rgba(22, 10, 3, 0.50)');
@@ -133,11 +98,7 @@ function _drawBannerGrain(ctx, frame) {
   ctx.fill();
 }
 
-/**
- * Handles draw banner borders.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {object} frame Input parameter.
- */
+/** Draws banner Borders. @param {*} ctx - Ctx value. @param {*} frame - Frame value. @returns {void} - Nothing. */
 function _drawBannerBorders(ctx, frame) {
   ctx.strokeStyle = '#3b2615';
   ctx.lineWidth = 3;
@@ -149,11 +110,7 @@ function _drawBannerBorders(ctx, frame) {
   ctx.stroke();
 }
 
-/**
- * Handles draw banner corners.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {object} frame Input parameter.
- */
+/** Draws banner Corners. @param {*} ctx - Ctx value. @param {*} frame - Frame value. @returns {void} - Nothing. */
 function _drawBannerCorners(ctx, frame) {
   const corners = _bannerCornerPoints(frame);
   ctx.fillStyle = '#3b2615';
@@ -162,10 +119,7 @@ function _drawBannerCorners(ctx, frame) {
   for (const [ox, oy] of corners) _drawBannerCorner(ctx, ox, oy);
 }
 
-/**
- * Handles banner corner points.
- * @param {object} frame Input parameter.
- */
+/** Handles banner Corner Points. @param {*} frame - Frame value. @returns {*} - Resulting value. */
 function _bannerCornerPoints(frame) {
   return [
     [frame.x + 7, frame.y + 7],
@@ -175,12 +129,7 @@ function _bannerCornerPoints(frame) {
   ];
 }
 
-/**
- * Handles draw one banner corner.
- * @param {CanvasRenderingContext2D} ctx Input parameter.
- * @param {number} ox Input parameter.
- * @param {number} oy Input parameter.
- */
+/** Draws banner Corner. @param {*} ctx - Ctx value. @param {*} ox - Ox value. @param {*} oy - Oy value. @returns {void} - Nothing. */
 function _drawBannerCorner(ctx, ox, oy) {
   ctx.beginPath();
   ctx.moveTo(ox, oy - 4);
@@ -192,13 +141,7 @@ function _drawBannerCorner(ctx, ox, oy) {
   ctx.stroke();
 }
 
-/**
- * Draws a dark radial edge vignette over the entire canvas.
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} cx  - Horizontal center
- * @param {number} cy  - Vertical center
- */
+/** Draws vignette. @param {*} ctx - Ctx value. @param {*} cx - Cx value. @param {*} cy - Cy value. @returns {void} - Nothing. */
 export function drawVignette(ctx, cx, cy) {
   const grd = ctx.createRadialGradient(
     cx, cy * 1.05, CANVAS_HEIGHT * 0.22,

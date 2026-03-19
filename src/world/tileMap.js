@@ -26,10 +26,7 @@ const FOOTSTEP_SOUND_BY_CATEGORY = {
 const LANDING_SOUND_BY_TILE  = buildSoundLookup(LEGACY_LANDING_SOUND_BY_TILE);
 const FOOTSTEP_SOUND_BY_TILE = buildSoundLookup(LEGACY_FOOTSTEP_SOUND_BY_TILE);
 
-/**
- * Builds sound lookup supporting both canonical and legacy tile keys.
- * @param {object} legacyLookup Input parameter.
- */
+/** Builds sound Lookup. @param {*} legacyLookup - Legacy Lookup value. @returns {*} - Resulting value. */
 function buildSoundLookup(legacyLookup) {
   const lookup = { ...legacyLookup };
   for (const [legacyKey, canonicalKey] of Object.entries(LEGACY_TILE_ALIASES)) {
@@ -42,11 +39,7 @@ function buildSoundLookup(legacyLookup) {
 
 // #region Class Definition
 export class TileMap {
-  /**
-   * Creates a new instance.
-   * @param {object} data Input parameter.
-   * @param {object} tilesetImage Input parameter.
-   */
+/** Creates a new instance. @param {*} data - Data value. @param {*} tilesetImage - Tileset Image value. @returns {void} - Nothing. */
   constructor(data, tilesetImage) {
     this._map        = data.map;
     this._tiles      = this._buildTileRegistry(data.tiles ?? {});
@@ -56,10 +49,7 @@ export class TileMap {
     this._tilesetImg = tilesetImage;
   }
 
-  /**
-   * Builds canonical tile registry including legacy aliases.
-   * @param {object} customTiles Input parameter.
-   */
+/** Builds tile Registry. @param {*} customTiles - Custom Tiles value. @returns {*} - Resulting value. */
   _buildTileRegistry(customTiles) {
     const merged = { ...TILE_REGISTRY, ...customTiles };
     for (const [legacyKey, canonicalKey] of Object.entries(LEGACY_TILE_ALIASES)) {
@@ -69,11 +59,7 @@ export class TileMap {
     return merged;
   }
 
-  /**
-   * Handles is solid.
-   * @param {number} col Input parameter.
-   * @param {number} row Input parameter.
-   */
+/** Checks whether solid. @param {*} col - Col value. @param {*} row - Row value. @returns {boolean} - Whether the check passes. */
   isSolid(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return true;
     const key = this._map[row]?.[col];
@@ -82,11 +68,7 @@ export class TileMap {
     return tile?.pass === false && !tile?.oneWay;
   }
 
-  /**
-   * Handles is one way.
-   * @param {number} col Input parameter.
-   * @param {number} row Input parameter.
-   */
+/** Checks whether one Way. @param {*} col - Col value. @param {*} row - Row value. @returns {boolean} - Whether the check passes. */
   isOneWay(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return false;
     const key = this._map[row]?.[col];
@@ -94,11 +76,7 @@ export class TileMap {
     return this._tiles[key]?.oneWay === true;
   }
 
-  /**
-   * Handles is ladder.
-   * @param {number} col Input parameter.
-   * @param {number} row Input parameter.
-   */
+/** Checks whether ladder. @param {*} col - Col value. @param {*} row - Row value. @returns {boolean} - Whether the check passes. */
   isLadder(col, row) {
     if (col < 0 || row < 0 || col >= this._cols || row >= this._rows) return false;
     const key = this._map[row]?.[col];
@@ -106,13 +84,7 @@ export class TileMap {
     return this._tiles[key]?.ladder === true;
   }
 
-  /**
-   * Handles is on ladder.
-   * @param {number} x Input parameter.
-   * @param {number} y Input parameter.
-   * @param {number} w Input parameter.
-   * @param {number} h Input parameter.
-   */
+/** Checks whether on Ladder. @param {*} x - X value. @param {*} y - Y value. @param {*} w - W value. @param {*} h - H value. @returns {boolean} - Whether the check passes. */
   isOnLadder(x, y, w, h) {
     const ts = TILE_SIZE;
     const midCol = Math.floor((x + w / 2) / ts);
@@ -124,11 +96,7 @@ export class TileMap {
     return false;
   }
 
-  /**
-   * Handles get landing sound.
-   * @param {object} worldX Input parameter.
-   * @param {object} feetY Input parameter.
-   */
+/** Gets landing Sound. @param {*} worldX - World X value. @param {*} feetY - Feet Y value. @returns {*} - Resulting value. */
   getLandingSound(worldX, feetY) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(feetY  / TILE_SIZE);
@@ -139,11 +107,7 @@ export class TileMap {
     return LANDING_SOUND_BY_TILE[key] ?? FOOTSTEP_SOUND_BY_CATEGORY[tile.category] ?? null;
   }
 
-  /**
-   * Handles get footstep sound.
-   * @param {object} worldX Input parameter.
-   * @param {object} feetY Input parameter.
-   */
+/** Gets footstep Sound. @param {*} worldX - World X value. @param {*} feetY - Feet Y value. @returns {*} - Resulting value. */
   getFootstepSound(worldX, feetY) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(feetY  / TILE_SIZE);
@@ -154,11 +118,7 @@ export class TileMap {
     return FOOTSTEP_SOUND_BY_TILE[key] ?? FOOTSTEP_SOUND_BY_CATEGORY[tile.category] ?? null;
   }
 
-  /**
-   * Handles get tile at.
-   * @param {object} worldX Input parameter.
-   * @param {object} worldY Input parameter.
-   */
+/** Gets tile At. @param {*} worldX - World X value. @param {*} worldY - World Y value. @returns {*} - Resulting value. */
   getTileAt(worldX, worldY) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(worldY / TILE_SIZE);
@@ -167,11 +127,7 @@ export class TileMap {
     return key ? (this._tiles[key] ?? null) : null;
   }
 
-  /**
-   * Handles draw.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {object} camera Input parameter.
-   */
+/** Handles draw. @param {*} ctx - Ctx value. @param {*} camera - Current camera instance. @returns {void} - Nothing. */
   draw(ctx, camera) {
     if (!this._tilesetImg) return;
     ctx.imageSmoothingEnabled = false;
@@ -183,10 +139,7 @@ export class TileMap {
     }
   }
 
-  /**
-   * Computes visible tile bounds for current camera.
-   * @param {object} camera Input parameter.
-   */
+/** Gets visible Bounds. @param {*} camera - Current camera instance. @returns {*} - Resulting value. */
   _getVisibleBounds(camera) {
     const ts = TILE_SIZE;
     const startCol = Math.max(0, Math.floor(camera.x / ts));
@@ -196,14 +149,7 @@ export class TileMap {
     return { startCol, endCol, startRow, endRow, ts, src: this._srcSize };
   }
 
-  /**
-   * Draws one tile at map coordinates.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {number} row Input parameter.
-   * @param {number} col Input parameter.
-   * @param {number} ts Input parameter.
-   * @param {number} src Input parameter.
-   */
+/** Draws tile. @param {*} ctx - Ctx value. @param {*} row - Row value. @param {*} col - Col value. @param {*} ts - Ts value. @param {*} src - Src value. @returns {void} - Nothing. */
   _drawTile(ctx, row, col, ts, src) {
     const key = this._map[row]?.[col];
     const tile = key ? this._tiles[key] : null;
@@ -212,26 +158,15 @@ export class TileMap {
     ctx.drawImage(this._tilesetImg, tile.txCol * src, tile.txRow * src, src, src, col * ts, row * ts, ts, ts);
   }
 
-  /**
-   * Fills tile background color before drawing the sprite.
-   * @param {CanvasRenderingContext2D} ctx Input parameter.
-   * @param {string} color Input parameter.
-   * @param {number} col Input parameter.
-   * @param {number} row Input parameter.
-   * @param {number} ts Input parameter.
-   */
+/** Handles fill Tile Background. @param {*} ctx - Ctx value. @param {*} color - Color value. @param {*} col - Col value. @param {*} row - Row value. @param {*} ts - Ts value. @returns {void} - Nothing. */
   _fillTileBackground(ctx, color, col, row, ts) {
     ctx.fillStyle = color;
     ctx.fillRect(col * ts, row * ts, ts, ts);
   }
 
-  /**
-   * Gets width.
-   */
+/** Gets width. @returns {number} - Current value. */
   get width()  { return this._cols * TILE_SIZE; }
-  /**
-   * Gets height.
-   */
+/** Gets height. @returns {number} - Current value. */
   get height() { return this._rows * TILE_SIZE; }
 }
 // #endregion

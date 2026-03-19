@@ -3,6 +3,7 @@ import { ATMO_RATE, ATMO_POOL, CX, SPARK_MAX, STAR_CY, T_STAR_0, T_STAR_GAP } fr
 import { initAtmoParticle, initSparkParticle } from '../../shared/victoryParticles.js';
 
 export const victoryScreenUpdateMethods = {
+/** Handles show. @param {*} gameState - Current game state. @param {*} levelTime - Level Time value. @returns {void} - Nothing. */
   show(gameState, levelTime) {
     this._data = {
       hearts: gameState.hearts,
@@ -18,6 +19,7 @@ export const victoryScreenUpdateMethods = {
     for (const p of this._particles) p.active = false;
   },
 
+/** Handles update. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   update(dt) {
     if (!this._data) return;
     this._tickTimers(dt);
@@ -26,18 +28,21 @@ export const victoryScreenUpdateMethods = {
     this._tickParticles(dt);
   },
 
+/** Handles tick Timers. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _tickTimers(dt) {
     this._time += dt;
     this._hintBlink += dt;
     this._atmoTimer += dt;
   },
 
+/** Spawns atmo Particle If Due. @returns {*} - Resulting value. */
   _spawnAtmoParticleIfDue() {
     if (this._atmoTimer < ATMO_RATE) return;
     this._atmoTimer = 0;
     for (const p of this._particles) if (!p.active) return initAtmoParticle(p, CANVAS_WIDTH, CANVAS_HEIGHT);
   },
 
+/** Updates star Pop. @param {*} i - I value. @returns {void} - Nothing. */
   _updateStarPop(i) {
     const tStart = T_STAR_0 + i * T_STAR_GAP;
     if (this._starPopped[i] || this._time < tStart + 0.06) return;
@@ -45,6 +50,7 @@ export const victoryScreenUpdateMethods = {
     if (this._data.starCoins[i]) this._spawnStarSparks(i);
   },
 
+/** Spawns star Sparks. @param {*} i - I value. @returns {void} - Nothing. */
   _spawnStarSparks(i) {
     const cx = Math.round(CX + (i - 1) * 90);
     let spawned = 0;
@@ -55,6 +61,7 @@ export const victoryScreenUpdateMethods = {
     }
   },
 
+/** Handles tick Particles. @param {*} dt - Frame delta time. @returns {void} - Nothing. */
   _tickParticles(dt) {
     for (const p of this._particles) {
       if (!p.active) continue;
@@ -66,6 +73,7 @@ export const victoryScreenUpdateMethods = {
     }
   },
 
+/** Handles input. @param {*} input - Current input state. @returns {void} - Nothing. */
   handleInput(input) {
     if (!this._data || this._time < 0.5) return;
     if (input.pausePressed) this._onMainMenu();
